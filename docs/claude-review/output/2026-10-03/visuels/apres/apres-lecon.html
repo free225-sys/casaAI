@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leçon — maquette proposée</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/proposed.css">
+<style>
+.read-progress{position:sticky;top:var(--header-h);z-index:19;height:3px;background:var(--color-border)} .read-progress i{display:block;height:100%;background:var(--color-primary)}
+.crumbs{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-5)} .crumbs svg{width:14px;height:14px} .crumbs a{color:var(--color-text-muted)}
+.lesson-wrap{max-width:1100px}
+.lesson-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:var(--space-7);align-items:start}
+.lesson-main{max-width:var(--reading-width)}
+.lmeta{gap:12px;margin-bottom:12px} .tag svg{width:15px;height:15px}
+.summary{font-size:1.125rem;line-height:1.6;color:var(--color-text-muted);margin-top:12px}
+.lhead{padding-bottom:var(--space-5);border-bottom:1px solid var(--color-border);margin-bottom:var(--space-5)}
+.callout{border:0;border-radius:var(--radius-md);padding:16px 20px;margin:var(--space-5) 0}
+.callout ul{margin:0;padding-left:20px;line-height:1.7} .clabel{font:600 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.objective{background:var(--color-primary-soft)} .objective .clabel{color:#1d3f91}
+.example{background:var(--color-surface-muted)} .example .clabel{color:var(--color-text-muted)} .example p:last-child{line-height:1.7}
+.lsec{padding:var(--space-5) 0;scroll-margin-top:calc(var(--header-h) + 24px)} .lsec+.lsec{border-top:1px solid var(--color-border)}
+.secnum{font-size:12px;color:var(--color-primary);margin-bottom:4px;letter-spacing:.08em}
+.lsec h2{margin-bottom:12px}
+.body{font-size:var(--text-read);line-height:var(--leading-read)}
+.deep{margin-top:var(--space-6)} .small{font-size:var(--text-sm)} .deep .muted{margin:4px 0 16px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;overflow-x:auto;border-bottom:1px solid var(--color-border);scrollbar-width:thin}
+.tabs button{flex:none;border:0;background:none;padding:10px 14px;font:500 var(--text-sm) var(--font-body);color:var(--color-text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;min-height:44px}
+.tabs button[aria-selected=true]{color:var(--color-primary);border-color:var(--color-primary);font-weight:600}
+.tabpanel{padding:var(--space-5) 0} .tabpanel h3{margin-bottom:8px}
+.finish{margin-top:var(--space-6)} .finish h2{font-size:1.25rem;margin-bottom:var(--space-4)} .actions{margin:var(--space-4) 0 var(--space-3)}
+.fail{display:none} .state-echec .fail{display:flex} .lbl-retry{display:none} .state-echec .lbl-retry{display:inline} .state-echec .lbl-ok{display:none}
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-top:var(--space-5)}
+.next{padding:16px 18px;display:grid!important;grid-template-columns:1fr auto;gap:2px 12px;align-items:center} .next span{grid-column:1} .next strong{grid-column:1} .next svg{grid-column:2;grid-row:1/3;width:20px;color:var(--color-primary)}
+.rail{position:sticky;top:calc(var(--header-h) + 24px);display:flex;flex-direction:column;gap:var(--space-4)}
+.rail-box{border-left:1px solid var(--color-border);padding-left:var(--space-4)}
+.rlabel{font:600 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:8px}
+.toc,.plan{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:2px;font-size:var(--text-sm)}
+.toc a{display:block;padding:6px 10px;border-radius:var(--radius-sm);text-decoration:none;color:var(--color-text-muted)}
+.toc a[aria-current]{color:var(--color-primary);background:var(--color-primary-soft);font-weight:600}
+.plan li{display:flex;gap:10px;align-items:flex-start;padding:6px 0;color:var(--color-text-muted)} .plan .cur{color:var(--color-text);font-weight:600}
+.pdot{flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--color-border-strong);margin-top:4px} .cur .pdot{border-color:var(--color-primary);background:var(--color-primary)}
+.toc-mobile{display:none} .sticky-cta{display:none}
+@media(max-width:960px){.lesson-grid{grid-template-columns:minmax(0,1fr)}.rail{display:none}.lesson-main{max-width:none}
+ .toc-mobile{display:block;border:1px solid var(--color-border);border-radius:var(--radius-md);margin:0 0 var(--space-4)}
+ .toc-mobile summary{list-style:none;display:flex;align-items:center;gap:6px;padding:12px 16px;min-height:48px;font-weight:600;cursor:pointer} .toc-mobile summary svg{width:18px;margin-left:auto}
+ .toc-mobile ol{margin:0;padding:0 16px 12px 36px;line-height:2}}
+@media(max-width:600px){.tabs{flex-wrap:nowrap}.pager{grid-template-columns:1fr}.pager>span{display:none}
+ .sticky-cta{display:block;position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border-top:1px solid var(--color-border);z-index:15}
+ .sticky-cta .btn{width:100%} main{padding-bottom:120px} .finish .btn-primary{display:none}}
+</style>
+</head>
+<body class="">
+<div class="mock-banner" role="note"><span>MAQUETTE PROPOSÉE, NON IMPLÉMENTÉE — Leçon (apprenant)</span><span>Données synthétiques (titres issus du seed versionné). Les mentions « EXTENSION » signalent une dépendance API/produit à valider.</span></div>
+<header class="site-header"><div class="container nav-bar">
+<a class="brand" href="#">CASA <b>AI</b> Institute</a>
+<nav class="nav-links" id="nav" aria-label="Principal"><a href="#">Catalogue</a><a href="#">Mon espace</a><a href="#">Quiz</a><a href="#">Portfolio</a><a href="#">Certifications</a></nav>
+<div class="nav-tools"><button class="icon-btn" type="button" aria-label="Notifications, 1 non lue"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="count" aria-hidden="true">1</span></button><button class="icon-btn" type="button" aria-label="Compte : menu"><span class="avatar">AE</span></button><button class="icon-btn menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="menu-txt">Menu</span></button></div>
+</div></header>
+<div class="read-progress" role="progressbar" aria-label="Progression de lecture" aria-valuenow="32" aria-valuemin="0" aria-valuemax="100"><i style="width:32%"></i></div>
+<main><div class="container lesson-wrap">
+<nav class="crumbs" aria-label="Fil d’Ariane"><a href="#">Catalogue</a><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><a href="#">Mathématiques fondamentales pour l’IA</a><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg><span aria-current="page">Leçon 1 sur 4</span></nav>
+<div class="lesson-grid">
+<article class="lesson-main">
+  <header class="lhead">
+    <p class="row lmeta"><span class="status status-progress">En cours</span><span class="tag"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg> Niveau N2</span><span class="tag"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 75 min</span></p>
+    <h1>Vecteurs, matrices et tenseurs</h1>
+    <p class="summary">Les objets algébriques qui représentent les données et les paramètres des modèles.</p>
+  </header>
+  <details class="toc-mobile"><summary>Sommaire de la leçon <span class="muted">· 2 sections</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><ol><li><a href="#s1" aria-current="true">Concept central</a></li><li><a href="#s2">Lecture technique</a></li><li><a href="#deep">Approfondir</a></li></ol></details>
+  <aside class="callout objective" aria-label="Objectifs"><p class="clabel">Objectifs de la leçon</p><ul><li>Calculer des dimensions</li><li>Interpréter un produit matriciel</li><li>Relier tenseurs et mini-batches</li></ul></aside>
+  <section class="lsec" id="s1"><p class="secnum mono">01</p><h2>Concept central</h2>
+<p class="body">Une observation devient un vecteur de caractéristiques. Un jeu de données devient une matrice. Les images, séquences et lots utilisent des tenseurs de dimensions supérieures.</p></section><section class="lsec" id="s2"><p class="secnum mono">02</p><h2>Lecture technique</h2>
+<p class="body">Le produit matriciel compose des transformations. Le rang mesure l’information linéaire indépendante. Les décompositions SVD et spectrales révèlent les directions dominantes.</p></section>
+  <section class="deep" id="deep" aria-labelledby="deep-t"><h2 id="deep-t">Approfondir</h2>
+   <p class="muted small">Six angles de lecture, du plus accessible au plus technique.</p>
+   <div class="tabs" role="tablist" aria-label="Niveaux de profondeur"><button role="tab" aria-selected="true" tabindex="0">Essentiel</button><button role="tab" aria-selected="false" tabindex="-1">Technique</button><button role="tab" aria-selected="false" tabindex="-1">Mathématiques</button><button role="tab" aria-selected="false" tabindex="-1">Implémentation</button><button role="tab" aria-selected="false" tabindex="-1">Architecture</button><button role="tab" aria-selected="false" tabindex="-1">Gouvernance &amp; risques</button></div>
+   <div class="tabpanel" role="tabpanel"><h3>Comprendre le rôle de la notion</h3><p class="body">Une observation devient un vecteur de caractéristiques. Un jeu de données devient une matrice. Les images, séquences et lots utilisent des tenseurs de dimensions supérieures.</p></div>
+  </section>
+  <aside class="callout example"><p class="clabel">Exemple</p><p>Projeter un portefeuille de 120 variables dans un espace réduit pour visualiser les facteurs dominants.</p></aside>
+
+  <section class="finish panel" aria-labelledby="fin-t">
+    <h2 id="fin-t">Fin de la leçon</h2>
+    <div class="notice notice-error fail" role="alert"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/></svg><div><strong>La leçon n’a pas pu être enregistrée comme terminée.</strong><br>Votre lecture n’est pas perdue. Vérifiez la connexion puis réessayez.</div></div>
+    <div class="row actions">
+      <button class="btn btn-primary btn-lg btn-block-sm" type="button"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> <span class="lbl-ok">Marquer comme terminée</span><span class="lbl-retry">Réessayer</span></button>
+      <a class="btn btn-secondary btn-lg btn-block-sm" href="#">Passer le quiz de validation</a>
+    </div>
+    <p class="muted small">Le quiz de validation est facultatif pour terminer la leçon.</p>
+  </section>
+  <nav class="pager" aria-label="Leçons du cours">
+    <span></span>
+    <a class="card next" href="#"><span class="muted small">Leçon suivante · 2/4</span><strong>Probabilités, Bayes et incertitude</strong><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </nav>
+</article>
+<aside class="rail" aria-label="Navigation de la leçon">
+  <div class="rail-box"><p class="rlabel">Dans cette leçon</p><ol class="toc"><li><a href="#s1" aria-current="true">Concept central</a></li><li><a href="#s2">Lecture technique</a></li><li><a href="#deep">Approfondir</a></li></ol>
+  <button class="btn btn-ghost" type="button"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> Mode lecture</button></div>
+  <div class="rail-box"><p class="rlabel">Mathématiques fondamentales pour l’IA</p><ol class="plan"><li class="cur"><span class="pdot" aria-hidden="true"></span><span>Vecteurs, matrices et tenseurs</span><span class=sr-only> (leçon actuelle)</span></li><li class="todo"><span class="pdot" aria-hidden="true"></span><span>Probabilités, Bayes et incertitude</span></li><li class="todo"><span class="pdot" aria-hidden="true"></span><span>Calcul différentiel et rétropropagation</span></li><li class="todo"><span class="pdot" aria-hidden="true"></span><span>Optimisation des modèles</span></li></ol></div>
+</aside>
+</div>
+</div></main>
+<div class="sticky-cta"><button class="btn btn-primary btn-lg" type="button"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> <span class="lbl-ok">Marquer comme terminée</span><span class="lbl-retry">Réessayer</span></button></div>
+<script>if(location.hash){document.body.classList.add('state-'+location.hash.slice(1));}</script>
+</body>
+</html>

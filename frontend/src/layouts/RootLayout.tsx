@@ -4,9 +4,10 @@ import { Nav } from "../components/Nav";
 
 export function RootLayout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+  const workspace = pathname === "/app/dashboard" || pathname.startsWith("/admin/");
   const learn = pathname.startsWith("/app/lessons/");
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className={workspace ? "workspace-canvas" : undefined} style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <a className="skip-link" href="#contenu">Aller au contenu</a>
       <Nav />
       <main id="contenu" style={{ flex: 1, padding: "40px 0 80px" }}>

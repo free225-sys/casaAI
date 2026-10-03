@@ -21,10 +21,11 @@ export function NotificationBell() {
   }, [open]);
   const unread = notifications.data?.filter(item => !item.read).length ?? 0;
   return <div className="account-menu" ref={ref}>
-    <button type="button" className="btn btn-secondary" aria-label="Notifications" aria-expanded={open} onClick={() => { setOpen(value => !value); if (!open) reload(); }}>
-      {unread ? `Notif (${unread})` : "Notif"}
+    <button type="button" className="icon-btn" aria-label={`Notifications${unread ? ` : ${unread} non lue(s)` : ""}`} aria-controls="notifications-panel" aria-expanded={open} onClick={() => { setOpen(value => !value); if (!open) reload(); }}>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+      {unread > 0 && <span className="notification-count" aria-hidden="true">{unread}</span>}
     </button>
-    {open && <div className="account-menu-panel notification-panel" role="region" aria-label="Notifications récentes">
+    {open && <div id="notifications-panel" className="account-menu-panel notification-panel" role="region" aria-label="Notifications récentes">
       {notifications.loading && <p role="status">Chargement des notifications…</p>}
       {notifications.error && <div role="alert"><p>Impossible de charger les notifications.</p><button type="button" className="btn btn-secondary" onClick={reload}>Réessayer les notifications</button></div>}
       {!notifications.loading && !notifications.error && notifications.data?.length === 0 && <p>Aucune notification.</p>}

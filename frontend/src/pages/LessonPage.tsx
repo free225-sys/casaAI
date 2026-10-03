@@ -5,6 +5,7 @@ import { RevealSection } from "../components/RevealSection";
 import { MiniDiagram } from "../components/MiniDiagram";
 import { Callout } from "../components/Callout";
 import { LessonSkeleton } from "../components/Skeleton";
+import { Notice, Status } from "../components/ui";
 import { LessonDocumentView } from "../components/LessonDocumentView";
 import { ApiError } from "../services/apiClient";
 import { API_BASE_URL } from "../services/apiClient";
@@ -16,11 +17,6 @@ function resolveImageSrc(url: string): string {
   return url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
 }
 
-/** Couleurs d'accent cycliques (or / teal / corail) pour distinguer les
- * niveaux de profondeur (Essentiel, Technique, Maths, Implémentation,
- * Architecture, Gouvernance) d'un coup d'œil, sans dépendre uniquement du
- * libellé texte. */
-const DEPTH_ACCENTS = ["var(--color-accent-blue)", "var(--color-accent-gold)", "var(--color-accent-teal)"];
 
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
@@ -149,14 +145,6 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
     return ordered[index + 1].id;
   }, [course, lessonId]);
 
-  const depthAccentByKey = useMemo(() => {
-    if (!lesson) return {};
-    const map: Record<string, string> = {};
-    lesson.depth_levels.forEach((d, i) => {
-      map[d.depth_key] = DEPTH_ACCENTS[i % DEPTH_ACCENTS.length];
-    });
-    return map;
-  }, [lesson]);
 
   if (notFound) return <p className="error-text">Cette leçon est introuvable.</p>;
   if (loadError) return <div role="alert" className="section-error"><p>Impossible de charger cette leçon. Réessayez.</p><button type="button" className="btn btn-secondary" onClick={() => setReload(value => value + 1)}>Réessayer le chargement</button></div>;
@@ -179,32 +167,32 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
         </Link>
       )}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
-        <button type="button" className="btn btn-secondary" onClick={() => setFocus((v) => !v)}>
-          {focus ? "Quitter le focus" : "Mode lecture"}
-        </button>
-        {lesson.level && <span className="badge badge-teal">{lesson.level}</span>}
-        {lesson.duration_min && <span className="badge badge-gold">{lesson.duration_min} min</span>}
-      </div>
       <div className="lesson-layout">
-      <aside className="lesson-toc" aria-label="Sommaire">
-        <p className="text-caption">Sommaire</p>
-        <ol>
-          {lesson.sections.map((section) => (
-            <li key={section.position}>
-              <a href={`#section-${section.position}`}>{section.title}</a>
-            </li>
-          ))}
-        </ol>
-      </aside>
-      <div>
-      <h1 style={{ marginBottom: 16 }}>{lesson.title}</h1>
+      <div className="lesson-intro">
+      <div className="lesson-meta">
+        {savedProgress !== null && <Status value={completed ? "COMPLETED" : "IN_PROGRESS"} />}
+        {lesson.level && <span className="text-caption">Niveau {lesson.level}</span>}
+        {!!lesson.duration_min && <span className="text-caption">{lesson.duration_min} min</span>}
+      </div>
+      <h1 className="lesson-title">{lesson.title}</h1>
       {lesson.summary && (
         <p style={{ marginBottom: 24, fontSize: "1.0625rem", lineHeight: 1.7, color: "var(--color-text)" }}>
           {lesson.summary}
         </p>
       )}
 
+      </div>
+      <aside className="lesson-toc" aria-label="Sommaire">
+        <details open>
+          <summary>Dans cette leçon</summary>
+          <ol>{lesson.sections.map(section => <li key={section.position}><a href={`#section-${section.position}`}>{section.title}</a></li>)}</ol>
+        </details>
+        <button type="button" className="btn btn-secondary" aria-pressed={focus} onClick={() => setFocus(v => !v)}>{focus ? "Quitter le focus" : "Mode lecture"}</button>
+        {course && <details className="course-outline">
+          <summary>Plan du cours</summary><ol>{[...course.lessons].sort((a, b) => a.position - b.position).map(item => <li key={item.id}><Link to={`/app/lessons/${item.id}`} aria-current={item.id === lessonId ? "page" : undefined}>{item.title}</Link></li>)}</ol>
+        </details>}
+      </aside>
+      <div className="lesson-main">
       {lesson.objectives.length > 0 && (
         <RevealSection as="div">
           <Callout kind="objective">
@@ -225,8 +213,7 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
           as="section"
           delayMs={Math.min(i, 4) * 60}
           id={`section-${section.position}`}
-          className="card"
-          style={{ padding: 28, marginBottom: 24 }}
+          className="lesson-reading-section"
         >
           <span className="lesson-section-number">
             {String(i + 1).padStart(2, "0")} / {String(lesson.sections.length).padStart(2, "0")}
@@ -271,19 +258,30 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
           <h2 style={{ marginBottom: 14 }}>Approfondir</h2>
           <div
             role="tablist"
+            aria-label="Angles de lecture"
             style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--color-border)", marginBottom: 20, flexWrap: "wrap" }}
           >
             {lesson.depth_levels.map((d) => {
               const isActive = activeDepth === d.depth_key;
-              const accent = depthAccentByKey[d.depth_key];
+
               return (
                 <button
                   key={d.depth_key}
                   role="tab"
+                  id={`depth-tab-${d.depth_key}`}
+                  aria-controls={`depth-panel-${d.depth_key}`}
+                  tabIndex={isActive ? 0 : -1}
                   aria-selected={isActive}
                   onClick={() => setActiveDepth(d.depth_key)}
+                  onKeyDown={event => {
+                    const keys = lesson.depth_levels.map(level => level.depth_key);
+                    const index = keys.indexOf(d.depth_key);
+                    const next = event.key === "ArrowRight" ? (index + 1) % keys.length : event.key === "ArrowLeft" ? (index + keys.length - 1) % keys.length : event.key === "Home" ? 0 : event.key === "End" ? keys.length - 1 : -1;
+                    if (next < 0) return;
+                    event.preventDefault(); setActiveDepth(keys[next]); document.getElementById(`depth-tab-${keys[next]}`)?.focus();
+                  }}
                   className={`depth-tab${isActive ? " active" : ""}`}
-                  style={{ borderBottomColor: isActive ? accent : "transparent", color: isActive ? accent : undefined }}
+
                 >
                   {d.label}
                 </button>
@@ -292,7 +290,7 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
           </div>
 
           {activeLevel && (
-            <div className="card" style={{ padding: 24 }}>
+            <div className="lesson-depth-content" role="tabpanel" id={`depth-panel-${activeDepth}`} aria-labelledby={`depth-tab-${activeDepth}`}>
               <h3 style={{ marginBottom: 12 }}>{activeLevel.title}</h3>
               <p className="lesson-section-body">{activeLevel.body}</p>
             </div>
@@ -308,9 +306,11 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
         </RevealSection>
       )}
 
+      <section className="lesson-finish" aria-label="Fin de la leçon">
+      <h2>Fin de la leçon</h2>
       <p className="text-caption" role="status">{savedProgress === null ? "Progression en cours de synchronisation" : `Progression enregistrée : ${savedProgress} %`}</p>
       {syncError && !completed && <div role="alert" className="section-error"><p>{syncError}</p><button type="button" className="btn btn-secondary" onClick={() => setSyncReload(value => value + 1)}>Réessayer la synchronisation</button></div>}
-      {completeError && <p role="alert" className="error-text">La leçon n'a pas pu être marquée comme terminée. Réessayez.</p>}
+      {completeError && <Notice>La leçon n'a pas pu être marquée comme terminée. Réessayez.</Notice>}
       <div className="lesson-actions">
       <button className="btn btn-primary" onClick={handleComplete} disabled={completing || completed}>
         {completed ? "Leçon terminée ✓" : completing ? "Enregistrement…" : "Marquer comme terminée"}
@@ -330,6 +330,7 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
         </Link>
       )}
       </div>
+      </section>
     </div>
       </div>
       </div>

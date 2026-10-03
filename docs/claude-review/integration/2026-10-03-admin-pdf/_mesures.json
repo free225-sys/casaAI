@@ -1,0 +1,674 @@
+[
+ {
+  "file": "integ-admin-cours--desktop-1440.png",
+  "scenario": "integ-admin-cours",
+  "viewport": "desktop-1440",
+  "path": "/admin/courses",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-cours--mobile-390.png",
+  "scenario": "integ-admin-cours",
+  "viewport": "mobile-390",
+  "path": "/admin/courses",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-cours--mobile-320.png",
+  "scenario": "integ-admin-cours",
+  "viewport": "mobile-320",
+  "path": "/admin/courses",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-cours-suppression--desktop-1440.png",
+  "scenario": "integ-admin-cours-suppression",
+  "viewport": "desktop-1440",
+  "path": "/admin/courses",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-cours-suppression--mobile-390.png",
+  "scenario": "integ-admin-cours-suppression",
+  "viewport": "mobile-390",
+  "path": "/admin/courses",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-lecons--desktop-1440.png",
+  "scenario": "integ-admin-lecons",
+  "viewport": "desktop-1440",
+  "path": "/admin/courses/math-ai",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses/math-ai",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/lessons",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/quizzes",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-lecons--mobile-390.png",
+  "scenario": "integ-admin-lecons",
+  "viewport": "mobile-390",
+  "path": "/admin/courses/math-ai",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses/math-ai",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/lessons",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/quizzes",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-lecons--mobile-320.png",
+  "scenario": "integ-admin-lecons",
+  "viewport": "mobile-320",
+  "path": "/admin/courses/math-ai",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/courses/math-ai",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/lessons",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/quizzes",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-utilisateurs--desktop-1440.png",
+  "scenario": "integ-admin-utilisateurs",
+  "viewport": "desktop-1440",
+  "path": "/admin/users",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/users",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-utilisateurs--mobile-390.png",
+  "scenario": "integ-admin-utilisateurs",
+  "viewport": "mobile-390",
+  "path": "/admin/users",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/users",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-admin-utilisateurs--mobile-320.png",
+  "scenario": "integ-admin-utilisateurs",
+  "viewport": "mobile-320",
+  "path": "/admin/users",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/admin/users",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-1-selection--desktop-1440.png",
+  "scenario": "integ-pdf-1-selection",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-1-selection--mobile-390.png",
+  "scenario": "integ-pdf-1-selection",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-1-selection--mobile-320.png",
+  "scenario": "integ-pdf-1-selection",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-2-previsualisation--desktop-1440.png",
+  "scenario": "integ-pdf-2-previsualisation",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/preview-pdf",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-2-previsualisation--mobile-390.png",
+  "scenario": "integ-pdf-2-previsualisation",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/preview-pdf",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-2-previsualisation--mobile-320.png",
+  "scenario": "integ-pdf-2-previsualisation",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/preview-pdf",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-2-ecran-initial--mobile-390.png",
+  "scenario": "integ-pdf-2-ecran-initial",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/preview-pdf",
+    200
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-3-resultat--desktop-1440.png",
+  "scenario": "integ-pdf-3-resultat",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/preview-pdf",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/import-pdf",
+    201
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-3-resultat--mobile-390.png",
+  "scenario": "integ-pdf-3-resultat",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/preview-pdf",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/import-pdf",
+    201
+   ]
+  ]
+ },
+ {
+  "file": "integ-pdf-3-resultat--mobile-320.png",
+  "scenario": "integ-pdf-3-resultat",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "blocked_external": [],
+  "requests": [
+   [
+    "GET",
+    "/api/auth/me",
+    200
+   ],
+   [
+    "GET",
+    "/api/me/notifications",
+    200
+   ],
+   [
+    "GET",
+    "/api/schools",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/preview-pdf",
+    200
+   ],
+   [
+    "POST",
+    "/api/admin/courses/import-pdf",
+    201
+   ]
+  ]
+ }
+]

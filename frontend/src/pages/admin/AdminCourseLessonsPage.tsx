@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Link } from "../../components/AppLink";
 import { AdminLayout } from "../../layouts/AdminLayout";
-import { RevealSection } from "../../components/RevealSection";
+import { ConfirmDialog, EmptyState, Notice, PageHeader, Status } from "../../components/ui";
 import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
 import type { AdminCourse, AdminLessonListItem } from "../../types/api";
@@ -27,91 +27,88 @@ export function AdminCourseLessonsPage() {
     return () => { active = false; };
   }, [courseId, reload]);
 
-  const handleDelete = async (lessonId: string, title: string) => {
-    if (!confirm(`Supprimer la leçon "${title}" ?`)) return;
+  const [toDelete, setToDelete] = useState<AdminLessonListItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const handleDelete = async () => {
+    if (!toDelete) return;
     setError(null);
+    setDeleting(true);
     try {
-      await adminService.deleteLesson(lessonId);
+      await adminService.deleteLesson(toDelete.id);
+      setToDelete(null);
       refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur.");
+      setToDelete(null);
+      setError(e instanceof Error ? e.message : "La suppression a échoué.");
+    } finally {
+      setDeleting(false);
     }
   };
 
-  if (loadError) return <AdminLayout><div role="alert" className="section-error"><p>Impossible de charger le cours et ses leçons.</p><button type="button" className="btn btn-secondary" onClick={refresh}>Réessayer le cours</button><Link to="/admin/courses">Retour aux cours</Link></div></AdminLayout>;
+  if (loadError) return <AdminLayout><div role="alert" className="section-error"><p>Impossible de charger le cours et ses leçons.</p><div className="page-actions"><button type="button" className="btn btn-secondary" onClick={refresh}>Réessayer le cours</button><Link to="/admin/courses">Retour aux cours</Link></div></div></AdminLayout>;
+
+  const ordered = (lessons ?? []).slice().sort((a, b) => a.position - b.position);
+  const quizLink = finalQuizId
+    ? `/admin/quizzes/${finalQuizId}?back=${encodeURIComponent(`/admin/courses/${courseId}`)}`
+    : `/admin/quizzes/new?kind=FINAL&course_id=${courseId}&back=${encodeURIComponent(`/admin/courses/${courseId}`)}`;
 
   return (
     <AdminLayout>
-      <Link to="/admin/courses" style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-        ← Tous les cours
-      </Link>
+      <Link to="/admin/courses" className="admin-back">← Tous les cours</Link>
+      <PageHeader
+        title={course ? course.title : "Chargement…"}
+        description={course ? <span className="ui-row"><Status value={course.status} /><span>{lessons ? `${lessons.length} leçon(s)` : ""}</span></span> : undefined}
+        actions={courseId ? <>
+          <Link to={quizLink} className="btn btn-secondary">{finalQuizId ? "Gérer le quiz final" : "+ Quiz final"}</Link>
+          <Link to={`/admin/courses/${courseId}/lessons/new`} className="btn btn-primary">Nouvelle leçon</Link>
+        </> : undefined}
+      />
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 24px" }}>
-        <h2 style={{ fontSize: "1.1rem" }}>{course ? course.title : "Chargement…"}</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {courseId && (
-            <Link
-              to={
-                finalQuizId
-                  ? `/admin/quizzes/${finalQuizId}?back=${encodeURIComponent(`/admin/courses/${courseId}`)}`
-                  : `/admin/quizzes/new?kind=FINAL&course_id=${courseId}&back=${encodeURIComponent(`/admin/courses/${courseId}`)}`
-              }
-              className="btn btn-secondary"
-            >
-              {finalQuizId ? "Gérer le quiz final" : "+ Quiz final"}
-            </Link>
-          )}
-          {courseId && (
-            <Link to={`/admin/courses/${courseId}/lessons/new`} className="btn btn-primary">
-              Nouvelle leçon
-            </Link>
-          )}
-        </div>
-      </div>
+      {error && <Notice>{error}</Notice>}
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+      <section className="panel admin-list" aria-label="Leçons du cours">
+        {lessons === null ? (
+          <div className="admin-toolbar"><ListSkeleton count={4} /></div>
+        ) : ordered.length === 0 ? (
+          <EmptyState title="Aucune leçon pour l’instant" action={courseId && <Link to={`/admin/courses/${courseId}/lessons/new`} className="btn btn-primary">Nouvelle leçon</Link>}>
+            Ajoutez une première leçon ; elle restera en brouillon jusqu’à sa publication.
+          </EmptyState>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr><th scope="col" className="col-status">Statut</th><th scope="col">Leçon</th><th scope="col" className="col-actions"><span className="sr-only">Actions</span></th></tr>
+            </thead>
+            <tbody>
+              {ordered.map((l, index) => (
+                <tr key={l.id}>
+                  <td className="col-status"><Status value={l.status} /></td>
+                  <td>
+                    <span className="admin-title">{l.title}</span>
+                    <span className="admin-sub">{[`Leçon ${index + 1}`, l.level].filter(Boolean).join(" · ")}</span>
+                  </td>
+                  <td className="col-actions">
+                    <div className="admin-actions">
+                      <Link to={`/admin/courses/${courseId}/lessons/${l.id}`} className="btn btn-secondary">Éditer</Link>
+                      <button type="button" className="btn btn-danger" onClick={() => setToDelete(l)}>Supprimer</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
 
-      {lessons === null ? (
-        <ListSkeleton count={4} />
-      ) : lessons.length === 0 ? (
-        <div className="card" style={{ padding: 24 }}>
-          <p>Aucune leçon pour l'instant.</p>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {lessons
-            .slice()
-            .sort((a, b) => a.position - b.position)
-            .map((l, i) => (
-              <RevealSection key={l.id} as="div" delayMs={Math.min(i, 8) * 40}>
-                <div className="card admin-row" style={{ padding: "14px 18px" }}>
-                  <span className="mono" style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                    {l.position}
-                  </span>
-                  <span
-                    className="badge"
-                    style={{
-                      background: l.status === "PUBLISHED" ? "var(--color-accent-teal-soft)" : "var(--color-accent-gold-soft)",
-                      color: l.status === "PUBLISHED" ? "var(--color-accent-teal)" : "var(--color-accent-gold)",
-                    }}
-                  >
-                    {l.status}
-                  </span>
-                  <span style={{ flex: 1, color: "var(--color-text)" }}>{l.title}</span>
-                  <Link to={`/admin/courses/${courseId}/lessons/${l.id}`} className="btn btn-secondary">
-                    Éditer
-                  </Link>
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => handleDelete(l.id, l.title)}
-                    style={{ color: "var(--color-accent-coral)" }}
-                  >
-                    Supprimer
-                  </button>
-                </div>
-              </RevealSection>
-            ))}
-        </div>
+      {toDelete && (
+        <ConfirmDialog
+          title={`Supprimer la leçon « ${toDelete.title} » ?`}
+          confirmLabel="Supprimer définitivement"
+          busy={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setToDelete(null)}
+        >
+          <p>La leçon, ses sections et ses niveaux de profondeur seront supprimés définitivement.</p>
+        </ConfirmDialog>
       )}
     </AdminLayout>
   );

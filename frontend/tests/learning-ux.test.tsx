@@ -17,7 +17,7 @@ import { progressService } from "../src/services/progressService";
 vi.mock("../src/services/contentService", () => ({ contentService: {
   listCourses: vi.fn(), listPathways: vi.fn(), listLabs: vi.fn(), getCourse: vi.fn(), listSchools: vi.fn(),
 } }));
-vi.mock("../src/services/adminService", () => ({ adminService: { listUsers: vi.fn(), listCourses: vi.fn(), getLesson: vi.fn(), listQuizzes: vi.fn(), previewPdf: vi.fn(), importPdf: vi.fn() } }));
+vi.mock("../src/services/adminService", () => ({ adminService: { listUsers: vi.fn(), listCourses: vi.fn(), getLesson: vi.fn(), listQuizzes: vi.fn(), previewPdf: vi.fn(), importPdf: vi.fn(), deleteCourse: vi.fn(), updateUser: vi.fn() } }));
 vi.mock("../src/stores/authStore", () => ({ useAuth: () => ({ user: { id: "current" } }) }));
 vi.mock("../src/layouts/AdminLayout", () => ({ AdminLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("../src/services/progressService", () => ({ progressService: {
@@ -422,5 +422,55 @@ describe("Confirmed completion dominates late errors", () => {
     expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(host.textContent).not.toContain("n'a pas pu être marquée");
     expect([...host.querySelectorAll("button")].find(el => el.textContent?.includes("Leçon terminée"))?.disabled).toBe(true);
+  });
+});
+
+
+describe("Aurore administration safeguards", () => {
+  const course = { id: "c1", school_id: "school", title: "TEST course", level: "N1", status: "DRAFT", duration_min: null, color: null, description: null, created_at: "", updated_at: "" };
+  beforeEach(() => {
+    vi.mocked(contentService.listSchools).mockResolvedValue([{ id: "school", name: "TEST school" }] as never);
+  });
+  it("lists courses in French with the school name and asks before deleting", async () => {
+    vi.mocked(adminService.listCourses).mockResolvedValue({ items: [course], total: 1, limit: 20, offset: 0 } as never);
+    vi.mocked(adminService.deleteCourse).mockResolvedValue(undefined as never);
+    await act(async () => root.render(<MemoryRouter><AdminCoursesPage /></MemoryRouter>));
+    expect(host.textContent).toContain("Brouillon");
+    expect(host.textContent).not.toContain("DRAFT");
+    expect(host.textContent).toContain("TEST school");
+    expect(host.textContent).toContain("1 cours affiché(s) dans cette page.");
+    await act(async () => button("Supprimer").click());
+    expect(adminService.deleteCourse).not.toHaveBeenCalled();
+    expect(host.querySelector("dialog")?.textContent).toContain("TEST course");
+    await act(async () => button("Supprimer définitivement").click());
+    expect(adminService.deleteCourse).toHaveBeenCalledWith("c1");
+  });
+  it("requires confirmation before changing a user's role", async () => {
+    const user = { id: "u2", first_name: "TEST", last_name: "User", email: "test@example.test", role: "LEARNER", status: "ACTIVE" };
+    vi.mocked(adminService.listUsers).mockResolvedValue({ items: [user], total: 1, limit: 20, offset: 0 } as never);
+    vi.mocked(adminService.updateUser).mockResolvedValue(user as never);
+    await act(async () => root.render(<AdminUsersPage />));
+    const select = host.querySelector<HTMLSelectElement>('select[aria-label="Rôle de TEST User"]')!;
+    await act(async () => { select.value = "SUPER_ADMIN"; select.dispatchEvent(new Event("change", { bubbles: true })); });
+    expect(adminService.updateUser).not.toHaveBeenCalled();
+    await act(async () => button("Annuler").click());
+    expect(adminService.updateUser).not.toHaveBeenCalled();
+    await act(async () => { select.value = "ADMIN"; select.dispatchEvent(new Event("change", { bubbles: true })); });
+    await act(async () => button("Changer le rôle").click());
+    expect(adminService.updateUser).toHaveBeenCalledWith("u2", { role: "ADMIN" });
+  });
+  it("links a successful PDF import to the created lesson editor and can start over", async () => {
+    const preview = { title: "TEST PDF", pages: 2, sections: [], report: { anomalies: [], document_type: "TEXT", sections: 0, subsections: 0, blocks: 0, lists: 0, tables: 0, formulas: 0, code_blocks: 0, captions: 0 } };
+    vi.mocked(adminService.previewPdf).mockResolvedValue(preview as never);
+    vi.mocked(adminService.importPdf).mockResolvedValue({ title: "TEST PDF", course_id: "created", lesson_id: "lesson", pages_extracted: 2, warning: null } as never);
+    await act(async () => root.render(<MemoryRouter><AdminImportPdfPage /></MemoryRouter>));
+    const input = host.querySelector<HTMLInputElement>('input[type="file"]')!;
+    await act(async () => { Object.defineProperty(input, "files", { configurable: true, value: [new File(["TEST"], "TEST.pdf", { type: "application/pdf" })] }); input.dispatchEvent(new Event("change", { bubbles: true })); });
+    await act(async () => button("Analyser").click());
+    await act(async () => button("Valider et importer").click());
+    expect(host.querySelector('a[href="/admin/courses/created/lessons/lesson"]')).not.toBeNull();
+    expect(host.querySelector('[aria-current="step"]')?.textContent).toContain("Résultat");
+    await act(async () => button("Importer un autre PDF").click());
+    expect(button("Analyser").disabled).toBe(true);
   });
 });

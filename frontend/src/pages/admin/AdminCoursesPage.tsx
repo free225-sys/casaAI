@@ -2,11 +2,18 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { AdminPagination, ADMIN_PAGE_SIZE } from "../../components/AdminPagination";
 import { Link } from "../../components/AppLink";
 import { AdminLayout } from "../../layouts/AdminLayout";
-import { RevealSection } from "../../components/RevealSection";
+import { ConfirmDialog, EmptyState, Notice, PageHeader, Segmented, Status } from "../../components/ui";
 import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
 import { contentService } from "../../services/contentService";
 import type { AdminCourse, School } from "../../types/api";
+
+type StatusFilter = "all" | "PUBLISHED" | "DRAFT";
+const STATUS_OPTIONS = [
+  { value: "all", label: "Tous" },
+  { value: "PUBLISHED", label: "Publiés" },
+  { value: "DRAFT", label: "Brouillons" },
+] as const;
 
 export function AdminCoursesPage() {
   const [courses, setCourses] = useState<AdminCourse[] | null>(null);
@@ -15,11 +22,14 @@ export function AdminCoursesPage() {
   const [schoolsReload, setSchoolsReload] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "PUBLISHED" | "DRAFT">("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<AdminCourse | null>(null);
   const refresh = () => setReloadKey((n) => n + 1);
 
   useEffect(() => {
@@ -55,7 +65,8 @@ export function AdminCoursesPage() {
   }, [statusFilter, page, reloadKey]);
 
   const handlePublishToggle = async (course: AdminCourse) => {
-    setError(null);
+    setActionError(null);
+    setPendingId(course.id);
     try {
       await adminService.updateCourse(course.id, {
         ...course,
@@ -63,18 +74,25 @@ export function AdminCoursesPage() {
       });
       refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur.");
+      setActionError(e instanceof Error ? e.message : "La modification du statut a échoué.");
+    } finally {
+      setPendingId(null);
     }
   };
 
-  const handleDelete = async (course: AdminCourse) => {
-    if (!confirm(`Supprimer le cours "${course.title}" et toutes ses leçons ?`)) return;
-    setError(null);
+  const handleDelete = async () => {
+    if (!toDelete) return;
+    setActionError(null);
+    setPendingId(toDelete.id);
     try {
-      await adminService.deleteCourse(course.id);
+      await adminService.deleteCourse(toDelete.id);
+      setToDelete(null);
       refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur.");
+      setToDelete(null);
+      setActionError(e instanceof Error ? e.message : "La suppression a échoué.");
+    } finally {
+      setPendingId(null);
     }
   };
 
@@ -82,34 +100,20 @@ export function AdminCoursesPage() {
     const q = query.trim().toLowerCase();
     return (courses ?? []).filter((c) => !q || c.title.toLowerCase().includes(q));
   }, [courses, query]);
+  const schoolName = (id: string) => schools.find((school) => school.id === id)?.name ?? id;
+  const searching = query.trim().length > 0;
 
   return (
     <AdminLayout>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <h2 style={{ fontSize: "1.1rem" }}>Cours</h2>
-        <button className="btn btn-primary" onClick={() => setShowForm((v) => !v)}>
-          {showForm ? "Annuler" : "Nouveau cours"}
-        </button>
-      </div>
-
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-        <input aria-label="Rechercher un cours dans cette page" placeholder="Rechercher dans cette page…" value={query} onChange={(e) => setQuery(e.target.value)} />
-        {(["all", "PUBLISHED", "DRAFT"] as const).map((value) => (
-          <button
-            key={value}
-            aria-pressed={statusFilter === value}
-            type="button"
-            className={`btn btn-secondary${statusFilter === value ? " is-on" : ""}`}
-            onClick={() => {
-              setStatusFilter(value);
-              setPage(0);
-            }}
-          >
-            {value === "all" ? "Tous" : value === "PUBLISHED" ? "Publiés" : "Brouillons"}
+      <PageHeader
+        title="Cours"
+        description="Cours de tous statuts. Un brouillon reste invisible des apprenants jusqu’à sa publication."
+        actions={<>
+          <button type="button" className="btn btn-primary" onClick={() => setShowForm((v) => !v)}>
+            {showForm ? "Annuler" : "Nouveau cours"}
           </button>
-        ))}
-      </div>
-      {error && <div role="alert" className="section-error"><p>{error}</p><button type="button" className="btn btn-secondary" onClick={refresh}>Réessayer les cours</button></div>}
+        </>}
+      />
 
       {schoolsError && <div role="alert" className="section-error"><p>Impossible de charger les écoles.</p><button type="button" className="btn btn-secondary" onClick={() => setSchoolsReload(value => value + 1)}>Réessayer les écoles</button></div>}
       {showForm && (
@@ -121,43 +125,82 @@ export function AdminCoursesPage() {
           }}
         />
       )}
+      {actionError && <Notice>{actionError}</Notice>}
 
-      {courses === null && !error ? (
-        <ListSkeleton count={4} />
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {filtered.map((c, i) => (
-            <RevealSection key={c.id} as="div" delayMs={Math.min(i, 8) * 40}>
-              <div className="card admin-row" style={{ padding: "14px 18px" }}>
-                <span
-                  className="badge"
-                  style={{
-                    background: c.status === "PUBLISHED" ? "var(--color-accent-teal-soft)" : "var(--color-accent-gold-soft)",
-                    color: c.status === "PUBLISHED" ? "var(--color-accent-teal)" : "var(--color-accent-gold)",
-                  }}
-                >
-                  {c.status}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ color: "var(--color-text)", fontWeight: 500 }}>{c.title}</p>
-                  <p style={{ fontSize: "0.8rem" }}>{c.school_id}</p>
-                </div>
-                <Link to={`/admin/courses/${c.id}`} className="btn btn-secondary">
-                  Gérer les leçons
-                </Link>
-                <button className="btn btn-secondary" onClick={() => handlePublishToggle(c)}>
-                  {c.status === "PUBLISHED" ? "Dépublier" : "Publier"}
-                </button>
-                <button className="btn btn-secondary" onClick={() => handleDelete(c)} style={{ color: "var(--color-accent-coral)" }}>
-                  Supprimer
-                </button>
-              </div>
-            </RevealSection>
-          ))}
+      <section className="panel admin-list" aria-label="Liste des cours">
+        <div className="admin-toolbar">
+          <input className="input" type="search" aria-label="Rechercher un cours dans cette page" placeholder="Rechercher dans cette page…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <Segmented<StatusFilter>
+            label="Filtrer par statut"
+            value={statusFilter}
+            options={STATUS_OPTIONS}
+            onChange={(value) => { setStatusFilter(value); setPage(0); }}
+          />
+          <p className="admin-toolbar-note">La recherche porte uniquement sur les cours chargés dans cette page.</p>
         </div>
+
+        {error && <div role="alert" className="section-error"><p>{error}</p><button type="button" className="btn btn-secondary" onClick={refresh}>Réessayer les cours</button></div>}
+
+        {courses === null && !error ? (
+          <div className="admin-toolbar"><ListSkeleton count={4} /></div>
+        ) : courses !== null && filtered.length === 0 ? (
+          <EmptyState title={searching ? "Aucun cours ne correspond dans cette page" : "Aucun cours pour ce filtre"}>
+            {searching ? "Effacez la recherche ou changez de page." : "Créez un cours, ou importez un PDF depuis l’onglet dédié."}
+          </EmptyState>
+        ) : courses !== null && (
+          <table className="admin-table">
+            <thead>
+              <tr><th scope="col" className="col-status">Statut</th><th scope="col">Cours</th><th scope="col" className="col-actions"><span className="sr-only">Actions</span></th></tr>
+            </thead>
+            <tbody>
+              {filtered.map((c) => {
+                const busy = pendingId === c.id;
+                return (
+                  <tr key={c.id}>
+                    <td className="col-status"><Status value={c.status} /></td>
+                    <td>
+                      <span className="admin-title">{c.title}</span>
+                      <span className="admin-sub">{[schoolName(c.school_id), c.level].filter(Boolean).join(" · ")}</span>
+                    </td>
+                    <td className="col-actions">
+                      <div className="admin-actions">
+                        <Link to={`/admin/courses/${c.id}`} className="btn btn-secondary">Gérer les leçons</Link>
+                        <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => handlePublishToggle(c)}>
+                          {busy ? "Enregistrement…" : c.status === "PUBLISHED" ? "Dépublier" : "Publier"}
+                        </button>
+                        <button type="button" className="btn btn-danger" disabled={busy} onClick={() => setToDelete(c)}>Supprimer</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+
+        {courses !== null && (
+          <div className="admin-list-footer">
+            <p className="admin-count" role="status">
+              {searching
+                ? `${filtered.length} résultat(s) affiché(s) sur ${courses.length} cours chargés dans cette page.`
+                : `${courses.length} cours affiché(s) dans cette page.`}
+            </p>
+            <AdminPagination total={total} page={page} onPageChange={setPage} />
+          </div>
+        )}
+      </section>
+
+      {toDelete && (
+        <ConfirmDialog
+          title={`Supprimer « ${toDelete.title} » ?`}
+          confirmLabel="Supprimer définitivement"
+          busy={pendingId === toDelete.id}
+          onConfirm={handleDelete}
+          onCancel={() => setToDelete(null)}
+        >
+          <p>Le cours et toutes ses leçons seront supprimés définitivement. Pour retirer un cours publié du catalogue sans rien perdre, dépubliez-le.</p>
+        </ConfirmDialog>
       )}
-      <p className="text-caption" role="status">{filtered.length} résultat(s) affiché(s) sur {courses?.length ?? 0} cours chargés dans cette page.</p>
-      {courses !== null && <AdminPagination total={total} page={page} onPageChange={setPage} />}
     </AdminLayout>
   );
 }
@@ -191,14 +234,13 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card" style={{ padding: 22, marginBottom: 28, display: "flex", flexDirection: "column", gap: 14 }}>
+    <form onSubmit={handleSubmit} className="panel admin-form" aria-label="Nouveau cours">
       <div className="field">
         <label htmlFor="school">École</label>
         <select
           id="school"
           value={schoolId}
           onChange={(e) => setSchoolId(e.target.value)}
-          style={{ background: "var(--color-surface-raised)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "10px 12px" }}
         >
           {schools.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
@@ -217,10 +259,13 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
         <label htmlFor="description">Description</label>
         <input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
-      {error && <p className="error-text">{error}</p>}
-      <button type="submit" className="btn btn-primary" disabled={submitting || !title || !schoolId}>
-        {submitting ? "Création…" : "Créer le cours (brouillon)"}
-      </button>
+      {error && <Notice>{error}</Notice>}
+      <div className="form-foot">
+        <span className="admin-count">Le cours est créé en brouillon.</span>
+        <button type="submit" className="btn btn-primary" disabled={submitting || !title || !schoolId}>
+          {submitting ? "Création…" : "Créer le cours (brouillon)"}
+        </button>
+      </div>
     </form>
   );
 }

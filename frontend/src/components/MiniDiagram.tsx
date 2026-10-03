@@ -28,46 +28,39 @@ interface MatrixDiagram {
 
 export type MiniDiagramData = HierarchyDiagram | FlowDiagram | MatrixDiagram;
 
-const ACCENTS = ["var(--color-accent-blue)", "var(--color-accent-gold)", "var(--color-accent-teal)"];
+/* D10 : aucune bordure colorée. La structure est portée par la forme (imbrication, ordre numéroté, quadrants
+ * titrés) et par le texte, jamais par la couleur seule ; contours neutres, texte à fort contraste. */
+const OUTLINE = "var(--color-border-strong)";
+const INK = "var(--color-text)";
 
+function HierarchyLevel({ items, depth }: { items: string[]; depth: number }) {
+  const [label, ...rest] = items;
+  return (
+    <div
+      style={{
+        border: `1px solid ${OUTLINE}`,
+        borderRadius: "var(--radius-md)",
+        background: depth % 2 === 0 ? "var(--color-surface)" : "white",
+        padding: "10px 12px 12px",
+        color: INK,
+        fontSize: "0.85rem",
+        fontFamily: "var(--font-mono)",
+        overflowWrap: "anywhere",
+      }}
+    >
+      <span style={{ display: "block", marginBottom: rest.length ? 10 : 0 }}>{label}</span>
+      {rest.length > 0 && <HierarchyLevel items={rest} depth={depth + 1} />}
+    </div>
+  );
+}
+
+/** Niveaux imbriqués : l'inclusion est lue par la forme et par le texte (aria-label « A contient B »), pas par la couleur. */
 function HierarchyView({ items, caption }: HierarchyDiagram) {
-  const box = 76;
-  const step = 34;
-  const size = box + (items.length - 1) * step;
-
   return (
     <div style={{ marginBottom: 16 }}>
-      <svg width="100%" height={size + 8} viewBox={`0 0 ${size + 8} ${size + 8}`} role="img" aria-label={items.join(" contient ")}>
-        {items.map((label, i) => {
-          const inset = i * (step / 2);
-          const s = size - i * step;
-          const color = ACCENTS[i % ACCENTS.length];
-          return (
-            <g key={label}>
-              <rect
-                x={inset + 4}
-                y={inset + 4}
-                width={s}
-                height={s}
-                rx={14}
-                fill="none"
-                stroke={color}
-                strokeWidth={1.6}
-                strokeOpacity={0.8}
-              />
-              <text
-                x={inset + 16}
-                y={inset + 24}
-                fontSize={12}
-                fontFamily="var(--font-mono)"
-                fill={color}
-              >
-                {label}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+      <div role="img" aria-label={items.join(" contient ")} style={{ maxWidth: 480 }}>
+        <HierarchyLevel items={items} depth={0} />
+      </div>
       {caption && (
         <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: 8, fontStyle: "italic" }}>{caption}</p>
       )}
@@ -85,15 +78,15 @@ function FlowView({ steps, caption }: FlowDiagram) {
               style={{
                 padding: "10px 16px",
                 borderRadius: "var(--radius-sm)",
-                border: `1px solid ${ACCENTS[i % ACCENTS.length]}`,
-                color: ACCENTS[i % ACCENTS.length],
-                background: `${"var(--color-surface-raised)"}`,
+                border: `1px solid ${OUTLINE}`,
+                color: INK,
+                background: "var(--color-surface-raised)",
                 fontSize: "0.85rem",
                 fontFamily: "var(--font-mono)",
-                whiteSpace: "nowrap",
+                overflowWrap: "anywhere",
               }}
             >
-              {label}
+              <span style={{ color: "var(--color-text-muted)", marginRight: 8 }}>{i + 1}.</span>{label}
             </div>
             {i < steps.length - 1 && (
               <span style={{ padding: "0 8px", color: "var(--color-text-muted)" }} aria-hidden>
@@ -148,10 +141,10 @@ function MatrixView({ xLabel, yLabel, quadrants, caption }: MatrixDiagram) {
               overflow: "hidden",
             }}
           >
-            <div style={{ ...cellStyle, background: "var(--color-accent-teal-soft)", color: "var(--color-accent-teal)", borderRight: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)" }}>
+            <div style={{ ...cellStyle, background: "var(--color-accent-teal-soft)", color: INK, borderRight: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)" }}>
               {topLeft}
             </div>
-            <div style={{ ...cellStyle, background: "var(--color-accent-gold-soft)", color: "var(--color-accent-gold)", borderBottom: "1px solid var(--color-border)" }}>
+            <div style={{ ...cellStyle, background: "var(--color-accent-gold-soft)", color: INK, borderBottom: "1px solid var(--color-border)" }}>
               {topRight}
             </div>
             <div style={{ ...cellStyle, color: "var(--color-text-muted)", borderRight: "1px solid var(--color-border)" }}>

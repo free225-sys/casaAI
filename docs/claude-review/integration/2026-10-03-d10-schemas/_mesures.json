@@ -1,0 +1,62 @@
+[
+ {
+  "file": "integ-schemas--desktop-1440.png",
+  "sw": 1440,
+  "cw": 1440,
+  "colored": 0,
+  "flow": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "4.Déployer en production",
+   "4.Déployer en production"
+  ],
+  "svgs": 1,
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-schemas--mobile-390.png",
+  "sw": 390,
+  "cw": 390,
+  "colored": 0,
+  "flow": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "4.Déployer en production",
+   "4.Déployer en production"
+  ],
+  "svgs": 1,
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-schemas--mobile-320.png",
+  "sw": 320,
+  "cw": 320,
+  "colored": 0,
+  "flow": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "4.Déployer en production",
+   "4.Déployer en production"
+  ],
+  "svgs": 1,
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-schemas--zoom200-720.png",
+  "sw": 720,
+  "cw": 720,
+  "colored": 0,
+  "flow": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "4.Déployer en production",
+   "4.Déployer en production"
+  ],
+  "svgs": 1,
+  "axe_violations": [],
+  "js_errors": []
+ }
+]

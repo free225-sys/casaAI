@@ -10,6 +10,7 @@ import { AdminUsersPage } from "../src/pages/admin/AdminUsersPage";
 import { AdminImportPdfPage } from "../src/pages/admin/AdminImportPdfPage";
 import { AdminLessonEditPage } from "../src/pages/admin/AdminLessonEditPage";
 import { AdminCoursesPage } from "../src/pages/admin/AdminCoursesPage";
+import { MiniDiagram } from "../src/components/MiniDiagram";
 import { AdminQuizEditPage } from "../src/pages/admin/AdminQuizEditPage";
 import { AdminProgressPage } from "../src/pages/admin/AdminProgressPage";
 import { AdminCertificationsPage } from "../src/pages/admin/AdminCertificationsPage";
@@ -519,5 +520,32 @@ describe("Administration: éditeurs, progression et certifications", () => {
     await route("/admin/certifications/c1", "/admin/certifications/:certificationId", <AdminCertificationEditPage />);
     expect(host.querySelector('[role="alert"]')).not.toBeNull();
     expect(button("Réessayer le chargement").disabled).toBe(false);
+  });
+});
+
+describe("Schémas de leçon (D10)", () => {
+  const accent = /accent-(blue|gold|teal|coral)(?!-soft)/;
+  const diagrams = [
+    { type: "flow", steps: ["Collecter", "Entraîner", "Évaluer"] },
+    { type: "hierarchy", items: ["IA", "Apprentissage automatique", "Apprentissage profond"] },
+    { type: "matrix", xLabel: "Effort", yLabel: "Impact", quadrants: ["Gains rapides", "Projets majeurs", "À éviter", "À reporter"] },
+  ] as const;
+  it("n'utilise aucune couleur d'accent en bordure, contour ou texte, quel que soit le type de schéma", async () => {
+    for (const data of diagrams) {
+      await act(async () => root.render(<MiniDiagram data={data as never} />));
+      const nodes = [...host.querySelectorAll<HTMLElement | SVGElement>("*")];
+      const style = nodes.map(node => `${node.getAttribute("style") ?? ""} ${node.getAttribute("stroke") ?? ""} ${node.getAttribute("fill") ?? ""}`).join(" ");
+      expect(style).not.toMatch(accent);
+    }
+  });
+  it("garde les libellés et l'ordre lisibles sans couleur : étapes numérotées, niveaux et quadrants nommés", async () => {
+    await act(async () => root.render(<MiniDiagram data={diagrams[0] as never} />));
+    expect(host.textContent).toContain("1.Collecter");
+    expect(host.textContent).toContain("3.Évaluer");
+    await act(async () => root.render(<MiniDiagram data={diagrams[1] as never} />));
+    expect(host.querySelector("[role=img]")?.getAttribute("aria-label")).toBe("IA contient Apprentissage automatique contient Apprentissage profond");
+    expect(host.textContent).toContain("Apprentissage profond");
+    await act(async () => root.render(<MiniDiagram data={diagrams[2] as never} />));
+    for (const label of ["Gains rapides", "Projets majeurs", "À éviter", "À reporter", "Effort", "Impact"]) expect(host.textContent).toContain(label);
   });
 });

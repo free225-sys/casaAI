@@ -108,6 +108,8 @@ class BadgeService:
             row = existing.get(badge.id)
             if row is None:
                 row = UserBadge(
+                    # Migration 0010 requires an ID but has no server default.
+                    id=uuid.uuid4(),
                     user_id=user_id,
                     badge_id=badge.id,
                     earned_at=badge.earned_at or datetime.now(timezone.utc),

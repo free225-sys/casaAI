@@ -27,6 +27,10 @@ les réponses après démontage ; le sélecteur de rôle dispose d'un libellé a
 Elle ajoute les tests et le présent rapport. La structure, les styles et les
 composants du chantier de main sont conservés.
 
+La validation PostgreSQL native a ensuite révélé deux défauts supplémentaires,
+corrigés dans cette même branche : la chaîne Alembic utilise désormais une
+transaction par révision ; la création d'un badge fournit explicitement son UUID.
+
 ## Résultats exécutés sur ce checkout
 
 | Contrôle | Résultat |
@@ -35,6 +39,7 @@ composants du chantier de main sont conservés.
 | `npm run lint --prefix frontend` | Aucune erreur ; un avertissement existant |
 | `npm run test --prefix frontend` | 9 tests React réussis |
 | `python -m pytest backend/contract_tests -q` | 25 tests HTTP/unitaires réussis |
+| `python -m pytest tests -q` depuis backend, base de test explicite | 364 tests backend réussis, dont 14 nouveaux tests PostgreSQL natifs |
 
 Le lint conserve l'avertissement `only-export-components` dans `authStore`.
 Le correctif déjà publié sur main retire celui de `AdminCoursesPage`. Vite avertit sur le chunk 3D de
@@ -57,6 +62,45 @@ sans doublons séquentiels, leur acquittement et la désactivation des notificat
 Le SQL de sélection de la leçon suivante est inspecté pour son cours, son statut
 publié, sa position et son ordre ; il n'est pas exécuté sur PostgreSQL.
 
+La suite native est séparée : elle exécute désormais cette sélection sur de vraies
+lignes PostgreSQL et vérifie qu'une leçon brouillon ou d'un autre cours est ignorée.
+Les 25 contrats ci-dessus restent des tests à persistance substituée.
+
+## Validation PostgreSQL native
+
+Connexion vérifiée à `127.0.0.1:55432`, base `casa_pr1_test`, utilisateur synthétique
+`casa_test`, PostgreSQL 16.15, pgvector 0.8.7. Au premier contrôle : aucune table
+publique et aucun historique Alembic. Le conteneur, son volume et son réseau de
+test ont été créés par Willy ; aucun accès Docker supplémentaire n'a été tenté.
+
+`alembic upgrade head` échouait en 0003 avec `UnsafeNewEnumValueUsage` : la valeur
+SUPER_ADMIN ajoutée en 0002 était utilisée avant le commit. Le rollback a laissé
+la base sans table publique. L'option `transaction_per_migration=True` corrige la
+frontière de transaction conformément à la [documentation Alembic](https://alembic.sqlalchemy.org/en/latest/api/runtime.html#alembic.runtime.environment.EnvironmentContext.configure).
+Un nouvel `upgrade head` a ensuite appliqué 0001 à 0010. Chaque révision est
+atomique ; une série complète peut désormais être partiellement appliquée si une
+révision ultérieure échoue, avec une version Alembic permettant sa reprise.
+
+Deux nouveaux tests natifs échouaient ensuite sur `user_badges.id NOT NULL` : la
+migration 0010 ne fournit pas le défaut UUID attendu par le modèle. Le service
+génère désormais l'UUID lors de l'attribution ; aucun fichier de migration déjà
+appliqué n'a été réécrit et aucune nouvelle migration n'est requise.
+
+Résultat final : 350 tests existants et 14 nouveaux tests natifs passent ensemble
+(364). La suite mêle tests unitaires et intégration ; ce total ne signifie pas
+364 scénarios SQL. Les 14 nouveaux tests exercent le vrai schéma migré, les
+vraies routes HTTP/JWT et les requêtes SQL, sans remplacement des repositories.
+Ils vérifient progression et répétitions, isolation utilisateur, bornes 422,
+refus des brouillons, badges/notifications/acquittement, préférence persistée,
+rôles 403 et auto-modification 400. Le garde du dernier SUPER_ADMIN est exercé
+directement au niveau service avec un comptage SQL réel ; il ne simule pas un
+acteur HTTP autorisé lorsque seul un autre SUPER_ADMIN actif existe.
+
+Les fixtures ouvrent une transaction externe et utilisent des savepoints. Après
+les tests, les tables users/courses/lessons/progression/badges/notifications sont
+confirmées vides. La base reste à 0010 ; aucun conteneur, volume ou schéma n'a été
+supprimé ou réinitialisé. [Résultat structuré](NATIVE_TEST_RESULT.json).
+
 ## Sémantique du dépôt et limites
 
 L'auto-suppression, l'auto-suspension et l'auto-rétrogradation renvoient **400**,
@@ -69,11 +113,12 @@ Les badges sont calculés/persistés à GET `/api/me/badges`, pas à la complét
 la leçon. Les tests vérifient cette séquence et l'absence de doublons séquentiels,
 sans prouver la concurrence ou les contraintes PostgreSQL.
 
-Cette PR ne constitue pas une recette PostgreSQL/Supabase native, une preuve
-d'application Alembic, une validation des PDF réels, de l'authentification avec
-comptes réels ou une recette navigateur. L'accès Docker depuis cette session
-reste indisponible ; aucun accès à une base existante n'a été tenté. Les résultats
-des anciennes copies locales ne sont pas utilisés pour valider ce dépôt.
+L'application Alembic et les parcours décrits sont maintenant vérifiés sur
+PostgreSQL local isolé. Cette PR ne constitue pas une recette Supabase hébergée,
+une preuve de concurrence, une validation des PDF réels, des comptes réels ou du
+navigateur. Aucun outil navigateur pris en charge n'est disponible : les neuf
+tests React utilisent toujours happy-dom. Aucune autre base n'a été contactée.
+Les résultats des anciennes copies locales ne valident pas ce dépôt.
 
 L'architecture reste React/Vite + FastAPI/Alembic + PostgreSQL. `VITE_API_URL`
 doit désigner l'API FastAPI réellement choisie ; les origines CORS de production
@@ -100,3 +145,16 @@ Vitest 5.0.0, happy-dom 20.14.0, FastAPI 0.142.2, SQLAlchemy 2.1.3,
 Pydantic 2.13.5, pytest 9.1.1, httpx 0.28.1, Starlette 1.7.0.
 Le lockfile npm fixe les nouvelles dépendances de test ; les contraintes backend
 existantes restent ouvertes. Aucun déploiement ni merge n'est effectué.
+
+Pour la suite native, dans un processus distinct des contrats et uniquement
+après sélection explicite du nouveau PostgreSQL de test, définir DATABASE_URL
+vers `casa_test@127.0.0.1:55432/casa_pr1_test` avec ses identifiants synthétiques,
+SECRET_KEY de test et MEDIA_ROOT dans un dossier de test. Depuis backend :
+
+```text
+../.venv-ux-tests/Scripts/python.exe -m alembic upgrade head
+../.venv-ux-tests/Scripts/python.exe -m pytest tests -q
+```
+
+Les tests natifs ajoutés sont ignorés si cette cible jetable exacte n'est pas
+sélectionnée. Aucune valeur issue d'un `.env` existant n'a été lue.

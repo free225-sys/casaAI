@@ -192,3 +192,50 @@ def test_unpublished_lesson_retains_history_and_earned_badge(client, db_session,
     badges = client.get("/api/me/badges", headers=auth).json()
     assert any(row["id"] == "first_step" and row["earned"] for row in badges)
     assert count(db_session, UserBadge, learner) == 1
+
+
+def test_progress_late_lower_write_keeps_acquired_percentage(client, learning):
+    auth = headers(learning["learner"])
+    for pct in (80, 35, 10, 80):
+        response = client.patch("/api/lessons/native-first/progress", headers=auth, json={"progress_pct": pct})
+        assert response.status_code == 200
+        assert response.json()["progress_pct"] == 80
+    assert client.post("/api/lessons/native-first/complete", headers=auth).json()["progress_pct"] == 100
+    assert client.patch("/api/lessons/native-first/progress", headers=auth, json={"progress_pct": 2}).json()["progress_pct"] == 100
+
+
+def test_independent_sessions_preserve_maximum_and_completion_after_cached_read(tmp_path):
+    import json
+    import uuid
+    from sqlalchemy import delete
+    from sqlalchemy.orm import Session
+    from app.services.progress_service import ProgressService
+    uid = uuid.uuid4()
+    school_id, course_id, lesson_id = [f"race-{kind}-{uid.hex}" for kind in ("school", "course", "lesson")]
+    journal = tmp_path / "owned-progress-race-ids.json"
+    journal.write_text(json.dumps({"user": str(uid), "school": school_id, "course": course_id, "lesson": lesson_id, "state": "planned"}))
+    with Session(engine) as db:
+        db.add(User(id=uid, first_name="TEST", last_name="Race", email=f"race-{uid.hex}@example.invalid", password_hash="unused-synthetic-hash", role=UserRole.LEARNER, status=AccountStatus.ACTIVE))
+        db.add(School(id=school_id, name="TEST Race", short_name="TEST", color="#000000"))
+        db.flush()
+        db.add(Course(id=course_id, school_id=school_id, title="TEST Race", status=ContentStatus.PUBLISHED))
+        db.flush()
+        db.add(Lesson(id=lesson_id, course_id=course_id, title="TEST Race", position=1, status=ContentStatus.PUBLISHED))
+        db.commit()
+        ProgressService(db).set_progress(uid, lesson_id, 30)
+    try:
+        with Session(engine) as stale, Session(engine) as other:
+            cached = stale.get(UserLessonProgress, (uid, lesson_id))
+            assert cached.progress_pct == 30
+            assert ProgressService(other).set_progress(uid, lesson_id, 80).progress_pct == 80
+            assert ProgressService(stale).set_progress(uid, lesson_id, 35).progress_pct == 80
+            assert ProgressService(other).complete_lesson(uid, lesson_id).progress_pct == 100
+            assert ProgressService(stale).set_progress(uid, lesson_id, 10).progress_pct == 100
+            assert cached.status.value == "COMPLETED"
+    finally:
+        with Session(engine) as db:
+            db.execute(delete(Course).where(Course.id == course_id))
+            db.execute(delete(School).where(School.id == school_id))
+            db.execute(delete(User).where(User.id == uid))
+            db.commit()
+        journal.write_text(json.dumps({"user": str(uid), "school": school_id, "course": course_id, "lesson": lesson_id, "state": "cleaned-owned-ids-only"}))

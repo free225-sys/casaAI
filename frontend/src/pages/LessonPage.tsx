@@ -46,7 +46,7 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
   const [reload, setReload] = useState(0);
   const [syncReload, setSyncReload] = useState(0);
   const mounted = useRef(false);
-  const completionVersion = useRef(0);
+  const latestSyncRequest = useRef(0);
   const completedRef = useRef(false);
   const persistedProgress = useRef(0);
   const pendingProgress = useRef(0);
@@ -56,26 +56,27 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
     if (!lessonId) return;
     let active = true;
     let timer: number | undefined;
-    const version = completionVersion.current;
+    const startRequest = ++latestSyncRequest.current;
     setSyncError(null);
-    const restore = (result: { status: string; progress_pct: number }, requestVersion = version) => {
-      if (!active || requestVersion !== completionVersion.current || completedRef.current) return;
+    const restore = (result: { status: string; progress_pct: number }) => {
+      if (!active || completedRef.current) return;
       completedRef.current = result.status === "COMPLETED";
       setCompleted(completedRef.current);
-      persistedProgress.current = result.progress_pct;
-      setSavedProgress(result.progress_pct);
+      persistedProgress.current = Math.max(persistedProgress.current, result.progress_pct);
+      setSavedProgress(persistedProgress.current);
+      if (completedRef.current) setCompleteError(false);
     };
     const save = (pct: number) => {
-      const saveVersion = completionVersion.current;
+      const saveRequest = ++latestSyncRequest.current;
       progressService.saveProgress(lessonId, pct).then(result => {
-        restore(result, saveVersion);
-        if (active && saveVersion === completionVersion.current) setSyncError(null);
-      }).catch(() => { if (active && saveVersion === completionVersion.current && !completedRef.current) setSyncError("La progression n'a pas pu être enregistrée."); });
+        restore(result);
+        if (active && saveRequest === latestSyncRequest.current) setSyncError(null);
+      }).catch(() => { if (active && saveRequest === latestSyncRequest.current && !completedRef.current) setSyncError("La progression n'a pas pu être enregistrée."); });
     };
     progressService.startLesson(lessonId).then(result => {
       restore(result);
-      if (active && version === completionVersion.current && !completedRef.current && pendingProgress.current > persistedProgress.current) save(pendingProgress.current);
-    }).catch(() => { if (active && version === completionVersion.current && !completedRef.current) setSyncError("Impossible de retrouver votre progression enregistrée."); });
+      if (active && !completedRef.current && pendingProgress.current > persistedProgress.current) save(pendingProgress.current);
+    }).catch(() => { if (active && startRequest === latestSyncRequest.current && !completedRef.current) setSyncError("Impossible de retrouver votre progression enregistrée."); });
     const onScroll = () => {
       const doc = document.documentElement;
       const max = doc.scrollHeight - window.innerHeight;
@@ -84,7 +85,7 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         if (!active || completedRef.current || pct <= 0 || pct >= 100) return;
-        pendingProgress.current = Math.max(persistedProgress.current, pct);
+        pendingProgress.current = Math.max(pendingProgress.current, persistedProgress.current, pct);
         save(pendingProgress.current);
       }, 1500);
     };
@@ -125,7 +126,6 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
 
   const handleComplete = async () => {
     if (!lessonId || completing || completedRef.current) return;
-    ++completionVersion.current;
     setCompleting(true);
     setCompleteError(false);
     try {

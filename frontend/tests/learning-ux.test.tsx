@@ -363,3 +363,46 @@ describe("PDF decision context", () => {
     expect(host.querySelector('[aria-label="Résumé avant import"]')?.textContent).toContain("TEST.pdf");
   });
 });
+
+describe("Progress response races", () => {
+  it("restores pending start when completion fails", async () => {
+    const start = deferred<{ lesson_id: string; status: string; progress_pct: number }>();
+    vi.mocked(progressService.startLesson).mockReturnValue(start.promise);
+    vi.mocked(progressService.completeLesson).mockRejectedValue(new Error("Offline"));
+    await mountLesson();
+    await act(async () => button("Marquer comme terminée").click());
+    await act(async () => start.resolve({ lesson_id: "a", status: "IN_PROGRESS", progress_pct: 62 }));
+    expect(host.textContent).toContain("Progression enregistrée : 62 %");
+    expect(host.textContent).not.toContain("en cours de synchronisation");
+    expect(button("Marquer comme terminée").disabled).toBe(false);
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("n'a pas pu être marquée");
+  });
+  it("cannot decrease confirmed progress when save responses arrive out of order", async () => {
+    const first = deferred<{ lesson_id: string; status: string; progress_pct: number }>();
+    const second = deferred<{ lesson_id: string; status: string; progress_pct: number }>();
+    vi.mocked(progressService.saveProgress).mockResolvedValue({ lesson_id: "a", status: "IN_PROGRESS", progress_pct: 80 }).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const oldHeight = Object.getOwnPropertyDescriptor(document.documentElement, "scrollHeight");
+    const oldY = Object.getOwnPropertyDescriptor(window, "scrollY");
+    vi.useFakeTimers();
+    try {
+      Object.defineProperty(document.documentElement, "scrollHeight", { configurable: true, value: window.innerHeight + 1000 });
+      Object.defineProperty(window, "scrollY", { configurable: true, value: 0 });
+      await mountLesson();
+      for (const pct of [30, 80]) {
+        await act(async () => { Object.defineProperty(window, "scrollY", { configurable: true, value: pct * 10 }); window.dispatchEvent(new Event("scroll")); await vi.advanceTimersByTimeAsync(1500); });
+      }
+      expect(progressService.saveProgress).toHaveBeenNthCalledWith(1, "a", 30);
+      expect(progressService.saveProgress).toHaveBeenNthCalledWith(2, "a", 80);
+      await act(async () => second.resolve({ lesson_id: "a", status: "IN_PROGRESS", progress_pct: 80 }));
+      await act(async () => first.resolve({ lesson_id: "a", status: "IN_PROGRESS", progress_pct: 30 }));
+      expect(host.textContent).toContain("Progression enregistrée : 80 %");
+      // Returning to the top changes the viewport indicator, not the acquired percentage.
+      await act(async () => { Object.defineProperty(window, "scrollY", { configurable: true, value: 100 }); window.dispatchEvent(new Event("scroll")); await vi.advanceTimersByTimeAsync(1500); });
+      expect(progressService.saveProgress).toHaveBeenLastCalledWith("a", 80);
+    } finally {
+      vi.useRealTimers();
+      if (oldHeight) Object.defineProperty(document.documentElement, "scrollHeight", oldHeight); else Reflect.deleteProperty(document.documentElement, "scrollHeight");
+      if (oldY) Object.defineProperty(window, "scrollY", oldY); else Reflect.deleteProperty(window, "scrollY");
+    }
+  });
+});

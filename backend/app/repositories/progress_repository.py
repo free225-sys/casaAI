@@ -84,6 +84,9 @@ class ProgressRepository:
     def start_lesson(self, user_id: uuid.UUID, lesson_id: str) -> UserLessonProgress:
         transaction_lock(self.db, f"casa:progress:{user_id}:{lesson_id}")
         progress = self.db.get(UserLessonProgress, (user_id, lesson_id))
+        # The advisory lock may have waited while an identity-map row became stale.
+        if progress is not None:
+            self.db.refresh(progress)
         now = datetime.now(timezone.utc)
         if progress is None:
             progress = UserLessonProgress(
@@ -101,7 +104,7 @@ class ProgressRepository:
     def set_progress_pct(self, user_id: uuid.UUID, lesson_id: str, pct: int) -> UserLessonProgress:
         progress = self.start_lesson(user_id, lesson_id)
         if progress.status != LessonProgressStatus.COMPLETED:
-            progress.progress_pct = max(0, min(99, pct))
+            progress.progress_pct = max(progress.progress_pct, max(0, min(99, pct)))
             progress.status = LessonProgressStatus.IN_PROGRESS
         self.db.flush()
         return progress

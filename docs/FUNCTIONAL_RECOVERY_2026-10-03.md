@@ -39,3 +39,14 @@ Le skill Windows Computer Use est présent, mais son runtime `node_repl`/`@oai/s
 Les services QA existants sur loopback 5184/8014 ont répondu, sans lancement ni redémarrage dans ce lot. Le frontend Vite suit les fichiers modifiés ; l'API existante, démarrée auparavant sans reload, doit être redémarrée de façon ciblée par son propriétaire avant une recette du nouveau champ `is_available`. La suite backend ci-dessus charge les nouveaux fichiers dans son propre processus.
 
 Prochaine étape : rendre les livrables Claude accessibles sur une branche dédiée, inspecter réellement les PNG, puis intégrer et vérifier les écrans approuvés en conservant résumé/anomalies PDF sur mobile, accès évident à toutes les cartes, pagination cohérente, clavier, zoom et contenus pédagogiques visibles. Aucun merge ni déploiement n'est effectué.
+
+
+## Complément : courses de progression après 5a3f47a
+
+Les constats indépendants ont été reproduits avant correction : un start en attente restait ignoré après échec de complete ; une réponse de sauvegarde ancienne remplaçait 80 % par 30 % dans l'interface ; une écriture HTTP tardive abaissait PostgreSQL de 80 % à 35 %.
+
+Le frontend restaure désormais toute réponse utile tant que la route est active et que la complétion n'est pas confirmée, et conserve le maximum acquis. Les erreurs de synchronisation appartiennent à la requête la plus récente. L'échec d'une tentative de complétion n'invalide plus une restauration encore en attente ; la complétion confirmée continue de protéger les 100 %. Le pourcentage de la position actuelle dans la page reste distinct de la progression acquise.
+
+Le serveur conserve également le maximum, après plafonnement à 99 % tant que la leçon n'est pas terminée. La ligne existante est rafraîchie sous le verrou transactionnel pour éviter qu'un objet déjà chargé dans la session masque une progression ou une complétion enregistrée par une autre session. Le verrou, les bornes 422 et les contrats de complétion restent conservés.
+
+Vérifications : 29 tests React, 25 contrats mockés séparés, 382 tests backend réussis, build/lint réussis avec les avertissements existants. Un test dernier SUPER_ADMIN est toujours ignoré et les six anciens scénarios exigeant une base vide restent exclus pour préserver les comptes QA. Les nouvelles preuves comprennent deux réponses save résolues dans l'ordre inverse, start résolu après échec de complete, HTTP 80 puis 35/10, et deux sessions PostgreSQL réutilisant une ligne en cache avant progression/complétion par l'autre session. Le dernier test crée des identifiants synthétiques uniques, les journalise et ne retire que ses propres lignes. Les clés primaires QA avant/après la suite restent identiques. Ce sont des interleavings contrôlés, pas un test de charge ni une preuve de toutes les courses possibles.

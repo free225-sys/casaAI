@@ -22,7 +22,7 @@ export const progressService = {
   saveProgress: (id: string, progress_pct: number) =>
     api.patch<{ lesson_id: string; status: string; progress_pct: number }>(`/api/lessons/${id}/progress`, { progress_pct }),
   completeLesson: (id: string) =>
-    api.post<{ lesson_id: string; status: string; progress_pct: number }>(
+    api.post<{ lesson_id: string; status: string; progress_pct: number; next_lesson_id?: string | null }>(
       `/api/lessons/${id}/complete`,
       undefined,
       true

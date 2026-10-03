@@ -31,6 +31,22 @@ class ProgressRepository:
             .where(Lesson.id == lesson_id, Lesson.status == ContentStatus.PUBLISHED)
         ).scalar_one_or_none()
 
+    def next_lesson_id(self, lesson_id: str) -> str | None:
+        lesson = self.db.get(Lesson, lesson_id)
+        if lesson is None:
+            return None
+        nxt = self.db.execute(
+            select(Lesson.id)
+            .where(
+                Lesson.course_id == lesson.course_id,
+                Lesson.status == ContentStatus.PUBLISHED,
+                Lesson.position > lesson.position,
+            )
+            .order_by(Lesson.position)
+            .limit(1)
+        ).scalar_one_or_none()
+        return str(nxt) if nxt else None
+
     def get_validation_quiz_id(self, lesson_id: str) -> str | None:
         """Quiz VALIDATION publié rattaché à cette leçon, s'il existe (§15
         cahier fonctionnel). Sans cet appel, un quiz VALIDATION créé pour la

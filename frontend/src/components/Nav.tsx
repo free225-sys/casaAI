@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Link } from "./AppLink";
 import { useAuth } from "../stores/authStore";
 import { NotificationBell } from "./NotificationBell";
@@ -6,80 +7,73 @@ import { NotificationBell } from "./NotificationBell";
 export function Nav() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  useEffect(() => {
+    if (!accountOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [accountOpen]);
+
+  const close = () => setOpen(false);
+  const itemClass = ({ isActive }: { isActive: boolean }) =>
+    `nav-link${isActive ? " is-active" : ""}`;
 
   return (
-    <header
-      style={{
-        borderBottom: "1px solid var(--color-border)",
-        background: "rgba(255, 255, 255, 0.85)",
-        backdropFilter: "blur(8px)",
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-      }}
-    >
-      <div
-        className="container"
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}
-      >
-        <Link to="/" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.1rem" }}>
+    <header className="site-header">
+      <div className="container nav-bar">
+        <Link to="/" className="nav-brand" onClick={close}>
           CASA <span style={{ color: "var(--color-accent-gold)" }}>AI</span> Institute
         </Link>
-
-        <nav style={{ display: "flex", alignItems: "center", gap: 24, fontSize: "0.9rem" }}>
-          <Link to="/catalog" className="nav-link">
-            Catalogue
-          </Link>
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-expanded={open}
+          aria-controls="site-nav"
+          onClick={() => setOpen((v) => !v)}
+        >
+          Menu
+        </button>
+        <nav id="site-nav" className={`site-nav${open ? " is-open" : ""}`} aria-label="Principal">
+          <NavLink to="/catalog" className={itemClass} onClick={close}>Catalogue</NavLink>
           {isAuthenticated && (
             <>
-              <Link to="/app/dashboard" className="nav-link">
-                Mon espace
-              </Link>
-              <Link to="/app/quizzes" className="nav-link">
-                Quiz
-              </Link>
-              <Link to="/app/portfolio" className="nav-link">
-                Portfolio
-              </Link>
-              <Link to="/app/certifications" className="nav-link">
-                Certifications
-              </Link>
-              {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
-                <Link to="/admin/courses" className="nav-link-accent">
-                  Cours
-                </Link>
-              )}
-              {user?.role === "SUPER_ADMIN" && (
-                <Link to="/admin/users" className="nav-link-accent">
-                  Utilisateurs
-                </Link>
+              <NavLink to="/app/dashboard" className={itemClass} onClick={close}>Mon espace</NavLink>
+              <NavLink to="/app/quizzes" className={itemClass} onClick={close}>Quiz</NavLink>
+              <NavLink to="/app/portfolio" className={itemClass} onClick={close}>Portfolio</NavLink>
+              <NavLink to="/app/certifications" className={itemClass} onClick={close}>Certifications</NavLink>
+              {isAdmin && (
+                <NavLink to="/admin/courses" className={itemClass} onClick={close}>Admin</NavLink>
               )}
             </>
           )}
-
           {isAuthenticated ? (
-            <>
+            <div className="nav-account">
               <NotificationBell />
-              <Link to="/app/profile" className="mono nav-link" style={{ fontSize: "0.8rem" }}>
-                {user?.first_name}
-              </Link>
-              <button className="btn btn-secondary" onClick={handleLogout}>
-                Se déconnecter
-              </button>
-            </>
+              <div className="account-menu" ref={accountRef}>
+                <button type="button" className="btn btn-secondary" aria-expanded={accountOpen} onClick={() => setAccountOpen((v) => !v)}>
+                  {user?.first_name}
+                </button>
+                {accountOpen && (
+                  <div className="account-menu-panel" role="menu">
+                    <Link to="/app/profile" onClick={() => { setAccountOpen(false); close(); }}>Profil</Link>
+                    <button type="button" className="btn btn-secondary" onClick={() => { logout(); navigate("/"); close(); }}>
+                      Se déconnecter
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
             <>
-              <Link to="/login" className="nav-link">
-                Connexion
-              </Link>
-              <Link to="/register" className="btn btn-primary">
-                S'inscrire
-              </Link>
+              <NavLink to="/login" className={itemClass} onClick={close}>Connexion</NavLink>
+              <NavLink to="/register" className="btn btn-primary" onClick={close}>S'inscrire</NavLink>
             </>
           )}
         </nav>

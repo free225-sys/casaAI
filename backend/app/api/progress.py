@@ -153,6 +153,7 @@ def complete_lesson(
     return LessonCompleteResponse(
         lesson_id=lesson_id, status=progress.status,
         progress_pct=progress.progress_pct, completed_at=progress.completed_at,
+        next_lesson_id=ProgressRepository(db).next_lesson_id(lesson_id),
     )
 
 

@@ -48,6 +48,7 @@ export function ProfilePage() {
   const [lastName, setLastName] = useState(user?.last_name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [currentPasswordForEmail, setCurrentPasswordForEmail] = useState("");
+  const [notifyBadges, setNotifyBadges] = useState(true);
   const [infoError, setInfoError] = useState<string | null>(null);
   const [infoSuccess, setInfoSuccess] = useState(false);
   const [savingInfo, setSavingInfo] = useState(false);
@@ -81,6 +82,7 @@ export function ProfilePage() {
     certificationService.listMyCourseCertificates().then(setCertificates).catch(() => setCertificates([]));
     portfolioService.listMine().then(setPortfolioItems).catch(() => setPortfolioItems([]));
     progressService.getMyQuizHistory().then(setQuizHistory).catch(() => setQuizHistory([]));
+    progressService.getNotificationSettings().then((s) => setNotifyBadges(s.notify_badges)).catch(() => {});
 
     contentService.listProfileTypes().then(setProfileTypes).catch(() => setProfileTypes([]));
     contentService.listGoals().then(setGoalsCatalog).catch(() => setGoalsCatalog([]));
@@ -196,6 +198,20 @@ export function ProfilePage() {
           )}
         </div>
       </RevealSection>
+      <section className="card" style={{ padding: 16, marginBottom: 24 }}>
+        <label style={{ display: "flex", gap: 10, alignItems: "center", color: "var(--color-text)" }}>
+          <input
+            type="checkbox"
+            checked={notifyBadges}
+            onChange={(e) => {
+              const next = e.target.checked;
+              setNotifyBadges(next);
+              progressService.updateNotificationSettings(next).catch(() => setNotifyBadges(!next));
+            }}
+          />
+          Me prévenir quand je débloque un badge
+        </label>
+      </section>
 
       <RevealSection as="div" delayMs={80}>
         <h2 style={{ fontSize: "1.05rem", marginBottom: 16 }}>Informations du compte</h2>

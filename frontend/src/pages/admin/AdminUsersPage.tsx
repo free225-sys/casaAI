@@ -5,6 +5,7 @@ import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
 import { useAuth } from "../../stores/authStore";
 import type { AdminUser, UserRole } from "../../types/api";
+import { AdminPagination, ADMIN_PAGE_SIZE } from "../../components/AdminPagination";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   SUPER_ADMIN: "Super admin",
@@ -23,16 +24,24 @@ export function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[] | null>(null);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [role, setRole] = useState<"" | UserRole>("");
+  const [page, setPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = () => {
-    adminService.listUsers({ search: search || undefined, limit: 50 }).then((page) => {
-      setUsers(page.items);
-      setTotal(page.total);
+    adminService.listUsers({
+      search: search || undefined,
+      role: role || undefined,
+      limit: ADMIN_PAGE_SIZE,
+      offset: page * ADMIN_PAGE_SIZE,
+    }).then((res) => {
+      setUsers(res.items);
+      setTotal(res.total);
     });
   };
 
-  useEffect(refresh, [search]);
+  useEffect(() => { setPage(0); }, [search, role]);
+  useEffect(refresh, [search, role, page]);
 
   const handleRoleChange = async (u: AdminUser, role: UserRole) => {
     if (role === u.role) return;
@@ -136,7 +145,7 @@ export function AdminUsersPage() {
                   {u.status === "ACTIVE" ? "Suspendre" : "Réactiver"}
                 </button>
                 <button
-                  className="btn btn-secondary"
+                  className="btn btn-danger"
                   onClick={() => handleDelete(u)}
                   disabled={u.id === currentUser?.id}
                   style={{ color: "var(--color-accent-coral)" }}
@@ -148,6 +157,7 @@ export function AdminUsersPage() {
           ))}
         </div>
       )}
+    <AdminPagination total={total} page={page} onPageChange={setPage} />
     </AdminLayout>
   );
 }

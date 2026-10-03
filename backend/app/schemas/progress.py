@@ -88,6 +88,7 @@ class LessonCompleteResponse(BaseModel):
     status: LessonProgressStatus
     progress_pct: int
     completed_at: datetime | None = None
+    next_lesson_id: str | None = None
 
 
 class UserLessonProgressOut(BaseModel):

@@ -152,6 +152,11 @@ export function AdminImportPdfPage() {
   return (
     <AdminLayout>
       <div style={{ maxWidth: 720 }}>
+        <ol className="import-steps">
+          <li className={!preview && !result ? "is-current" : ""}>1. Fichier</li>
+          <li className={preview && !result ? "is-current" : ""}>2. Aperçu</li>
+          <li className={result ? "is-current" : ""}>3. Import</li>
+        </ol>
         <h2 style={{ fontSize: "1.1rem", marginBottom: 8 }}>Importer un cours depuis un PDF</h2>
         <p style={{ marginBottom: 24 }}>
           Le document est d'abord analysé sans rien enregistrer : sections, blocs et points à

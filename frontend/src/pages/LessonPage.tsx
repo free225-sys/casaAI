@@ -29,6 +29,7 @@ export function LessonPage() {
   const [activeDepth, setActiveDepth] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [nextLessonId, setNextLessonId] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [focus, setFocus] = useState(false);
@@ -91,7 +92,8 @@ export function LessonPage() {
     if (!lessonId) return;
     setCompleting(true);
     try {
-      await progressService.completeLesson(lessonId);
+      const result = await progressService.completeLesson(lessonId);
+      setNextLessonId(result.next_lesson_id ?? null);
       setCompleted(true);
     } finally {
       setCompleting(false);
@@ -134,6 +136,18 @@ export function LessonPage() {
         {lesson.level && <span className="badge badge-teal">{lesson.level}</span>}
         {lesson.duration_min && <span className="badge badge-gold">{lesson.duration_min} min</span>}
       </div>
+      <div className="lesson-layout">
+      <aside className="lesson-toc" aria-label="Sommaire">
+        <p className="text-caption">Sommaire</p>
+        <ol>
+          {lesson.sections.map((section, i) => (
+            <li key={section.position}>
+              <a href={`#section-${section.position}`}>{i + 1}. {section.title}</a>
+            </li>
+          ))}
+        </ol>
+      </aside>
+      <div>
       <h1 style={{ marginBottom: 16 }}>{lesson.title}</h1>
       {lesson.summary && (
         <p style={{ marginBottom: 24, fontSize: "1.0625rem", lineHeight: 1.7, color: "var(--color-text)" }}>
@@ -160,6 +174,7 @@ export function LessonPage() {
           key={section.position}
           as="section"
           delayMs={Math.min(i, 4) * 60}
+          id={`section-${section.position}`}
           className="card"
           style={{ padding: 28, marginBottom: 24 }}
         >
@@ -246,6 +261,11 @@ export function LessonPage() {
       <button className="btn btn-primary" onClick={handleComplete} disabled={completing || completed}>
         {completed ? "Leçon terminée ✓" : completing ? "Enregistrement…" : "Marquer comme terminée"}
       </button>
+      {nextLessonId && (
+        <Link to={`/app/lessons/${nextLessonId}`} className="btn btn-primary" style={{ marginLeft: 12 }}>
+          Leçon suivante
+        </Link>
+      )}
 
       {lesson.validation_quiz_id && (
         <Link
@@ -257,5 +277,7 @@ export function LessonPage() {
         </Link>
       )}
     </div>
+      </div>
+      </div>
   );
 }

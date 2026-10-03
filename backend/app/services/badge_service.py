@@ -16,6 +16,7 @@ CATALOG: list[dict] = [
     {"id": "first_step", "title": "Premier pas", "description": "Terminer une première leçon.", "category": "apprentissage", "kind": "lessons", "threshold": 1},
     {"id": "curious", "title": "Curieux", "description": "Terminer 3 leçons.", "category": "apprentissage", "kind": "lessons", "threshold": 3},
     {"id": "regular", "title": "Régulier", "description": "Terminer 10 leçons.", "category": "apprentissage", "kind": "lessons", "threshold": 10},
+    {"id": "assidu", "title": "Assidu", "description": "Terminer 25 leçons.", "category": "apprentissage", "kind": "lessons", "threshold": 25},
     {"id": "quiz_start", "title": "Première réussite", "description": "Réussir un quiz.", "category": "quiz", "kind": "quiz_pass", "threshold": 1},
     {"id": "quiz_solid", "title": "Solide", "description": "Réussir 5 quiz.", "category": "quiz", "kind": "quiz_pass", "threshold": 5},
     {"id": "quiz_perfect", "title": "Sans faute", "description": "Obtenir 100 à un quiz.", "category": "quiz", "kind": "quiz_score", "threshold": 100},

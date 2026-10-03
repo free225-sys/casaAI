@@ -39,7 +39,7 @@ transaction par révision ; la création d'un badge fournit explicitement son UU
 | `npm run lint --prefix frontend` | Aucune erreur ; un avertissement existant |
 | `npm run test --prefix frontend` | 9 tests React réussis |
 | `python -m pytest backend/contract_tests -q` | 25 tests HTTP/unitaires réussis |
-| `python -m pytest tests -q` depuis backend, base de test explicite | 364 tests backend réussis, dont 14 nouveaux tests PostgreSQL natifs |
+| `python -m pytest tests -q` depuis backend, base de test explicite | 386 tests backend réussis : 350 existants, 14 parcours natifs, 6 courses concurrentes et 16 circuits PDF synthétiques |
 
 Le lint conserve l'avertissement `only-export-components` dans `authStore`.
 Le correctif déjà publié sur main retire celui de `AdminCoursesPage`. Vite avertit sur le chunk 3D de
@@ -86,9 +86,9 @@ migration 0010 ne fournit pas le défaut UUID attendu par le modèle. Le service
 génère désormais l'UUID lors de l'attribution ; aucun fichier de migration déjà
 appliqué n'a été réécrit et aucune nouvelle migration n'est requise.
 
-Résultat final : 350 tests existants et 14 nouveaux tests natifs passent ensemble
-(364). La suite mêle tests unitaires et intégration ; ce total ne signifie pas
-364 scénarios SQL. Les 14 nouveaux tests exercent le vrai schéma migré, les
+Résultat final : 386 tests passent ensemble. La suite mêle tests unitaires et
+intégration ; ce total ne signifie pas 386 scénarios SQL. Les 14 tests natifs de
+parcours exercent le vrai schéma migré, les
 vraies routes HTTP/JWT et les requêtes SQL, sans remplacement des repositories.
 Ils vérifient progression et répétitions, isolation utilisateur, bornes 422,
 refus des brouillons, badges/notifications/acquittement, préférence persistée,
@@ -100,6 +100,46 @@ Les fixtures ouvrent une transaction externe et utilisent des savepoints. Après
 les tests, les tables users/courses/lessons/progression/badges/notifications sont
 confirmées vides. La base reste à 0010 ; aucun conteneur, volume ou schéma n'a été
 supprimé ou réinitialisé. [Résultat structuré](NATIVE_TEST_RESULT.json).
+
+## Concurrence et PDF synthétiques
+
+Six courses ont été reproduites avant correction avec des connexions et des
+transactions indépendantes. Deux SUPER_ADMIN réels, tous deux authentifiés avant
+les écritures, pouvaient chacun rétrograder, suspendre ou supprimer l'autre :
+les deux appels réussissaient et le comptage final était zéro. Les doubles appels
+start/complete et GET badges produisaient une violation d'unicité SQL.
+
+Des [verrous PostgreSQL limités à la transaction](https://www.postgresql.org/docs/16/functions-admin.html#FUNCTIONS-ADVISORY-LOCKS)
+sérialisent désormais le contrôle et l'écriture : une clé globale pour les
+mutations administrateur, une clé utilisateur/leçon pour la progression et une
+clé utilisateur pour l'attribution des badges. Ils sont libérés au commit ou au
+rollback, sans verrou de session persistant ni changement de schéma. Le hachage
+stable sur 64 bits est commun à tous les processus. Une collision rare ne fait
+que sérialiser deux opérations indépendantes. Les validations de rôle restent
+les mêmes ; aucune permission supplémentaire n'est accordée.
+
+Après correction, les trois courses admin donnent une réussite et un 409,
+avec un SUPER_ADMIN actif conservé. Les trois courses progression/badges donnent
+deux 200 sans doublon de progression, badge ou notification. Les gardes 400 pour
+l'auto-modification passent toujours dans la suite native. La preuve porte sur
+ces six scénarios à deux requêtes, en READ COMMITTED ; elle ne constitue pas un
+test de charge ou une preuve de toutes les courses possibles, ni une promesse
+d'horodatage strictement inchangé après complétions répétées.
+
+Ces tests doivent rendre leurs lignes visibles à plusieurs connexions : ils
+commitent uniquement leurs fixtures synthétiques, puis retirent uniquement les
+UUID et identifiants créés par leur propre fixture. Aucun truncate/drop/reset.
+Ils refusent les écritures si la cible n'est pas la base jetable exacte ou si
+des utilisateurs y sont déjà présents. Les comptages finaux, y compris écoles
+et tables documentaires, sont confirmés nuls.
+
+Les 16 générateurs PDF existants sont exécutés localement, sans installation
+supplémentaire. Un nouveau test paramétré passe pour chacun : multipart HTTP de
+prévisualisation sans création de cours, import avec persistance PostgreSQL,
+parité titre/pages/rapport, puis publication du contenu synthétique et lecture
+de l'arbre documentaire par un utilisateur LEARNER. Cela vérifie la cohérence
+du circuit sur des PDF contrôlés ; cela ne certifie ni les PDF clients, ni une
+extraction parfaite, ni une validation éditoriale de tout le contenu.
 
 ## Sémantique du dépôt et limites
 
@@ -115,7 +155,7 @@ sans prouver la concurrence ou les contraintes PostgreSQL.
 
 L'application Alembic et les parcours décrits sont maintenant vérifiés sur
 PostgreSQL local isolé. Cette PR ne constitue pas une recette Supabase hébergée,
-une preuve de concurrence, une validation des PDF réels, des comptes réels ou du
+une preuve générale de concurrence, une validation des PDF réels, des comptes réels ou du
 navigateur. Aucun outil navigateur pris en charge n'est disponible : les neuf
 tests React utilisent toujours happy-dom. Aucune autre base n'a été contactée.
 Les résultats des anciennes copies locales ne valident pas ce dépôt.

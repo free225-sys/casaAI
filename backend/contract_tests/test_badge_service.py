@@ -37,7 +37,9 @@ def badges(monkeypatch):
 
     def execute(query):
         # Simulated result for the actual service-generated SQL, scoped by user.
-        entity = query.column_descriptions[0]["entity"]
+        entity = query.column_descriptions[0].get("entity")
+        if entity is None:
+            return Mock()  # transaction lock has no ORM row result
         user_id = next(value for value in query.compile().params.values() if isinstance(value, uuid.UUID))
         selected = [row for row in rows if isinstance(row, entity) and row.user_id == user_id]
         if "notified IS false" in str(query):

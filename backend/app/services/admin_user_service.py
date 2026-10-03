@@ -13,6 +13,8 @@ import uuid
 
 from sqlalchemy.orm import Session
 
+from app.db.locks import transaction_lock
+
 from app.models.enums import AccountStatus, UserRole
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
@@ -38,6 +40,7 @@ class AdminUserService:
         self.repo = UserRepository(db)
 
     def update_user(self, *, actor: User, target_id: uuid.UUID, payload: AdminUserUpdateRequest) -> User:
+        transaction_lock(self.db, "casa:super-admin-mutations")
         target = self.repo.get_by_id(target_id)
         if target is None:
             raise UserNotFoundError(f"Utilisateur {target_id} introuvable.")
@@ -81,6 +84,7 @@ class AdminUserService:
         if target_id == actor.id:
             raise SelfModificationError("Vous ne pouvez pas supprimer votre propre compte.")
 
+        transaction_lock(self.db, "casa:super-admin-mutations")
         target = self.repo.get_by_id(target_id)
         if target is None:
             raise UserNotFoundError(f"Utilisateur {target_id} introuvable.")

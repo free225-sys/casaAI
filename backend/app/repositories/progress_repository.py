@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.db.locks import transaction_lock
+
 from app.models.catalog import Skill
 from app.models.content import Lesson
 from app.models.enums import ContentStatus, LessonProgressStatus, QuizKind
@@ -60,6 +62,7 @@ class ProgressRepository:
         return str(quiz_id) if quiz_id else None
 
     def mark_lesson_complete(self, user_id: uuid.UUID, lesson_id: str) -> UserLessonProgress:
+        transaction_lock(self.db, f"casa:progress:{user_id}:{lesson_id}")
         progress = self.db.get(UserLessonProgress, (user_id, lesson_id))
         now = datetime.now(timezone.utc)
         if progress is None:
@@ -79,6 +82,7 @@ class ProgressRepository:
         return progress
 
     def start_lesson(self, user_id: uuid.UUID, lesson_id: str) -> UserLessonProgress:
+        transaction_lock(self.db, f"casa:progress:{user_id}:{lesson_id}")
         progress = self.db.get(UserLessonProgress, (user_id, lesson_id))
         now = datetime.now(timezone.utc)
         if progress is None:

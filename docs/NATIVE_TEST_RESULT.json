@@ -10,14 +10,20 @@
   },
   "post_test_counts": {
     "users": 0,
+    "schools": 0,
     "courses": 0,
     "lessons": 0,
     "user_lesson_progress": 0,
     "user_badges": 0,
-    "notifications": 0
+    "notifications": 0,
+    "imported_documents": 0,
+    "document_sections": 0
   },
-  "backend_tests": 364,
+  "backend_tests": 386,
   "new_native_learning_tests": 14,
   "substituted_persistence_contracts": 25,
-  "ui_browser_verified": false
+  "ui_browser_verified": false,
+  "concurrency_tests": 6,
+  "synthetic_pdf_roundtrip_tests": 16,
+  "transaction_isolation": "read committed"
 }

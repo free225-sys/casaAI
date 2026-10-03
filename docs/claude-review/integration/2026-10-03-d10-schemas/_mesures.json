@@ -1,13 +1,20 @@
 [
  {
   "file": "integ-schemas--desktop-1440.png",
+  "flow_expected": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "3.Évaluer",
+   "4.Déployer en production"
+  ],
+  "flow_matches_exactly": true,
   "sw": 1440,
   "cw": 1440,
   "colored": 0,
   "flow": [
    "1.Collecter les données",
    "2.Entraîner le modèle",
-   "4.Déployer en production",
+   "3.Évaluer",
    "4.Déployer en production"
   ],
   "svgs": 1,
@@ -16,13 +23,20 @@
  },
  {
   "file": "integ-schemas--mobile-390.png",
+  "flow_expected": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "3.Évaluer",
+   "4.Déployer en production"
+  ],
+  "flow_matches_exactly": true,
   "sw": 390,
   "cw": 390,
   "colored": 0,
   "flow": [
    "1.Collecter les données",
    "2.Entraîner le modèle",
-   "4.Déployer en production",
+   "3.Évaluer",
    "4.Déployer en production"
   ],
   "svgs": 1,
@@ -31,13 +45,20 @@
  },
  {
   "file": "integ-schemas--mobile-320.png",
+  "flow_expected": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "3.Évaluer",
+   "4.Déployer en production"
+  ],
+  "flow_matches_exactly": true,
   "sw": 320,
   "cw": 320,
   "colored": 0,
   "flow": [
    "1.Collecter les données",
    "2.Entraîner le modèle",
-   "4.Déployer en production",
+   "3.Évaluer",
    "4.Déployer en production"
   ],
   "svgs": 1,
@@ -46,13 +67,20 @@
  },
  {
   "file": "integ-schemas--zoom200-720.png",
+  "flow_expected": [
+   "1.Collecter les données",
+   "2.Entraîner le modèle",
+   "3.Évaluer",
+   "4.Déployer en production"
+  ],
+  "flow_matches_exactly": true,
   "sw": 720,
   "cw": 720,
   "colored": 0,
   "flow": [
    "1.Collecter les données",
    "2.Entraîner le modèle",
-   "4.Déployer en production",
+   "3.Évaluer",
    "4.Déployer en production"
   ],
   "svgs": 1,

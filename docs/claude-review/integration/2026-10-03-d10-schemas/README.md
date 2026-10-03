@@ -26,3 +26,11 @@ Les fonds doux teal/or de la matrice sont conservés (fond, pas bordure) : D10 v
 ## Non vérifié
 
 Données de leçons réelles (aucun schéma réel n'a été chargé), recette réelle, lecteur d'écran sur les schémas, zoom navigateur réel, CI GitHub. Ces captures ne sont **pas** une recette réelle.
+
+## Correction du relevé (R4 de `MSG-20261003-013`)
+
+Le premier `_mesures.json` listait les étapes du flux « 1, 2, 4, 4 » alors que les captures montraient 1, 2, 3, 4. **Cause établie** : le script de collecte filtrait les `div` dont le texte correspond à `/^\d\.\w/` ; en JavaScript `\w` est ASCII, donc « 3.Évaluer » (initiale « É ») était ignoré, et le conteneur flex imbriqué dupliquait « 4.Déployer… ». Les captures et le composant étaient corrects ; seul le relevé ne l'était pas.
+
+**Correction** : la collecte lit désormais chaque `<span>` dont le texte est « N. » et prend le texte de sa boîte parente, sans filtre sur la lettre initiale. Le script compare la liste complète à la liste attendue (`["1.Collecter les données", "2.Entraîner le modèle", "3.Évaluer", "4.Déployer en production"]`) et **échoue** (code de sortie 1) si elle diffère ; le résultat figure dans `_mesures.json` (`flow_expected`, `flow_matches_exactly`). Relevé régénéré à 1440, 390, 320 et 720 px : `flow_matches_exactly: true` dans les quatre cas. Les quatre PNG ont été régénérés par la même exécution et sont identiques octet pour octet à ceux déjà publiés (le rendu était donc correct). Les valeurs n'ont pas été saisies à la main.
+
+Script fourni : `outillage/qa-schemas.js` (Playwright, API simulée interceptée, `axe-core` chargé depuis `node_modules`). Il suppose un serveur de prévisualisation Vite de la build `a51b626`, construite avec `VITE_API_URL=http://api.test`, sur le port 4173 ; il n'est pas exécutable tel quel sans ces prérequis. Mêmes limites que ci-dessus : API simulée, aucune recette réelle.

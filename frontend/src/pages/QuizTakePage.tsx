@@ -141,7 +141,6 @@ export function QuizTakePage() {
             style={{
               padding: 28,
               marginBottom: 32,
-              borderColor: result.passed ? "var(--color-accent-teal)" : "var(--color-accent-coral)",
             }}
           >
             <span

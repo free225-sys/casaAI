@@ -43,7 +43,6 @@ export function CertificationDetailPage() {
             style={{
               padding: 22,
               marginBottom: 32,
-              borderColor: eligibility.eligible ? "var(--color-accent-teal)" : "var(--color-border)",
             }}
           >
             <span

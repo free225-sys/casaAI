@@ -1,0 +1,122 @@
+[
+ {
+  "file": "integ-quiz-reussi--desktop-1440.png",
+  "sw": 1440,
+  "cw": 1440,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-quiz-reussi--mobile-390.png",
+  "sw": 390,
+  "cw": 390,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-quiz-reussi--mobile-320.png",
+  "sw": 320,
+  "cw": 320,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-quiz-echoue--desktop-1440.png",
+  "sw": 1440,
+  "cw": 1440,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-quiz-echoue--mobile-390.png",
+  "sw": 390,
+  "cw": 390,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-quiz-echoue--mobile-320.png",
+  "sw": 320,
+  "cw": 320,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-certification-eligible--desktop-1440.png",
+  "sw": 1440,
+  "cw": 1440,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-certification-eligible--mobile-390.png",
+  "sw": 390,
+  "cw": 390,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-certification-eligible--mobile-320.png",
+  "sw": 320,
+  "cw": 320,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-certification-non-eligible--desktop-1440.png",
+  "sw": 1440,
+  "cw": 1440,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-certification-non-eligible--mobile-390.png",
+  "sw": 390,
+  "cw": 390,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ },
+ {
+  "file": "integ-certification-non-eligible--mobile-320.png",
+  "sw": 320,
+  "cw": 320,
+  "cardBorder": "rgb(225, 231, 239)",
+  "cardBorderWidth": "1px",
+  "token": "#e1e7ef",
+  "axe_violations": [],
+  "js_errors": []
+ }
+]

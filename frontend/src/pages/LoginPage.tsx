@@ -4,12 +4,13 @@ import { Link } from "../components/AppLink";
 import { useAuth } from "../stores/authStore";
 import { ApiError } from "../services/apiClient";
 import { RevealSection } from "../components/RevealSection";
+import { postLoginPath } from "../utils/roles";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? "/app/dashboard";
+  const from = (location.state as { from?: string } | null)?.from;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,8 +22,8 @@ export function LoginPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      const me = await login(email, password);
+      navigate(postLoginPath(me.role, from), { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Une erreur est survenue.");
     } finally {

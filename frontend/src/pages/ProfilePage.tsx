@@ -43,6 +43,8 @@ function StatCard({ to, value, label }: { to: string; value: string; label: stri
 
 export function ProfilePage() {
   const { user, updateUser } = useAuth();
+  // Lot 1 : le suivi pédagogique (compétences, quiz, portfolio, certificats, badges, onboarding) est réservé aux apprenants.
+  const isLearner = user?.role === "LEARNER";
 
   const [firstName, setFirstName] = useState(user?.first_name ?? "");
   const [lastName, setLastName] = useState(user?.last_name ?? "");
@@ -78,6 +80,7 @@ export function ProfilePage() {
   const [savingLearning, setSavingLearning] = useState(false);
 
   useEffect(() => {
+    if (!isLearner) return;
     progressService.getMySkills().then(setSkills).catch(() => setSkills([]));
     certificationService.listMyCourseCertificates().then(setCertificates).catch(() => setCertificates([]));
     portfolioService.listMine().then(setPortfolioItems).catch(() => setPortfolioItems([]));
@@ -97,7 +100,7 @@ export function ProfilePage() {
         setSelectedSkills(p.interest_skill_ids);
       })
       .catch(() => {});
-  }, []);
+  }, [isLearner]);
 
   const toggleGoal = (id: string) => {
     setSelectedGoals((prev) => (prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]));
@@ -185,7 +188,7 @@ export function ProfilePage() {
     <div style={{ maxWidth: 680 }}>
       <RevealSection as="div">
         <h1 style={{ fontSize: "1.8rem", marginBottom: 4 }}>Mon profil</h1>
-        <p style={{ marginBottom: 20 }}>Gérez vos informations de compte et suivez votre parcours.</p>
+        <p style={{ marginBottom: 20 }}>{isLearner ? "Gérez vos informations de compte et suivez votre parcours." : "Gérez vos informations de compte et votre sécurité."}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 40, flexWrap: "wrap" }}>
           <span className="badge badge-gold">{ROLE_LABELS[user.role]}</span>
           <span className="mono" style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
@@ -198,6 +201,7 @@ export function ProfilePage() {
           )}
         </div>
       </RevealSection>
+      {isLearner && (
       <section className="card" style={{ padding: 16, marginBottom: 24 }}>
         <label style={{ display: "flex", gap: 10, alignItems: "center", color: "var(--color-text)" }}>
           <input
@@ -212,6 +216,7 @@ export function ProfilePage() {
           Me prévenir quand je débloque un badge
         </label>
       </section>
+      )}
 
       <RevealSection as="div" delayMs={80}>
         <h2 style={{ fontSize: "1.05rem", marginBottom: 16 }}>Informations du compte</h2>
@@ -279,6 +284,7 @@ export function ProfilePage() {
         </form>
       </RevealSection>
 
+      {isLearner && (
       <RevealSection as="div" delayMs={120}>
         <h2 style={{ fontSize: "1.05rem", marginBottom: 16 }}>Profil d'apprentissage</h2>
         <form
@@ -390,6 +396,7 @@ export function ProfilePage() {
           </button>
         </form>
       </RevealSection>
+      )}
 
       <RevealSection as="div" delayMs={160}>
         <h2 style={{ fontSize: "1.05rem", marginBottom: 16 }}>Sécurité</h2>
@@ -443,6 +450,7 @@ export function ProfilePage() {
         </form>
       </RevealSection>
 
+      {isLearner && (
       <RevealSection as="div" delayMs={200}>
         <h2 style={{ fontSize: "1.05rem", marginBottom: 16 }}>Vue d'ensemble</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 16 }}>
@@ -468,6 +476,7 @@ export function ProfilePage() {
           />
         </div>
       </RevealSection>
+      )}
     </div>
   );
 }

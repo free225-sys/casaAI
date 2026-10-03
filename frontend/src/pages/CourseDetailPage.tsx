@@ -11,7 +11,9 @@ import type { CourseCertificateEligibility, CourseDetail } from "../types/api";
 
 export function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  // Lot 1 : certificats et progression personnels réservés aux apprenants ; un administrateur n'a ni lien « Ouvrir » ni quiz (l'aperçu viendra avec le Lot 4).
+  const isLearner = user?.role === "LEARNER";
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [eligibility, setEligibility] = useState<CourseCertificateEligibility | null>(null);
@@ -27,12 +29,12 @@ export function CourseDetailPage() {
   }, [courseId]);
 
   useEffect(() => {
-    if (!courseId || !isAuthenticated) return;
+    if (!courseId || !isLearner) return;
     certificationService
       .getCourseCertificateEligibility(courseId)
       .then(setEligibility)
       .catch(() => setEligibility(null));
-  }, [courseId, isAuthenticated]);
+  }, [courseId, isLearner]);
 
   const handleIssueCertificate = async () => {
     if (!courseId) return;
@@ -90,9 +92,11 @@ export function CourseDetailPage() {
               )}
             </div>
             {isAuthenticated ? (
-              <Link to={`/app/lessons/${lesson.id}`} className="btn btn-secondary">
-                Ouvrir
-              </Link>
+              isLearner ? (
+                <Link to={`/app/lessons/${lesson.id}`} className="btn btn-secondary">
+                  Ouvrir
+                </Link>
+              ) : null
             ) : (
               <Link to="/login" className="btn btn-secondary">
                 Se connecter
@@ -108,13 +112,15 @@ export function CourseDetailPage() {
             <h3 style={{ marginBottom: 6 }}>Quiz final</h3>
             <p style={{ fontSize: "0.88rem" }}>Validez l'ensemble des acquis de ce cours.</p>
           </div>
-          <Link
-            to={isAuthenticated ? `/app/quizzes/${course.final_quiz_id}` : "/login"}
-            className="btn btn-primary"
-            style={{ flexShrink: 0 }}
-          >
-            {isAuthenticated ? "Passer le quiz final" : "Se connecter"}
-          </Link>
+          {(!isAuthenticated || isLearner) && (
+            <Link
+              to={isAuthenticated ? `/app/quizzes/${course.final_quiz_id}` : "/login"}
+              className="btn btn-primary"
+              style={{ flexShrink: 0 }}
+            >
+              {isAuthenticated ? "Passer le quiz final" : "Se connecter"}
+            </Link>
+          )}
         </RevealSection>
       )}
 

@@ -62,7 +62,9 @@ async function inferCurrentStage(): Promise<number> {
 }
 
 export function ProgressRail() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  // Lot 1 : l'étape courante vient de la progression pédagogique, réservée aux apprenants.
+  const isLearner = isAuthenticated && user?.role === "LEARNER";
   const [currentStage, setCurrentStage] = useState<number | null>(null);
   const [can3D, setCan3D] = useState(false);
   const [mode, setMode] = useState<"2d" | "3d">("2d");
@@ -73,14 +75,14 @@ export function ProgressRail() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLearner) {
       setCurrentStage(null);
       return;
     }
     inferCurrentStage()
       .then(setCurrentStage)
       .catch(() => setCurrentStage(null));
-  }, [isAuthenticated]);
+  }, [isLearner]);
 
   // Repère visuel : l'étape courante si connu, sinon l'entrée du parcours
   // (état par défaut pour un visiteur non connecté).

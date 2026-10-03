@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Link } from "./AppLink";
 import { useAuth } from "../stores/authStore";
 import { NotificationBell } from "./NotificationBell";
+import { homePathFor } from "../utils/roles";
 
 export function Nav() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -44,13 +45,13 @@ export function Nav() {
     <Link to="/" className="nav-brand" onClick={close}>CASA <span className="brand-accent">AI</span> Institute</Link>
     <nav id="site-nav" className={`site-nav${open ? " is-open" : ""}`} aria-label="Principal">
       <NavLink to="/catalog" className={itemClass} onClick={close}>Catalogue</NavLink>
-      {isAuthenticated && <>
+      {isAuthenticated && user?.role === "LEARNER" && <>
         <NavLink to="/app/dashboard" className={itemClass} onClick={close}>Mon espace</NavLink>
         <NavLink to="/app/quizzes" className={itemClass} onClick={close}>Quiz</NavLink>
         <NavLink to="/app/portfolio" className={itemClass} onClick={close}>Portfolio</NavLink>
         <NavLink to="/app/certifications" className={itemClass} onClick={close}>Certifications</NavLink>
-        {isAdmin && <NavLink to="/admin/courses" className={itemClass} onClick={close}>Admin</NavLink>}
       </>}
+      {isAuthenticated && isAdmin && user && <NavLink to={homePathFor(user.role)} className={`nav-link${pathname.startsWith("/admin") ? " is-active" : ""}`} onClick={close}>Administration</NavLink>}
       {!isAuthenticated && <NavLink to="/login" className={itemClass} onClick={close}>Connexion</NavLink>}
     </nav>
     <div className="nav-tools">

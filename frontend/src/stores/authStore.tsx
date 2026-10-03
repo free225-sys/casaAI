@@ -10,7 +10,7 @@ interface AuthContextValue {
   user: UserPublic | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<UserPublic>;
   register: (data: { first_name: string; last_name: string; email: string; password: string }) => Promise<void>;
   logout: () => void;
   updateUser: (user: UserPublic) => void;
@@ -65,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
     const me = await authService.me();
     setUser(me);
+    return me;
   };
 
   const register = async (data: { first_name: string; last_name: string; email: string; password: string }) => {

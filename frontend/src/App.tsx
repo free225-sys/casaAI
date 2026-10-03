@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./stores/authStore";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RequireLearner } from "./components/RequireLearner";
 import { RootLayout } from "./layouts/RootLayout";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -50,9 +51,9 @@ function App() {
             <Route
               path="/app/dashboard"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <DashboardPage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
             <Route
@@ -66,57 +67,57 @@ function App() {
             <Route
               path="/app/lessons/:lessonId"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <LessonPage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
             <Route
               path="/app/skills/:skillId/practice"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <QuizTakePage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
             <Route
               path="/app/quizzes"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <QuizzesPage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
             <Route
               path="/app/quizzes/:quizId"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <QuizTakePage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
             <Route
               path="/app/portfolio"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <PortfolioPage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
             <Route
               path="/app/certifications"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <CertificationsPage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
             <Route
               path="/app/certifications/:certificationId"
               element={
-                <ProtectedRoute>
+                <RequireLearner>
                   <CertificationDetailPage />
-                </ProtectedRoute>
+                </RequireLearner>
               }
             />
 

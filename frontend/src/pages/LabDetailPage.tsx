@@ -12,7 +12,8 @@ import type { LabDetail, LabResult } from "../types/api";
 
 export function LabDetailPage() {
   const { labId } = useParams<{ labId: string }>();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const isLearner = user?.role === "LEARNER";
   const [lab, setLab] = useState<LabDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
 
@@ -96,6 +97,10 @@ export function LabDetailPage() {
           <Link to="/login" className="btn btn-primary">
             Se connecter
           </Link>
+        </div>
+      ) : !isLearner ? (
+        <div className="card" style={{ padding: 24 }}>
+          <p>Les labs sont des entraînements : la soumission de travaux est réservée aux apprenants.</p>
         </div>
       ) : result ? (
         <div className="card" style={{ padding: 24 }}>

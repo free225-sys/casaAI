@@ -1,0 +1,1547 @@
+[
+ {
+  "role": "LEARNER",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "desktop-1440",
+  "final_path": "/app/dashboard",
+  "h1": "Bonjour TEST",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/me/progress",
+   "/api/me/skills",
+   "/api/me/badges"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/progress",
+   "GET /api/me/skills",
+   "GET /api/me/badges"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "mobile-390",
+  "final_path": "/app/dashboard",
+  "h1": "Bonjour TEST",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/me/progress",
+   "/api/me/skills",
+   "/api/me/badges"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/progress",
+   "GET /api/me/skills",
+   "GET /api/me/badges"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "mobile-320",
+  "final_path": "/app/dashboard",
+  "h1": "Bonjour TEST",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/me/progress",
+   "/api/me/skills",
+   "/api/me/badges"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/progress",
+   "GET /api/me/skills",
+   "GET /api/me/badges"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "desktop-1440",
+  "final_path": "/app/lessons/a",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/lessons/a/start",
+   "/api/lessons/a"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "POST /api/lessons/a/start",
+   "GET /api/lessons/a"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "mobile-390",
+  "final_path": "/app/lessons/a",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/lessons/a/start",
+   "/api/lessons/a"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "POST /api/lessons/a/start",
+   "GET /api/lessons/a"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "mobile-320",
+  "final_path": "/app/lessons/a",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/lessons/a/start",
+   "/api/lessons/a"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "POST /api/lessons/a/start",
+   "GET /api/lessons/a"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "desktop-1440",
+  "final_path": "/app/quizzes",
+  "h1": "Quiz",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/quizzes"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/quizzes"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "mobile-390",
+  "final_path": "/app/quizzes",
+  "h1": "Quiz",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/quizzes"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/quizzes"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "mobile-320",
+  "final_path": "/app/quizzes",
+  "h1": "Quiz",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/quizzes"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/quizzes"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "desktop-1440",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/me/skills",
+   "/api/me/course-certificates",
+   "/api/me/portfolio",
+   "/api/me/quiz-history",
+   "/api/me/notification-settings",
+   "/api/me/onboarding-profile"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/skills",
+   "GET /api/profile-types",
+   "GET /api/goals",
+   "GET /api/skills",
+   "GET /api/me/course-certificates",
+   "GET /api/me/portfolio",
+   "GET /api/me/quiz-history",
+   "GET /api/me/notification-settings",
+   "GET /api/me/onboarding-profile"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "mobile-390",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/me/skills",
+   "/api/me/course-certificates",
+   "/api/me/portfolio",
+   "/api/me/quiz-history",
+   "/api/me/notification-settings",
+   "/api/me/onboarding-profile"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/profile-types",
+   "GET /api/goals",
+   "GET /api/me/notifications",
+   "GET /api/skills",
+   "GET /api/me/skills",
+   "GET /api/me/course-certificates",
+   "GET /api/me/portfolio",
+   "GET /api/me/quiz-history",
+   "GET /api/me/notification-settings",
+   "GET /api/me/onboarding-profile"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "mobile-320",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/me/skills",
+   "/api/me/course-certificates",
+   "/api/me/portfolio",
+   "/api/me/quiz-history",
+   "/api/me/notification-settings",
+   "/api/me/onboarding-profile"
+  ],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/skills",
+   "GET /api/profile-types",
+   "GET /api/goals",
+   "GET /api/skills",
+   "GET /api/me/course-certificates",
+   "GET /api/me/portfolio",
+   "GET /api/me/quiz-history",
+   "GET /api/me/notification-settings",
+   "GET /api/me/onboarding-profile"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "admin",
+  "path": "/admin/courses",
+  "viewport": "desktop-1440",
+  "final_path": "/admin/courses",
+  "h1": "Accès insuffisant",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "admin",
+  "path": "/admin/courses",
+  "viewport": "mobile-390",
+  "final_path": "/admin/courses",
+  "h1": "Accès insuffisant",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "admin",
+  "path": "/admin/courses",
+  "viewport": "mobile-320",
+  "final_path": "/admin/courses",
+  "h1": "Accès insuffisant",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "desktop-1440",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "mobile-390",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "mobile-320",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "desktop-1440",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/courses/c1/certificate/eligibility"
+  ],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/courses/c1/certificate/eligibility"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "mobile-390",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/courses/c1/certificate/eligibility"
+  ],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/courses/c1/certificate/eligibility"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "mobile-320",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Mon espace>/app/dashboard",
+   "Quiz>/app/quizzes",
+   "Portfolio>/app/portfolio",
+   "Certifications>/app/certifications"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [
+   "/api/courses/c1/certificate/eligibility"
+  ],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/courses/c1/certificate/eligibility"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "desktop-1440",
+  "final_path": "/app/dashboard",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "mobile-390",
+  "final_path": "/app/dashboard",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "mobile-320",
+  "final_path": "/app/dashboard",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "desktop-1440",
+  "final_path": "/app/lessons/a",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "mobile-390",
+  "final_path": "/app/lessons/a",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "mobile-320",
+  "final_path": "/app/lessons/a",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "desktop-1440",
+  "final_path": "/app/quizzes",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "mobile-390",
+  "final_path": "/app/quizzes",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "mobile-320",
+  "final_path": "/app/quizzes",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "desktop-1440",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "mobile-390",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "mobile-320",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "admin",
+  "path": "/admin/courses",
+  "viewport": "desktop-1440",
+  "final_path": "/admin/courses",
+  "h1": "Cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "GET /api/admin/courses"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "admin",
+  "path": "/admin/courses",
+  "viewport": "mobile-390",
+  "final_path": "/admin/courses",
+  "h1": "Cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/schools",
+   "GET /api/admin/courses"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "admin",
+  "path": "/admin/courses",
+  "viewport": "mobile-320",
+  "final_path": "/admin/courses",
+  "h1": "Cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "GET /api/admin/courses"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "desktop-1440",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "mobile-390",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "mobile-320",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "desktop-1440",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "mobile-390",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "ADMIN",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "mobile-320",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/courses"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "desktop-1440",
+  "final_path": "/app/dashboard",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "mobile-390",
+  "final_path": "/app/dashboard",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "espace-apprenant",
+  "path": "/app/dashboard",
+  "viewport": "mobile-320",
+  "final_path": "/app/dashboard",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "desktop-1440",
+  "final_path": "/app/lessons/a",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "mobile-390",
+  "final_path": "/app/lessons/a",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "lecon",
+  "path": "/app/lessons/a",
+  "viewport": "mobile-320",
+  "final_path": "/app/lessons/a",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "desktop-1440",
+  "final_path": "/app/quizzes",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "mobile-390",
+  "final_path": "/app/quizzes",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "quiz",
+  "path": "/app/quizzes",
+  "viewport": "mobile-320",
+  "final_path": "/app/quizzes",
+  "h1": "Espace réservé aux apprenants",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "desktop-1440",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "mobile-390",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "profil",
+  "path": "/app/profile",
+  "viewport": "mobile-320",
+  "final_path": "/app/profile",
+  "h1": "Mon profil",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "admin",
+  "path": "/admin/users",
+  "viewport": "desktop-1440",
+  "final_path": "/admin/users",
+  "h1": "Utilisateurs",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/users"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "admin",
+  "path": "/admin/users",
+  "viewport": "mobile-390",
+  "final_path": "/admin/users",
+  "h1": "Utilisateurs",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/users"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "admin",
+  "path": "/admin/users",
+  "viewport": "mobile-320",
+  "final_path": "/admin/users",
+  "h1": "Utilisateurs",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/users"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "desktop-1440",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "mobile-390",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "catalogue",
+  "path": "/catalog",
+  "viewport": "mobile-320",
+  "final_path": "/catalog",
+  "h1": "Catalogue",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "desktop-1440",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "mobile-390",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "fiche-cours",
+  "path": "/courses/c1",
+  "viewport": "mobile-320",
+  "final_path": "/courses/c1",
+  "h1": "TEST cours",
+  "nav": [
+   "Catalogue>/catalog",
+   "Administration>/admin/users"
+  ],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "learner_only_endpoints_called": [],
+  "api_calls": [
+   "GET /api/courses/c1",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "role": "LEARNER",
+  "screen": "connexion-depuis-/app/quizzes",
+  "final_path": "/app/quizzes"
+ },
+ {
+  "role": "ADMIN",
+  "screen": "connexion-depuis-/app/quizzes",
+  "final_path": "/admin/courses"
+ },
+ {
+  "role": "SUPER_ADMIN",
+  "screen": "connexion-depuis-/app/quizzes",
+  "final_path": "/admin/users"
+ }
+]

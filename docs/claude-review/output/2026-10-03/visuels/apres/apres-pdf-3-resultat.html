@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import PDF — 3. Confirmation et résultat — maquette proposée</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/proposed.css">
+<style>
+.eyebrow-l{font:600 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted)}
+.admin-top{display:flex;flex-direction:column;gap:8px;margin-bottom:var(--space-5)}
+.admin-tabs{display:flex;gap:4px;border-bottom:1px solid var(--color-border);overflow-x:auto}
+.admin-tabs a{flex:none;padding:10px 14px;text-decoration:none;color:var(--color-text-muted);font:500 var(--text-sm) var(--font-body);border-bottom:2px solid transparent;margin-bottom:-1px;min-height:44px;display:flex;align-items:center}
+.admin-tabs a[aria-current]{color:var(--color-primary);border-color:var(--color-primary);font-weight:600}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:var(--space-5)} .page-head p{margin-top:4px}
+.small{font-size:var(--text-sm)}
+
+.pdf-wrap{max-width:880px} .stepper{margin:0 0 var(--space-5)} .stepper .dot svg{width:16px;height:16px}
+.drop{display:flex;align-items:center;gap:16px;border:2px dashed var(--color-border-strong);border-radius:var(--radius-md);padding:20px;background:var(--color-surface-muted)}
+.drop>svg{width:32px;height:32px;color:var(--color-primary);flex:none}
+.filechip{display:flex;align-items:center;gap:12px;border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;background:#fff}
+.filechip svg{width:24px;height:24px;color:var(--color-danger);flex:none} .filechip .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.form{display:flex;flex-direction:column;gap:var(--space-5)}
+fieldset{border:0;margin:0;padding:0} legend{font:600 var(--text-sm) var(--font-body);margin-bottom:8px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);padding:14px 16px;cursor:pointer;background:#fff}
+.choice input{margin-top:4px;width:18px;height:18px;accent-color:var(--color-primary)} .choice.on{background:var(--color-primary-soft)} .choice.on strong{color:#1d3f91}
+.choice strong{display:block} .choice span span{font-size:var(--text-sm);color:var(--color-text-muted)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--color-border);padding-top:var(--space-4)}
+.recap svg{width:20px;height:20px;color:var(--color-danger)}
+.recap{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;font-size:var(--text-sm)} .recap b{font-weight:600}
+.kpis{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-3)}
+.kpis li{border:1px solid var(--color-border);border-radius:var(--radius-md);padding:12px 14px;background:#fff} .kpis strong{display:block;font:700 1.375rem var(--font-display)} .kpis span{font-size:var(--text-sm);color:var(--color-text-muted)}
+.anoms{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px} .pg{font:600 12px var(--font-mono);background:#fff;border-radius:4px;padding:1px 6px;margin-right:8px}
+.tree{list-style:none;margin:0;padding:0;font-size:var(--text-sm)} .tree ul{list-style:none;margin:0;padding:0 0 0 22px;border-left:1px solid var(--color-border);margin-left:8px}
+.tree li{padding:4px 0} .node{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 8px;border-radius:var(--radius-sm)} .node.lvl1{font-weight:600}
+.node .pages{font:500 12px var(--font-mono);color:var(--color-text-muted);margin-left:auto}
+.blk{display:flex;gap:8px;padding:2px 8px 2px 30px;color:var(--color-text-muted)} .blk .k{flex:none;font:500 11px var(--font-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);border:1px solid var(--color-border);border-radius:4px;padding:1px 5px;height:fit-content;margin-top:2px}
+.blk .t{color:var(--color-text);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.confirm-bar{position:sticky;bottom:0;margin-top:var(--space-5);background:#fff;border:1px solid var(--color-border);border-radius:var(--radius-md);box-shadow:0 -8px 24px -16px rgba(16,24,43,.25);padding:14px 18px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.confirm-bar p{font-size:var(--text-sm)}
+.success-head{display:flex;gap:16px;align-items:flex-start} .ok-ic{flex:none;width:44px;height:44px;border-radius:50%;background:var(--color-success-soft);color:var(--color-success);display:flex;align-items:center;justify-content:center} .ok-ic svg{width:24px}
+.created{list-style:none;margin:var(--space-4) 0;padding:0;border:1px solid var(--color-border);border-radius:var(--radius-md)} .created li{display:flex;gap:12px;align-items:center;padding:12px 16px;flex-wrap:wrap} .created li+li{border-top:1px solid var(--color-border)} .created .k{width:140px;color:var(--color-text-muted);font-size:var(--text-sm)}
+.gap{display:flex;flex-direction:column;gap:var(--space-4)}
+@media(max-width:860px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.choices{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.drop{flex-direction:column;text-align:center}
+ .foot .btn,.confirm-bar .btn{width:100%} .confirm-bar{position:static;box-shadow:none} /* mobile : dans le flux, après le résumé et les anomalies, jamais par-dessus */ .created .k{width:auto;flex-basis:100%}
+ .node .pages{margin-left:0}}
+</style>
+</head>
+<body class="canvas">
+<div class="mock-banner" role="note"><span>MAQUETTE PROPOSÉE, NON IMPLÉMENTÉE — Import PDF — 3. Confirmation et résultat (ADMIN)</span><span>Données synthétiques (titres issus du seed versionné). Les mentions « EXTENSION » signalent une dépendance API/produit à valider.</span></div>
+<header class="site-header"><div class="container nav-bar">
+<a class="brand" href="#">CASA <b>AI</b> Institute</a>
+<nav class="nav-links" id="nav" aria-label="Principal"><a href="#">Catalogue</a><a href="#">Mon espace</a><a href="#">Quiz</a><a href="#">Portfolio</a><a href="#">Certifications</a><a href="#" aria-current="page">Administration</a></nav>
+<div class="nav-tools"><button class="icon-btn" type="button" aria-label="Notifications, 1 non lue"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="count" aria-hidden="true">1</span></button><button class="icon-btn" type="button" aria-label="Compte : menu"><span class="avatar">SC</span></button><button class="icon-btn menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="menu-txt">Menu</span></button></div>
+</div></header><main><div class="container"><div class="admin-top"><div><p class="eyebrow-l">Administration · Admin contenu</p></div>
+<nav class="admin-tabs" aria-label="Administration"><a href="#">Cours</a><a href="#" aria-current="page">Importer un PDF</a></nav></div><div class="pdf-wrap"><div class="page-head"><div><h1>Importer un PDF</h1><p class="muted">Créez un cours brouillon à partir d’un support existant.</p></div></div><ol class="stepper" aria-label="Étapes de l’import"><li class="done"><span class="dot"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Choisir le document</span></li><li class="done"><span class="dot"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Vérifier l’analyse</span></li><li class="done" aria-current="step"><span class="dot"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="txt">Résultat</span></li></ol><section class="panel" aria-labelledby="ok-t">
+<div class="success-head"><span class="ok-ic"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><h2 id="ok-t" style="font-size:1.3rem">Import terminé : brouillon créé</h2><p class="muted">Le contenu n’est pas visible des apprenants tant qu’il n’est pas publié.</p></div></div>
+<ul class="created"><li><span class="k">Cours</span><strong>Support synthétique — Introduction au RAG</strong><span class="status status-draft">Brouillon</span></li>
+<li><span class="k">Leçon</span><span>1 leçon · 8 blocs</span></li><li><span class="k">École</span><span>Modèles de langage &amp; IA générative</span></li><li><span class="k">Pages extraites</span><span>12</span></li></ul>
+<div class="row"><a class="btn btn-primary btn-lg btn-block-sm" href="#"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg> Relire la leçon</a><a class="btn btn-secondary btn-lg btn-block-sm" href="#">Voir le cours</a><a class="btn btn-ghost btn-block-sm" href="#"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg> Importer un autre PDF</a></div>
+</section></div></div></main>
+<script></script>
+</body>
+</html>

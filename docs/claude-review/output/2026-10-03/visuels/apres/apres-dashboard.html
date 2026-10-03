@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon espace — maquette proposée</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="stylesheet" href="../assets/proposed.css">
+<style>
+.dash-head{margin-bottom:var(--space-5)} .dash-head p{margin-top:4px}
+.err{display:none;margin-bottom:var(--space-5)} .state-erreur .err{display:flex} .state-erreur .ok{display:none}
+.newbadge{margin-bottom:var(--space-4)}
+.resume{display:flex;align-items:center;gap:var(--space-5);justify-content:space-between}
+.eyebrow-l{font:600 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-primary);margin-bottom:4px}
+.resume h2{font-size:1.375rem} .r-meter{display:flex;align-items:center;gap:12px;margin-top:12px;max-width:360px} .r-meter .meter{flex:1}
+.kpis{list-style:none;padding:0;margin:var(--space-4) 0;display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-3)}
+.kpis li{background:#fff;border:1px solid var(--color-border);border-radius:var(--radius-md);padding:14px 16px;display:flex;flex-direction:column}
+.kpis strong{font:700 1.5rem var(--font-display)} .kpis small{font-size:1rem;color:var(--color-text-muted)} .kpis span{font-size:var(--text-sm);color:var(--color-text-muted)}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:var(--space-4);align-items:start}
+.side{display:flex;flex-direction:column;gap:var(--space-4)}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:var(--space-3)} .panel h2{font-size:1.125rem}
+.small{font-size:var(--text-sm)}
+.course-group+.course-group{margin-top:var(--space-5);padding-top:var(--space-5);border-top:1px solid var(--color-border)}
+.cg-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:8px;flex-wrap:wrap} .cg-head h3{font-size:1rem}
+.lrows{list-style:none;margin:12px 0 0;padding:0} .lrows a{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:var(--radius-sm);text-decoration:none;min-height:44px}
+.lrows a:hover{background:var(--color-surface-muted)} .lrows .lt{flex:1} .lrows svg{width:18px;color:var(--color-text-muted)}
+.lrows .status{min-width:92px;justify-content:center}
+.skills{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+.skills li{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center} .sk-top{display:flex;justify-content:space-between;gap:8px;grid-column:1} .skills .meter{grid-column:1} .sk-act{grid-column:2;grid-row:1/3}
+.badges{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.bdg{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:var(--radius-md);background:var(--color-achievement-soft)}
+.bdg svg{flex:none;width:24px;height:24px;color:var(--color-achievement)} .bdg>span:nth-child(2){flex:1}
+.newtag{font:700 11px var(--font-body);color:#fff;background:var(--color-achievement);border-radius:999px;padding:3px 8px}
+@media(max-width:960px){.dash-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.resume{flex-direction:column;align-items:stretch}.kpis{grid-template-columns:1fr 1fr}.lrows .status{min-width:0}}
+</style>
+</head>
+<body class="canvas">
+<div class="mock-banner" role="note"><span>MAQUETTE PROPOSÉE, NON IMPLÉMENTÉE — Dashboard apprenant</span><span>Données synthétiques (titres issus du seed versionné). Les mentions « EXTENSION » signalent une dépendance API/produit à valider.</span></div>
+<header class="site-header"><div class="container nav-bar">
+<a class="brand" href="#">CASA <b>AI</b> Institute</a>
+<nav class="nav-links" id="nav" aria-label="Principal"><a href="#">Catalogue</a><a href="#" aria-current="page">Mon espace</a><a href="#">Quiz</a><a href="#">Portfolio</a><a href="#">Certifications</a></nav>
+<div class="nav-tools"><button class="icon-btn" type="button" aria-label="Notifications, 1 non lue"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="count" aria-hidden="true">1</span></button><button class="icon-btn" type="button" aria-label="Compte : menu"><span class="avatar">AE</span></button><button class="icon-btn menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="menu-txt">Menu</span></button></div>
+</div></header>
+<main><div class="container">
+<div class="dash-head"><h1>Bonjour Awa</h1><p class="muted">Reprenez là où vous vous êtes arrêtée.</p></div>
+<div class="notice notice-error err" role="alert"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/></svg><div><strong>Votre progression n’a pas pu être chargée.</strong> Ce n’est pas une remise à zéro : vos leçons terminées sont conservées.<div style="margin-top:10px"><button class="btn btn-secondary" type="button"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/><path d="M20 3v5h-5"/></svg> Réessayer</button></div></div></div>
+<div class="ok">
+<div class="notice notice-success newbadge" role="status"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/></svg><div><strong>Nouveau badge : Curieux.</strong> Vous avez terminé 3 leçons.</div></div>
+<section class="resume panel" aria-labelledby="r-t">
+  <div class="r-txt"><p class="eyebrow-l">Reprendre</p><h2 id="r-t">Probabilités, Bayes et incertitude</h2>
+  <p class="muted">Mathématiques fondamentales pour l’IA · Leçon 2 sur 4</p>
+  <div class="r-meter"><div class="meter"><i style="width:45%"></i></div><span class="mono small">45 % lu</span></div></div>
+  <a class="btn btn-primary btn-lg btn-block-sm" href="#">Continuer la leçon <svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</section>
+<ul class="kpis" aria-label="Synthèse">
+  <li><strong>3</strong><span>leçons terminées</span></li><li><strong>2</strong><span>leçons en cours</span></li>
+  <li><strong>4<small>/11</small></strong><span>badges obtenus</span></li><li><strong>4</strong><span>compétences suivies</span></li>
+</ul>
+<div class="dash-grid">
+  <section class="panel" aria-labelledby="c-t"><div class="sec-head"><h2 id="c-t">Mes cours</h2><a class="btn btn-ghost" href="#">Catalogue <svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div><div class="course-group"><div class="cg-head"><h3>Mathématiques fondamentales pour l’IA</h3><span class="muted small">1/4 leçons terminées</span></div>
+<div class="meter success" aria-hidden="true"><i style="width:25%"></i></div><ul class="lrows"><li><a href="#"><span class="status status-progress">En cours</span><span class="lt">Probabilités, Bayes et incertitude</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li><li><a href="#"><span class="status status-done">Terminée</span><span class="lt">Vecteurs, matrices et tenseurs</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li></ul></div><div class="course-group"><div class="cg-head"><h3>Fondamentaux de l’IA et des données</h3><span class="muted small">2/3 leçons terminées</span></div>
+<div class="meter success" aria-hidden="true"><i style="width:67%"></i></div><ul class="lrows"><li><a href="#"><span class="status status-progress">En cours</span><span class="lt">Capacités, limites et bonnes pratiques</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li><li><a href="#"><span class="status status-done">Terminée</span><span class="lt">De la donnée à la décision</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li><li><a href="#"><span class="status status-done">Terminée</span><span class="lt">Cartographier les familles d’IA</span><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a></li></ul></div></section>
+  <div class="side">
+   <section class="panel" aria-labelledby="s-t"><h2 id="s-t">Compétences</h2><p class="muted small">Niveau de maîtrise, de 0 à 4. Réussir un quiz fait progresser d’un niveau.</p><ul class="skills"><li><div class="sk-top"><span>Culture IA</span><span class="mono small muted">2/4</span></div>
+<div class="meter" role="img" aria-label="Maîtrise 2 sur 4"><i style="width:50%"></i></div>
+<a class="btn btn-ghost sk-act" href="#">S’entraîner</a></li><li><div class="sk-top"><span>Algèbre linéaire</span><span class="mono small muted">1/4</span></div>
+<div class="meter" role="img" aria-label="Maîtrise 1 sur 4"><i style="width:25%"></i></div>
+<a class="btn btn-ghost sk-act" href="#">S’entraîner</a></li><li><div class="sk-top"><span>Probabilités &amp; statistiques</span><span class="mono small muted">0/4</span></div>
+<div class="meter" role="img" aria-label="Maîtrise 0 sur 4"><i style="width:0%"></i></div>
+<a class="btn btn-ghost sk-act" href="#">S’entraîner</a></li><li><div class="sk-top"><span>Usage responsable</span><span class="mono small muted">3/4</span></div>
+<div class="meter" role="img" aria-label="Maîtrise 3 sur 4"><i style="width:75%"></i></div>
+<a class="btn btn-ghost sk-act" href="#">S’entraîner</a></li></ul></section>
+   <section class="panel" aria-labelledby="b-t"><div class="sec-head"><h2 id="b-t">Badges</h2><span class="muted small">4 sur 11</span></div><ul class="badges"><li class="bdg"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/></svg><span><strong>Premier pas</strong><br><span class="muted small">Terminer une première leçon.</span></span></li><li class="bdg is-new"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/></svg><span><strong>Curieux</strong><br><span class="muted small">Terminer 3 leçons.</span></span><span class=newtag>Nouveau</span></li><li class="bdg"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/></svg><span><strong>Première réussite</strong><br><span class="muted small">Réussir un quiz.</span></span></li><li class="bdg"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7"/></svg><span><strong>Compétence</strong><br><span class="muted small">Atteindre le niveau 2 sur une compétence.</span></span></li></ul>
+   <button class="btn btn-ghost" type="button">Voir les 7 badges à débloquer <svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></section>
+  </div>
+</div>
+</div>
+</div></main>
+<script>if(location.hash){document.body.classList.add('state-'+location.hash.slice(1));}</script>
+</body>
+</html>

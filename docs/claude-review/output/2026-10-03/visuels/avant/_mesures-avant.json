@@ -1,0 +1,1063 @@
+[
+ {
+  "file": "avant-catalogue--desktop-1440.png",
+  "scenario": "avant-catalogue",
+  "viewport": "desktop-1440",
+  "path": "/catalog",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/courses",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/pathways",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/labs",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-catalogue--mobile-390.png",
+  "scenario": "avant-catalogue",
+  "viewport": "mobile-390",
+  "path": "/catalog",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/courses",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/pathways",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/labs",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-catalogue--mobile-320.png",
+  "scenario": "avant-catalogue",
+  "viewport": "mobile-320",
+  "path": "/catalog",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/courses",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/pathways",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/labs",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-catalogue-recherche-vide--desktop-1440.png",
+  "scenario": "avant-catalogue-recherche-vide",
+  "viewport": "desktop-1440",
+  "path": "/catalog",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/courses",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/pathways",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/labs",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-lecon--desktop-1440.png",
+  "scenario": "avant-lecon",
+  "viewport": "desktop-1440",
+  "path": "/app/lessons/vectors-tensors",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/lessons/vectors-tensors/start",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/lessons/vectors-tensors",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/courses/math-ai",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-lecon--mobile-390.png",
+  "scenario": "avant-lecon",
+  "viewport": "mobile-390",
+  "path": "/app/lessons/vectors-tensors",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/lessons/vectors-tensors/start",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/lessons/vectors-tensors",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/courses/math-ai",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-lecon--mobile-320.png",
+  "scenario": "avant-lecon",
+  "viewport": "mobile-320",
+  "path": "/app/lessons/vectors-tensors",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/lessons/vectors-tensors/start",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/lessons/vectors-tensors",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/courses/math-ai",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-lecon-defilement--desktop-1440.png",
+  "scenario": "avant-lecon-defilement",
+  "viewport": "desktop-1440",
+  "path": "/app/lessons/vectors-tensors",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/lessons/vectors-tensors/start",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/lessons/vectors-tensors",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/courses/math-ai",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-lecon-defilement--mobile-390.png",
+  "scenario": "avant-lecon-defilement",
+  "viewport": "mobile-390",
+  "path": "/app/lessons/vectors-tensors",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/lessons/vectors-tensors/start",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/lessons/vectors-tensors",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/courses/math-ai",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-lecon-echec-completion--desktop-1440.png",
+  "scenario": "avant-lecon-echec-completion",
+  "viewport": "desktop-1440",
+  "path": "/app/lessons/vectors-tensors",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/lessons/vectors-tensors/start",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/lessons/vectors-tensors",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/courses/math-ai",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/lessons/vectors-tensors/complete",
+    "status": 500
+   }
+  ],
+  "blocked_external": [],
+  "console": [
+   "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+   "pageerror: Erreur simulée"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-dashboard--desktop-1440.png",
+  "scenario": "avant-dashboard",
+  "viewport": "desktop-1440",
+  "path": "/app/dashboard",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/progress",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/skills",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/badges",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/me/badges/ack",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 14,
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+   }
+  ]
+ },
+ {
+  "file": "avant-dashboard--mobile-390.png",
+  "scenario": "avant-dashboard",
+  "viewport": "mobile-390",
+  "path": "/app/dashboard",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/progress",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/skills",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/badges",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/me/badges/ack",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 451,
+  "clientWidth": 390,
+  "overflowing": [
+   "section «Compétences Culture IA 2/4 S'entraîner A»",
+   "h2 «Compétences»",
+   "div «Culture IA 2/4 S'entraîner Algèbre linéa»",
+   "div «Culture IA 2/4 S'entraîner»",
+   "div «Culture IA 2/4 S'entraîner»",
+   "div «2/4 S'entraîner»",
+   "a «S'entraîner»",
+   "div «»"
+  ],
+  "axe_violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 14,
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+   }
+  ]
+ },
+ {
+  "file": "avant-dashboard--mobile-320.png",
+  "scenario": "avant-dashboard",
+  "viewport": "mobile-320",
+  "path": "/app/dashboard",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/progress",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/skills",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/badges",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/me/badges/ack",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 451,
+  "clientWidth": 320,
+  "overflowing": [
+   "section «Compétences Culture IA 2/4 S'entraîner A»",
+   "h2 «Compétences»",
+   "div «Culture IA 2/4 S'entraîner Algèbre linéa»",
+   "div «Culture IA 2/4 S'entraîner»",
+   "div «Culture IA 2/4 S'entraîner»",
+   "span «Culture IA»",
+   "div «2/4 S'entraîner»",
+   "span.mono «2/4»"
+  ],
+  "axe_violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 14,
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+   }
+  ]
+ },
+ {
+  "file": "avant-dashboard-erreur-api--desktop-1440.png",
+  "scenario": "avant-dashboard-erreur-api",
+  "viewport": "desktop-1440",
+  "path": "/app/dashboard",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/progress",
+    "status": 500,
+    "note": "erreur forcée"
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/skills",
+    "status": 500,
+    "note": "erreur forcée"
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/badges",
+    "status": 500,
+    "note": "erreur forcée"
+   }
+  ],
+  "blocked_external": [],
+  "console": [
+   "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+   "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+   "error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+  ],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-admin-cours--desktop-1440.png",
+  "scenario": "avant-admin-cours",
+  "viewport": "desktop-1440",
+  "path": "/admin/courses",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/admin/courses",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-admin-cours--mobile-390.png",
+  "scenario": "avant-admin-cours",
+  "viewport": "mobile-390",
+  "path": "/admin/courses",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/admin/courses",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 630,
+  "clientWidth": 390,
+  "overflowing": [
+   "button.btn.btn-secondary «Supprimer»",
+   "button.btn.btn-secondary «Dépublier»",
+   "button.btn.btn-secondary «Supprimer»",
+   "button.btn.btn-secondary «Dépublier»",
+   "button.btn.btn-secondary «Supprimer»",
+   "button.btn.btn-secondary «Dépublier»",
+   "button.btn.btn-secondary «Supprimer»",
+   "button.btn.btn-secondary «Dépublier»"
+  ],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-admin-cours--mobile-320.png",
+  "scenario": "avant-admin-cours",
+  "viewport": "mobile-320",
+  "path": "/admin/courses",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/admin/courses",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 630,
+  "clientWidth": 320,
+  "overflowing": [
+   "button.btn.btn-secondary «Publier»",
+   "button.btn.btn-secondary «Supprimer»",
+   "a.btn.btn-secondary «Gérer les leçons»",
+   "button.btn.btn-secondary «Dépublier»",
+   "button.btn.btn-secondary «Supprimer»",
+   "a.btn.btn-secondary «Gérer les leçons»",
+   "button.btn.btn-secondary «Dépublier»",
+   "button.btn.btn-secondary «Supprimer»"
+  ],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-admin-cours-filtre-brouillons--desktop-1440.png",
+  "scenario": "avant-admin-cours-filtre-brouillons",
+  "viewport": "desktop-1440",
+  "path": "/admin/courses",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/admin/courses",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/admin/courses",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-pdf-1-selection--desktop-1440.png",
+  "scenario": "avant-pdf-1-selection",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-pdf-1-selection--mobile-390.png",
+  "scenario": "avant-pdf-1-selection",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-pdf-1-selection--mobile-320.png",
+  "scenario": "avant-pdf-1-selection",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-pdf-2-previsualisation--desktop-1440.png",
+  "scenario": "avant-pdf-2-previsualisation",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/preview-pdf",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 7,
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+   }
+  ]
+ },
+ {
+  "file": "avant-pdf-2-previsualisation--mobile-390.png",
+  "scenario": "avant-pdf-2-previsualisation",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/preview-pdf",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflowing": [],
+  "axe_violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 7,
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+   }
+  ]
+ },
+ {
+  "file": "avant-pdf-2-previsualisation--mobile-320.png",
+  "scenario": "avant-pdf-2-previsualisation",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/preview-pdf",
+    "status": 200
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "overflowing": [],
+  "axe_violations": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 7,
+    "help": "Elements must meet minimum color contrast ratio thresholds"
+   }
+  ]
+ },
+ {
+  "file": "avant-pdf-3-resultat--desktop-1440.png",
+  "scenario": "avant-pdf-3-resultat",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/preview-pdf",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/import-pdf",
+    "status": 201
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-pdf-3-resultat--mobile-390.png",
+  "scenario": "avant-pdf-3-resultat",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/preview-pdf",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/import-pdf",
+    "status": 201
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflowing": [],
+  "axe_violations": []
+ },
+ {
+  "file": "avant-pdf-3-resultat--mobile-320.png",
+  "scenario": "avant-pdf-3-resultat",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "requests": [
+   {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/schools",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "path": "/api/me/notifications",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/preview-pdf",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "path": "/api/admin/courses/import-pdf",
+    "status": 201
+   }
+  ],
+  "blocked_external": [],
+  "console": [],
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "overflowing": [],
+  "axe_violations": []
+ }
+]

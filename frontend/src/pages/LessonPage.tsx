@@ -31,6 +31,28 @@ export function LessonPage() {
   const [completed, setCompleted] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [focus, setFocus] = useState(false);
+
+  useEffect(() => {
+    if (!lessonId) return;
+    progressService.startLesson(lessonId).catch(() => {});
+    let timer: number | undefined;
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? Math.round((window.scrollY / max) * 100) : 0;
+      setReadingProgress(pct);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (pct > 0 && pct < 100) progressService.saveProgress(lessonId, pct).catch(() => {});
+      }, 1500);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(timer);
+    };
+  }, [lessonId]);
 
   useEffect(() => {
     if (!lessonId) return;
@@ -91,7 +113,7 @@ export function LessonPage() {
   const activeLevel: LessonDepthLevel | undefined = lesson.depth_levels.find((d) => d.depth_key === activeDepth);
 
   return (
-    <div className="course-content">
+    <div className={`course-content${focus ? " is-focus" : ""}`}>
       <div className="reading-progress-track">
         <div className="reading-progress-fill" style={{ transform: `scaleX(${readingProgress / 100})` }} />
       </div>
@@ -105,7 +127,10 @@ export function LessonPage() {
         </Link>
       )}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+        <button type="button" className="btn btn-secondary" onClick={() => setFocus((v) => !v)}>
+          {focus ? "Quitter le focus" : "Mode lecture"}
+        </button>
         {lesson.level && <span className="badge badge-teal">{lesson.level}</span>}
         {lesson.duration_min && <span className="badge badge-gold">{lesson.duration_min} min</span>}
       </div>

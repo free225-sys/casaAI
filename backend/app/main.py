@@ -21,6 +21,7 @@ from app.api.content import router as content_router
 from app.api.portfolio import router as portfolio_router
 from app.api.profile import router as profile_router
 from app.api.progress import router as progress_router
+from app.api.notifications import router as notifications_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -46,6 +47,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(content_router)
 app.include_router(progress_router)
+app.include_router(notifications_router)
 app.include_router(portfolio_router)
 app.include_router(profile_router)
 app.include_router(certifications_router)

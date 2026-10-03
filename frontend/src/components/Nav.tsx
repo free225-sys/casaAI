@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Link } from "./AppLink";
 import { useAuth } from "../stores/authStore";
+import { NotificationBell } from "./NotificationBell";
 
 export function Nav() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -63,6 +64,7 @@ export function Nav() {
 
           {isAuthenticated ? (
             <>
+              <NotificationBell />
               <Link to="/app/profile" className="mono nav-link" style={{ fontSize: "0.8rem" }}>
                 {user?.first_name}
               </Link>

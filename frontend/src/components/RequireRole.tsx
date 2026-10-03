@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
+import { Link } from "./AppLink";
 import { useAuth } from "../stores/authStore";
 import type { UserRole } from "../types/api";
 
@@ -30,9 +31,18 @@ export function RequireRole({ roles, children }: { roles: UserRole[]; children: 
   }
 
   if (!user || !roles.includes(user.role)) {
+    const isContentAdmin = user?.role === "ADMIN";
     return (
-      <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center" }}>
-        <p className="error-text">Accès réservé aux administrateurs.</p>
+      <div style={{ maxWidth: 520, margin: "60px auto", textAlign: "center" }}>
+        <h1 style={{ marginBottom: 12 }}>Accès insuffisant</h1>
+        <p className="error-text" style={{ marginBottom: 20 }}>
+          {isContentAdmin
+            ? "Cette section est réservée aux super administrateurs."
+            : "Votre rôle ne permet pas d’ouvrir cette page."}
+        </p>
+        <Link to={isContentAdmin ? "/admin/courses" : "/"} className="btn btn-secondary">
+          {isContentAdmin ? "Retour à l’admin contenu" : "Retour à l’accueil"}
+        </Link>
       </div>
     );
   }

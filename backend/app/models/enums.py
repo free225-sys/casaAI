@@ -72,6 +72,7 @@ class NotificationType(str, enum.Enum):
     NEW_CONTENT = "NEW_CONTENT"
     FEEDBACK = "FEEDBACK"
     REMINDER = "REMINDER"
+    BADGE_EARNED = "BADGE_EARNED"
 
 
 class AIMessageRole(str, enum.Enum):

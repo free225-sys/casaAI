@@ -26,6 +26,18 @@ class ProgressService:
         self.db = db
         self.repo = ProgressRepository(db)
 
+    def start_lesson(self, user_id: uuid.UUID, lesson_id: str):
+        progress = self.repo.start_lesson(user_id, lesson_id)
+        self.db.commit()
+        self.db.refresh(progress)
+        return progress
+
+    def set_progress(self, user_id: uuid.UUID, lesson_id: str, pct: int):
+        progress = self.repo.set_progress_pct(user_id, lesson_id, pct)
+        self.db.commit()
+        self.db.refresh(progress)
+        return progress
+
     def complete_lesson(self, user_id: uuid.UUID, lesson_id: str):
         progress = self.repo.mark_lesson_complete(user_id, lesson_id)
         self.db.commit()

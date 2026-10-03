@@ -62,6 +62,30 @@ class ProgressRepository:
         self.db.flush()
         return progress
 
+    def start_lesson(self, user_id: uuid.UUID, lesson_id: str) -> UserLessonProgress:
+        progress = self.db.get(UserLessonProgress, (user_id, lesson_id))
+        now = datetime.now(timezone.utc)
+        if progress is None:
+            progress = UserLessonProgress(
+                user_id=user_id, lesson_id=lesson_id,
+                status=LessonProgressStatus.IN_PROGRESS, progress_pct=0, started_at=now,
+            )
+            self.db.add(progress)
+        elif progress.status == LessonProgressStatus.NOT_STARTED:
+            progress.status = LessonProgressStatus.IN_PROGRESS
+            if progress.started_at is None:
+                progress.started_at = now
+        self.db.flush()
+        return progress
+
+    def set_progress_pct(self, user_id: uuid.UUID, lesson_id: str, pct: int) -> UserLessonProgress:
+        progress = self.start_lesson(user_id, lesson_id)
+        if progress.status != LessonProgressStatus.COMPLETED:
+            progress.progress_pct = max(0, min(99, pct))
+            progress.status = LessonProgressStatus.IN_PROGRESS
+        self.db.flush()
+        return progress
+
     def list_user_progress(self, user_id: uuid.UUID) -> list[tuple[UserLessonProgress, Lesson]]:
         rows = self.db.execute(
             select(UserLessonProgress, Lesson)

@@ -3,18 +3,29 @@ import { Link } from "../components/AppLink";
 import { useAuth } from "../stores/authStore";
 import { RevealSection } from "../components/RevealSection";
 import { ListSkeleton } from "../components/Skeleton";
+import { AchievementBadges } from "../components/AchievementBadges";
 import { progressService } from "../services/progressService";
-import type { UserLessonProgress, UserSkillProgress } from "../types/api";
+import type { AchievementBadge, UserLessonProgress, UserSkillProgress } from "../types/api";
 
 export function DashboardPage() {
   const { user } = useAuth();
   const [progress, setProgress] = useState<UserLessonProgress[] | null>(null);
   const [skills, setSkills] = useState<UserSkillProgress[] | null>(null);
+  const [badges, setBadges] = useState<AchievementBadge[] | null>(null);
 
   useEffect(() => {
     progressService.getMyProgress().then(setProgress).catch(() => setProgress([]));
     progressService.getMySkills().then(setSkills).catch(() => setSkills([]));
+    progressService.getMyBadges().then((rows) => {
+      setBadges(rows);
+      if (rows.some((b) => b.new)) progressService.acknowledgeBadges().catch(() => {});
+    }).catch(() => setBadges([]));
   }, []);
+
+  const resume =
+    progress?.find((p) => p.status === "IN_PROGRESS") ??
+    progress?.find((p) => p.status !== "COMPLETED") ??
+    null;
 
   const completedCount = progress?.filter((p) => p.status === "COMPLETED").length ?? 0;
 
@@ -22,8 +33,27 @@ export function DashboardPage() {
     <div>
       <RevealSection as="div">
         <h1 style={{ fontSize: "1.8rem", marginBottom: 4 }}>Bonjour {user?.first_name}</h1>
-        <p style={{ marginBottom: 40 }}>Voici où vous en êtes dans votre apprentissage.</p>
+        <p style={{ marginBottom: 16 }}>Voici où vous en êtes dans votre apprentissage.</p>
       </RevealSection>
+
+      {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
+        <div className="card" style={{ padding: 16, marginBottom: 24 }}>
+          <p style={{ color: "var(--color-text)", marginBottom: 8 }}>Compte administrateur — l’espace apprenant reste ouvert pour prévisualiser.</p>
+          <Link to="/admin/courses" className="btn btn-secondary">Ouvrir l’administration</Link>
+        </div>
+      )}
+
+      {resume && (
+        <div className="card" style={{ padding: 16, marginBottom: 24 }}>
+          <p style={{ marginBottom: 8 }}>Reprendre : {resume.lesson_title}</p>
+          <Link to={`/app/lessons/${resume.lesson_id}`} className="btn btn-primary">Continuer</Link>
+        </div>
+      )}
+
+      <section style={{ marginBottom: 32 }}>
+        <h2 style={{ fontSize: "1.05rem", marginBottom: 12 }}>Badges</h2>
+        <AchievementBadges badges={badges} />
+      </section>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
         <section>

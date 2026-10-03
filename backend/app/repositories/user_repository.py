@@ -62,6 +62,13 @@ class UserRepository:
         )
         return items, total
 
+    def count_active_super_admins(self) -> int:
+        return self.db.execute(
+            select(func.count())
+            .select_from(User)
+            .where(User.role == UserRole.SUPER_ADMIN, User.status == AccountStatus.ACTIVE)
+        ).scalar_one()
+
     def delete(self, user: User) -> None:
         self.db.delete(user)
         self.db.flush()

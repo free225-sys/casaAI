@@ -18,7 +18,7 @@ from app.models.enums import AccountStatus, UserRole
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.admin import AdminUserListResponse, AdminUserOut, AdminUserUpdateRequest
-from app.services.admin_user_service import AdminUserService, SelfModificationError, UserNotFoundError
+from app.services.admin_user_service import AdminUserService, LastSuperAdminError, SelfModificationError, UserNotFoundError
 
 router = APIRouter(prefix="/api/admin", tags=["admin-users"])
 
@@ -65,6 +65,8 @@ def update_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except SelfModificationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except LastSuperAdminError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     return AdminUserOut.model_validate(updated)
 
 
@@ -79,3 +81,5 @@ def delete_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except SelfModificationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except LastSuperAdminError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))

@@ -32,7 +32,10 @@ from app.schemas.progress import (
     UserLessonProgressOut,
     UserSkillOut,
 )
+from app.schemas.badge import AchievementBadgeOut, NotificationSettingsOut, NotificationSettingsUpdate
+from app.services.badge_service import BadgeService
 from app.services.progress_service import ProgressService, QuizNotFoundError, UnknownQuestionError
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api", tags=["progress"])
 
@@ -99,6 +102,42 @@ def get_lesson_document(
     )
 
 
+
+class ProgressUpdate(BaseModel):
+    progress_pct: int = Field(ge=0, le=100)
+
+
+@router.post("/lessons/{lesson_id}/start", response_model=LessonCompleteResponse)
+def start_lesson(
+    lesson_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> LessonCompleteResponse:
+    if ProgressRepository(db).get_lesson_detail(lesson_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable.")
+    progress = ProgressService(db).start_lesson(current_user.id, lesson_id)
+    return LessonCompleteResponse(
+        lesson_id=lesson_id, status=progress.status,
+        progress_pct=progress.progress_pct, completed_at=progress.completed_at,
+    )
+
+
+@router.patch("/lessons/{lesson_id}/progress", response_model=LessonCompleteResponse)
+def update_lesson_progress(
+    lesson_id: str,
+    payload: ProgressUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> LessonCompleteResponse:
+    if ProgressRepository(db).get_lesson_detail(lesson_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable.")
+    progress = ProgressService(db).set_progress(current_user.id, lesson_id, payload.progress_pct)
+    return LessonCompleteResponse(
+        lesson_id=lesson_id, status=progress.status,
+        progress_pct=progress.progress_pct, completed_at=progress.completed_at,
+    )
+
+
 @router.post("/lessons/{lesson_id}/complete", response_model=LessonCompleteResponse)
 def complete_lesson(
     lesson_id: str,
@@ -146,6 +185,41 @@ def get_my_skills(
         )
         for us, skill in rows
     ]
+
+
+@router.get("/me/badges", response_model=list[AchievementBadgeOut])
+def get_my_badges(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[AchievementBadgeOut]:
+    return BadgeService(db).list_for_user(current_user.id)
+
+
+@router.post("/me/badges/ack")
+def acknowledge_badge_notifications(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    BadgeService(db).acknowledge(current_user.id)
+    return {"ok": True}
+
+
+@router.get("/me/notification-settings", response_model=NotificationSettingsOut)
+def get_notification_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> NotificationSettingsOut:
+    return NotificationSettingsOut(notify_badges=BadgeService(db).get_settings(current_user.id))
+
+
+@router.patch("/me/notification-settings", response_model=NotificationSettingsOut)
+def update_notification_settings(
+    payload: NotificationSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> NotificationSettingsOut:
+    enabled = BadgeService(db).set_settings(current_user.id, payload.notify_badges)
+    return NotificationSettingsOut(notify_badges=enabled)
 
 
 # --- Quiz -----------------------------------------------------------

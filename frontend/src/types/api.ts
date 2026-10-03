@@ -688,3 +688,27 @@ export interface MediaUploadResult {
   content_type: string;
   size_bytes: number;
 }
+
+
+export interface AchievementBadge {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  earned: boolean;
+  earned_at: string | null;
+  new?: boolean;
+}
+
+export interface NotificationSettings {
+  notify_badges: boolean;
+}
+
+export interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  read: boolean;
+  created_at: string;
+}

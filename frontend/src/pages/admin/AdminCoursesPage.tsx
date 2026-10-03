@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { AdminPagination, ADMIN_PAGE_SIZE } from "../../components/AdminPagination";
 import { Link } from "../../components/AppLink";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { RevealSection } from "../../components/RevealSection";
@@ -12,13 +13,34 @@ export function AdminCoursesPage() {
   const [schools, setSchools] = useState<School[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "PUBLISHED" | "DRAFT">("all");
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
 
-  const refresh = () => adminService.listCourses({ limit: 100 }).then((p) => setCourses(p.items));
+  const refresh = () =>
+    adminService
+      .listCourses({
+        status: statusFilter === "all" ? undefined : statusFilter,
+        limit: ADMIN_PAGE_SIZE,
+        offset: page * ADMIN_PAGE_SIZE,
+      })
+      .then((res) => {
+        setCourses(res.items);
+        setTotal(res.total);
+      });
+
+  useEffect(() => {
+    contentService.listSchools().then(setSchools);
+  }, []);
+
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter]);
 
   useEffect(() => {
     refresh();
-    contentService.listSchools().then(setSchools);
-  }, []);
+  }, [statusFilter, page]);
 
   const handlePublishToggle = async (course: AdminCourse) => {
     setError(null);
@@ -44,6 +66,11 @@ export function AdminCoursesPage() {
     }
   };
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return (courses ?? []).filter((c) => !q || c.title.toLowerCase().includes(q));
+  }, [courses, query]);
+
   return (
     <AdminLayout>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -53,6 +80,14 @@ export function AdminCoursesPage() {
         </button>
       </div>
 
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+        <input placeholder="Rechercher un cours…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        {(["all", "PUBLISHED", "DRAFT"] as const).map((value) => (
+          <button key={value} type="button" className="btn btn-secondary" onClick={() => setStatusFilter(value)}>
+            {value === "all" ? "Tous" : value === "PUBLISHED" ? "Publiés" : "Brouillons"}
+          </button>
+        ))}
+      </div>
       {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
       {showForm && (
@@ -69,7 +104,7 @@ export function AdminCoursesPage() {
         <ListSkeleton count={4} />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {courses.map((c, i) => (
+          {filtered.map((c, i) => (
             <RevealSection key={c.id} as="div" delayMs={Math.min(i, 8) * 40}>
               <div className="card" style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
                 <span
@@ -99,6 +134,7 @@ export function AdminCoursesPage() {
           ))}
         </div>
       )}
+      <AdminPagination total={total} page={page} onPageChange={setPage} />
     </AdminLayout>
   );
 }
@@ -110,6 +146,10 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "PUBLISHED" | "DRAFT">("all");
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     if (!schoolId && schools.length > 0) setSchoolId(schools[0].id);
@@ -157,6 +197,14 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
       <div className="field">
         <label htmlFor="description">Description</label>
         <input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
+      </div>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+        <input placeholder="Rechercher un cours…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        {(["all", "PUBLISHED", "DRAFT"] as const).map((value) => (
+          <button key={value} type="button" className="btn btn-secondary" onClick={() => setStatusFilter(value)}>
+            {value === "all" ? "Tous" : value === "PUBLISHED" ? "Publiés" : "Brouillons"}
+          </button>
+        ))}
       </div>
       {error && <p className="error-text">{error}</p>}
       <button type="submit" className="btn btn-primary" disabled={submitting || !title || !schoolId}>

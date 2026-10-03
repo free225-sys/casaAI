@@ -28,6 +28,10 @@ class UserNotFoundError(Exception):
     pass
 
 
+class LastSuperAdminError(Exception):
+    """Il doit rester au moins un SUPER_ADMIN actif."""
+
+
 class AdminUserService:
     def __init__(self, db: Session):
         self.db = db
@@ -51,6 +55,19 @@ class AdminUserService:
             if payload.status is not None and payload.status != AccountStatus.ACTIVE:
                 raise SelfModificationError("Vous ne pouvez pas suspendre votre propre compte.")
 
+        losing_super = (
+            target.role == UserRole.SUPER_ADMIN
+            and target.status == AccountStatus.ACTIVE
+            and (
+                (payload.role is not None and payload.role != UserRole.SUPER_ADMIN)
+                or (payload.status is not None and payload.status != AccountStatus.ACTIVE)
+            )
+        )
+        if losing_super and self.repo.count_active_super_admins() <= 1:
+            raise LastSuperAdminError(
+                "Impossible : il doit rester au moins un super administrateur actif."
+            )
+
         if payload.role is not None:
             target.role = payload.role
         if payload.status is not None:
@@ -67,6 +84,15 @@ class AdminUserService:
         target = self.repo.get_by_id(target_id)
         if target is None:
             raise UserNotFoundError(f"Utilisateur {target_id} introuvable.")
+
+        if (
+            target.role == UserRole.SUPER_ADMIN
+            and target.status == AccountStatus.ACTIVE
+            and self.repo.count_active_super_admins() <= 1
+        ):
+            raise LastSuperAdminError(
+                "Impossible : il doit rester au moins un super administrateur actif."
+            )
 
         self.repo.delete(target)
         self.db.commit()

@@ -89,6 +89,7 @@ class UserProfile(Base):
     theme: Mapped[str] = mapped_column(String, nullable=False, default="light")
     reduced_motion: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     language: Mapped[str] = mapped_column(String, nullable=False, default="fr")
+    notify_badges: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )

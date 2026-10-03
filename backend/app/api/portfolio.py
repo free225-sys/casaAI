@@ -9,7 +9,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_learner
 from app.db.session import get_db
 from app.models.user import User
 from app.repositories.portfolio_repository import PortfolioRepository
@@ -31,7 +31,7 @@ def _to_out(evidence, skill_ids: list[str]) -> PortfolioEvidenceOut:
 def create_evidence(
     payload: PortfolioEvidenceCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> PortfolioEvidenceOut:
     repo = PortfolioRepository(db)
     evidence, skill_ids = repo.create(
@@ -47,7 +47,7 @@ def create_evidence(
 @router.get("/me/portfolio", response_model=list[PortfolioEvidenceOut])
 def list_my_portfolio(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[PortfolioEvidenceOut]:
     rows = PortfolioRepository(db).list_for_user(current_user.id)
     return [_to_out(e, skill_ids) for e, skill_ids in rows]
@@ -57,7 +57,7 @@ def list_my_portfolio(
 def get_evidence(
     evidence_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> PortfolioEvidenceOut:
     result = PortfolioRepository(db).get_for_user(current_user.id, evidence_id)
     if result is None:

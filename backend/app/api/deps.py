@@ -94,3 +94,6 @@ def require_role(*allowed_roles: UserRole):
 require_super_admin = require_role(UserRole.SUPER_ADMIN)
 require_content_admin = require_role(UserRole.ADMIN, UserRole.SUPER_ADMIN)
 require_learner_or_admin = require_role(UserRole.LEARNER, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+
+# Activités pédagogiques exclusivement apprenantes.
+require_learner = require_role(UserRole.LEARNER)

@@ -9,7 +9,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_learner
 from app.db.session import get_db
 from app.models.enums import ContentStatus
 from app.models.user import User
@@ -47,7 +47,7 @@ router = APIRouter(prefix="/api", tags=["progress"])
 def get_lesson(
     lesson_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> LessonDetailOut:
     repo = ProgressRepository(db)
     lesson = repo.get_lesson_detail(lesson_id)
@@ -77,7 +77,7 @@ def _document_section(section) -> DocumentSectionOut:
 def get_lesson_document(
     lesson_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> LessonDocumentOut:
     """Structure documentaire d'une leçon issue d'un import PDF.
 
@@ -112,7 +112,7 @@ class ProgressUpdate(BaseModel):
 def start_lesson(
     lesson_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> LessonCompleteResponse:
     if ProgressRepository(db).get_lesson_detail(lesson_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable.")
@@ -128,7 +128,7 @@ def update_lesson_progress(
     lesson_id: str,
     payload: ProgressUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> LessonCompleteResponse:
     if ProgressRepository(db).get_lesson_detail(lesson_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable.")
@@ -143,7 +143,7 @@ def update_lesson_progress(
 def complete_lesson(
     lesson_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> LessonCompleteResponse:
     # Vérifie que la leçon existe et est publiée avant d'enregistrer une
     # progression dessus (évite de créer un enregistrement orphelin).
@@ -161,7 +161,7 @@ def complete_lesson(
 @router.get("/me/progress", response_model=list[UserLessonProgressOut])
 def get_my_progress(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[UserLessonProgressOut]:
     rows = ProgressRepository(db).list_user_progress(current_user.id)
     return [
@@ -178,7 +178,7 @@ def get_my_progress(
 @router.get("/me/skills", response_model=list[UserSkillOut])
 def get_my_skills(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[UserSkillOut]:
     rows = ProgressRepository(db).list_user_skills(current_user.id)
     return [
@@ -193,7 +193,7 @@ def get_my_skills(
 @router.get("/me/badges", response_model=list[AchievementBadgeOut])
 def get_my_badges(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[AchievementBadgeOut]:
     return BadgeService(db).list_for_user(current_user.id)
 
@@ -201,7 +201,7 @@ def get_my_badges(
 @router.post("/me/badges/ack")
 def acknowledge_badge_notifications(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> dict:
     BadgeService(db).acknowledge(current_user.id)
     return {"ok": True}
@@ -230,7 +230,7 @@ def update_notification_settings(
 @router.get("/quizzes", response_model=list[QuizListItemOut])
 def list_quizzes(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[QuizListItemOut]:
     """Catalogue complet des quiz publiés, toutes natures confondues
     (entraînement par compétence, validation de leçon, final de cours) —
@@ -243,7 +243,7 @@ def list_quizzes(
 def get_quiz(
     quiz_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> QuizOut:
     result = ProgressRepository(db).get_quiz_with_questions(quiz_id)
     if result is None:
@@ -265,7 +265,7 @@ def get_quiz(
 def get_practice_quiz_for_skill(
     skill_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> QuizOut:
     """Retrouve le quiz d'entraînement associé à une compétence, sans que le
     frontend ait besoin de connaître son UUID à l'avance."""
@@ -292,7 +292,7 @@ def attempt_quiz(
     quiz_id: uuid.UUID,
     payload: QuizAttemptRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> QuizAttemptResultOut:
     service = ProgressService(db)
     try:
@@ -306,7 +306,7 @@ def attempt_quiz(
 @router.get("/me/quiz-history", response_model=list[QuizAttemptHistoryOut])
 def get_my_quiz_history(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[QuizAttemptHistoryOut]:
     rows = ProgressRepository(db).list_quiz_history(current_user.id)
     return [
@@ -326,7 +326,7 @@ def submit_lab(
     lab_id: str,
     payload: LabSubmitRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> LabResultOut:
     result = ProgressService(db).submit_lab(
         user_id=current_user.id, lab_id=lab_id, mode=payload.mode,
@@ -340,6 +340,6 @@ def submit_lab(
 @router.get("/me/lab-results", response_model=list[LabResultOut])
 def get_my_lab_results(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[LabResultOut]:
     return ProgressRepository(db).list_lab_results(current_user.id)

@@ -102,3 +102,14 @@ seulement, idempotence/concurrence et dernier SUPER_ADMIN. Suites existantes à
 rejouer ; attentes anciennes incompatibles rapportées explicitement.
 Chaque lot publie routes/payloads/erreurs réellement implémentés et preuves.
 La livraison exige ensuite intégration Claude et recette navigateur réelle.
+
+
+## Publication du Lot 1 backend
+
+Implémenté : `require_learner` sur toutes les routes pédagogiques personnelles
+listées au Lot 1, y compris leurs lectures. Préférences GET/PATCH et notifications
+GET restent communes ; compte/sécurité inchangés. Refus 403 pour staff, 401 pour
+compte inactif. 61 tests PostgreSQL dédiés réussis sur base supplémentaire isolée.
+Aucune migration requise pour ce lot ; aucun acquis historique supprimé.
+Périmètres, nouveaux flux CASA et aperçu ne sont pas livrés par ce premier lot.
+Leur code et leurs migrations restent séparés, en cours de vérification.

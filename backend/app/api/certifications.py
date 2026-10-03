@@ -8,7 +8,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_learner
 from app.db.session import get_db
 from app.models.user import User
 from app.repositories.certification_repository import CertificationRepository
@@ -53,7 +53,7 @@ def get_certification(certification_id: str, db: Session = Depends(get_db)) -> C
 def get_my_eligibility(
     certification_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> CertificationEligibilityOut:
     result = CertificationService(db).evaluate_eligibility(current_user.id, certification_id)
     if result is None:
@@ -67,7 +67,7 @@ def get_my_eligibility(
 def get_course_certificate_eligibility(
     course_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> CourseCertificateEligibilityOut:
     try:
         return CourseCertificateService(db).get_eligibility(current_user.id, course_id)
@@ -79,7 +79,7 @@ def get_course_certificate_eligibility(
 def issue_course_certificate(
     course_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> CourseCertificateOut:
     try:
         cert = CourseCertificateService(db).issue_certificate(current_user.id, course_id)
@@ -93,7 +93,7 @@ def issue_course_certificate(
 @router.get("/me/course-certificates", response_model=list[CourseCertificateOut])
 def list_my_course_certificates(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
 ) -> list[CourseCertificateOut]:
     certs = CertificationRepository(db).list_my_course_certificates(current_user.id)
     return [CourseCertificateOut.model_validate(c) for c in certs]

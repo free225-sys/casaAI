@@ -11,7 +11,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_learner
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.profile import UserProfileOut, UserProfileUpdateRequest
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/me", tags=["profile"])
 
 @router.get("/onboarding-profile", response_model=UserProfileOut)
 def get_my_onboarding_profile(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
     db: Session = Depends(get_db),
 ) -> UserProfileOut:
     return UserProfileService(db).get_profile(current_user.id)
@@ -31,7 +31,7 @@ def get_my_onboarding_profile(
 @router.put("/onboarding-profile", response_model=UserProfileOut)
 def update_my_onboarding_profile(
     payload: UserProfileUpdateRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_learner),
     db: Session = Depends(get_db),
 ) -> UserProfileOut:
     return UserProfileService(db).update_profile(current_user.id, payload)

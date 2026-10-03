@@ -10,6 +10,10 @@ import { AdminUsersPage } from "../src/pages/admin/AdminUsersPage";
 import { AdminImportPdfPage } from "../src/pages/admin/AdminImportPdfPage";
 import { AdminLessonEditPage } from "../src/pages/admin/AdminLessonEditPage";
 import { AdminCoursesPage } from "../src/pages/admin/AdminCoursesPage";
+import { AdminQuizEditPage } from "../src/pages/admin/AdminQuizEditPage";
+import { AdminProgressPage } from "../src/pages/admin/AdminProgressPage";
+import { AdminCertificationsPage } from "../src/pages/admin/AdminCertificationsPage";
+import { AdminCertificationEditPage } from "../src/pages/admin/AdminCertificationEditPage";
 import { adminService } from "../src/services/adminService";
 import { contentService } from "../src/services/contentService";
 import { progressService } from "../src/services/progressService";
@@ -17,7 +21,7 @@ import { progressService } from "../src/services/progressService";
 vi.mock("../src/services/contentService", () => ({ contentService: {
   listCourses: vi.fn(), listPathways: vi.fn(), listLabs: vi.fn(), getCourse: vi.fn(), listSchools: vi.fn(),
 } }));
-vi.mock("../src/services/adminService", () => ({ adminService: { listUsers: vi.fn(), listCourses: vi.fn(), getLesson: vi.fn(), listQuizzes: vi.fn(), previewPdf: vi.fn(), importPdf: vi.fn(), deleteCourse: vi.fn(), updateUser: vi.fn() } }));
+vi.mock("../src/services/adminService", () => ({ adminService: { listUsers: vi.fn(), listCourses: vi.fn(), getLesson: vi.fn(), listQuizzes: vi.fn(), previewPdf: vi.fn(), importPdf: vi.fn(), deleteCourse: vi.fn(), updateUser: vi.fn(), getQuiz: vi.fn(), deleteQuiz: vi.fn(), listLearnerProgress: vi.fn(), listCertifications: vi.fn(), getCertification: vi.fn() } }));
 vi.mock("../src/stores/authStore", () => ({ useAuth: () => ({ user: { id: "current" } }) }));
 vi.mock("../src/layouts/AdminLayout", () => ({ AdminLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("../src/services/progressService", () => ({ progressService: {
@@ -472,5 +476,46 @@ describe("Aurore administration safeguards", () => {
     expect(host.querySelector('[aria-current="step"]')?.textContent).toContain("Résultat");
     await act(async () => button("Importer un autre PDF").click());
     expect(button("Analyser").disabled).toBe(true);
+  });
+});
+
+describe("Administration: éditeurs, progression et certifications", () => {
+  const route = (path: string, pattern: string, element: React.ReactNode) =>
+    act(async () => root.render(<MemoryRouter key={path} initialEntries={[path]}><Routes><Route path={pattern} element={element} /></Routes></MemoryRouter>));
+  it("asks for confirmation before deleting a quiz, then deletes it", async () => {
+    vi.mocked(adminService.getQuiz).mockResolvedValue({ id: "q1", title: "TEST quiz", kind: "PRACTICE", lesson_id: null, course_id: null, skill_id: "s", pass_threshold: 70, status: "DRAFT", questions: [{ question_text: "TEST?", explanation: "", difficulty: 1, options: [{ option_text: "a", is_correct: true }, { option_text: "b", is_correct: false }] }] } as never);
+    vi.mocked(adminService.deleteQuiz).mockResolvedValue(undefined as never);
+    await route("/admin/quizzes/q1?back=/admin/courses", "/admin/quizzes/:quizId", <AdminQuizEditPage />);
+    await act(async () => button("Supprimer le quiz").click());
+    expect(adminService.deleteQuiz).not.toHaveBeenCalled();
+    expect(host.querySelector("dialog")?.textContent).toContain("TEST quiz");
+    await act(async () => button("Annuler").click());
+    expect(adminService.deleteQuiz).not.toHaveBeenCalled();
+    await act(async () => button("Supprimer le quiz").click());
+    const confirm = [...host.querySelectorAll<HTMLButtonElement>("dialog button")].find(b => b.textContent === "Supprimer le quiz")!;
+    await act(async () => confirm.click());
+    expect(adminService.deleteQuiz).toHaveBeenCalledWith("q1");
+  });
+  it("shows a retryable error on the learner progress list, never an empty list", async () => {
+    vi.mocked(adminService.listLearnerProgress).mockRejectedValueOnce(new Error("Offline"));
+    vi.mocked(adminService.listLearnerProgress).mockResolvedValue({ items: [{ user_id: "u", first_name: "TEST", last_name: "Learner", email: "t@example.test", lessons_completed: 1, lessons_total_published: 2, quizzes_passed: 0, quizzes_attempted: 0, quiz_average_score: null, labs_completed: 0, last_activity_at: null }], total: 1 } as never);
+    await act(async () => root.render(<MemoryRouter><AdminProgressPage /></MemoryRouter>));
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.textContent).not.toContain("Aucun apprenant trouvé");
+    await act(async () => button("Réessayer la progression").click());
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.textContent).toContain("1 apprenant affiché sur 1");
+  });
+  it("shows a retryable error on the certification list and on a certification editor", async () => {
+    vi.mocked(adminService.listCertifications).mockRejectedValueOnce(new Error("Offline"));
+    vi.mocked(adminService.listCertifications).mockResolvedValue({ items: [{ id: "c1", title: "TEST cert", level: null, requirement_count: 2, linked_requirement_count: 1 }] } as never);
+    await act(async () => root.render(<MemoryRouter><AdminCertificationsPage /></MemoryRouter>));
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    await act(async () => button("Réessayer les certifications").click());
+    expect(host.textContent).toContain("1/2 critères reliés");
+    vi.mocked(adminService.getCertification).mockRejectedValue(new Error("Offline"));
+    await route("/admin/certifications/c1", "/admin/certifications/:certificationId", <AdminCertificationEditPage />);
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(button("Réessayer le chargement").disabled).toBe(false);
   });
 });

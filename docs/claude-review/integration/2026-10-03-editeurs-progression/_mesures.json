@@ -1,0 +1,347 @@
+[
+ {
+  "file": "integ-editeur-lecon--desktop-1440.png",
+  "scenario": "integ-editeur-lecon",
+  "viewport": "desktop-1440",
+  "path": "/admin/courses/c1/lessons/l1",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Modifier la leçon",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/lessons/l1",
+   "GET /api/admin/quizzes"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-editeur-lecon--mobile-390.png",
+  "scenario": "integ-editeur-lecon",
+  "viewport": "mobile-390",
+  "path": "/admin/courses/c1/lessons/l1",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Modifier la leçon",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/lessons/l1",
+   "GET /api/admin/quizzes"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-editeur-lecon--mobile-320.png",
+  "scenario": "integ-editeur-lecon",
+  "viewport": "mobile-320",
+  "path": "/admin/courses/c1/lessons/l1",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Modifier la leçon",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/lessons/l1",
+   "GET /api/admin/quizzes"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-editeur-quiz--desktop-1440.png",
+  "scenario": "integ-editeur-quiz",
+  "viewport": "desktop-1440",
+  "path": "/admin/quizzes/q1?back=/admin/courses",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Modifier le quiz",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/quizzes/q1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-editeur-quiz--mobile-390.png",
+  "scenario": "integ-editeur-quiz",
+  "viewport": "mobile-390",
+  "path": "/admin/quizzes/q1?back=/admin/courses",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Modifier le quiz",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/quizzes/q1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-editeur-quiz--mobile-320.png",
+  "scenario": "integ-editeur-quiz",
+  "viewport": "mobile-320",
+  "path": "/admin/quizzes/q1?back=/admin/courses",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Modifier le quiz",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/quizzes/q1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-progression--desktop-1440.png",
+  "scenario": "integ-admin-progression",
+  "viewport": "desktop-1440",
+  "path": "/admin/progress",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Progression",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-progression--mobile-390.png",
+  "scenario": "integ-admin-progression",
+  "viewport": "mobile-390",
+  "path": "/admin/progress",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Progression",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-progression--mobile-320.png",
+  "scenario": "integ-admin-progression",
+  "viewport": "mobile-320",
+  "path": "/admin/progress",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Progression",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-progression-detail--desktop-1440.png",
+  "scenario": "integ-admin-progression-detail",
+  "viewport": "desktop-1440",
+  "path": "/admin/progress/u1",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "TEST1 Learner",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners/u1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-progression-detail--mobile-390.png",
+  "scenario": "integ-admin-progression-detail",
+  "viewport": "mobile-390",
+  "path": "/admin/progress/u1",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "TEST1 Learner",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners/u1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-progression-detail--mobile-320.png",
+  "scenario": "integ-admin-progression-detail",
+  "viewport": "mobile-320",
+  "path": "/admin/progress/u1",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "TEST1 Learner",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners/u1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-certifications--desktop-1440.png",
+  "scenario": "integ-admin-certifications",
+  "viewport": "desktop-1440",
+  "path": "/admin/certifications",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Certifications",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/certifications"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-certifications--mobile-390.png",
+  "scenario": "integ-admin-certifications",
+  "viewport": "mobile-390",
+  "path": "/admin/certifications",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Certifications",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/certifications"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-certifications--mobile-320.png",
+  "scenario": "integ-admin-certifications",
+  "viewport": "mobile-320",
+  "path": "/admin/certifications",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Certifications",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/certifications"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-certification-criteres--desktop-1440.png",
+  "scenario": "integ-admin-certification-criteres",
+  "viewport": "desktop-1440",
+  "path": "/admin/certifications/c1",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "TEST certification",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/certifications/c1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-certification-criteres--mobile-390.png",
+  "scenario": "integ-admin-certification-criteres",
+  "viewport": "mobile-390",
+  "path": "/admin/certifications/c1",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "TEST certification",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/certifications/c1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ },
+ {
+  "file": "integ-admin-certification-criteres--mobile-320.png",
+  "scenario": "integ-admin-certification-criteres",
+  "viewport": "mobile-320",
+  "path": "/admin/certifications/c1",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "TEST certification",
+  "axe_violations": [],
+  "api_paths": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/certifications/c1"
+  ],
+  "blocked_external": [
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap",
+   "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+  ]
+ }
+]

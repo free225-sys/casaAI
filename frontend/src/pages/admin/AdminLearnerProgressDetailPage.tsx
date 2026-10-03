@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { Link } from "../../components/AppLink";
 import { AdminLayout } from "../../layouts/AdminLayout";
-import { RevealSection } from "../../components/RevealSection";
+import { EmptyState } from "../../components/ui";
 import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
 import type { AdminLearnerProgressDetail } from "../../types/api";
@@ -17,127 +17,92 @@ const STATUS_LABELS: Record<string, string> = {
   IN_PROGRESS: "En cours",
   COMPLETED: "Terminée",
 };
+const STATUS_KINDS: Record<string, string> = { NOT_STARTED: "draft", IN_PROGRESS: "progress", COMPLETED: "done" };
+
+function Result({ ok, yes, no }: { ok: boolean; yes: string; no: string }) {
+  return <span className={`status ${ok ? "status-done" : "status-warning"}`}>{ok ? yes : no}</span>;
+}
+
+function DetailSection({ title, empty, count, head, children }: { title: string; empty: string; count: number; head: string[]; children: ReactNode }) {
+  return (
+    <section className="panel admin-list detail-section" aria-label={title}>
+      <h2>{title}</h2>
+      {count === 0 ? <EmptyState title={empty} /> : (
+        <table className="admin-table">
+          <thead><tr>{head.map((h) => <th key={h} scope="col">{h}</th>)}</tr></thead>
+          <tbody>{children}</tbody>
+        </table>
+      )}
+    </section>
+  );
+}
 
 export function AdminLearnerProgressDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const [detail, setDetail] = useState<AdminLearnerProgressDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
+    let active = true;
     setError(null);
+    setDetail(null);
     adminService
       .getLearnerProgressDetail(userId)
-      .then(setDetail)
-      .catch((e) => setError(e instanceof Error ? e.message : "Erreur."));
-  }, [userId]);
+      .then((value) => { if (active) setDetail(value); })
+      .catch(() => { if (active) setError("Impossible de charger la progression de cet apprenant."); });
+    return () => { active = false; };
+  }, [userId, reloadKey]);
 
   return (
     <AdminLayout>
-      <Link to="/admin/progress" style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-        ← Retour à la liste
-      </Link>
+      <Link to="/admin/progress" className="admin-back">← Retour à la liste</Link>
 
-      {error && <p className="error-text" style={{ marginTop: 16 }}>{error}</p>}
+      {error && <div role="alert" className="section-error"><p>{error}</p><button type="button" className="btn btn-secondary" onClick={() => setReloadKey((n) => n + 1)}>Réessayer</button></div>}
 
       {!detail ? (
         !error && <ListSkeleton count={4} height={44} />
       ) : (
-        <RevealSection as="div">
-          <div style={{ margin: "20px 0 32px" }}>
-            <h2 style={{ fontSize: "1.3rem" }}>
-              {detail.first_name} {detail.last_name}
-            </h2>
-            <p style={{ fontSize: "0.9rem" }}>{detail.email}</p>
+        <>
+          <div className="detail-head">
+            <h1>{detail.first_name} {detail.last_name}</h1>
+            <p>{detail.email}</p>
           </div>
 
-          <section style={{ marginBottom: 32 }}>
-            <h3 style={{ fontSize: "1rem", marginBottom: 12 }}>Leçons</h3>
-            {detail.lessons.length === 0 ? (
-              <p style={{ color: "var(--color-text-muted)" }}>Aucune progression enregistrée.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {detail.lessons.map((l, i) => (
-                  <RevealSection key={l.lesson_id} as="div" delayMs={Math.min(i, 8) * 30}>
-                    <div
-                      className="card"
-                      style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 16 }}
-                    >
-                      <span style={{ flex: 1 }}>{l.lesson_title}</span>
-                      <span className="mono" style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                        {l.progress_pct}%
-                      </span>
-                      <span className="badge">{STATUS_LABELS[l.status] ?? l.status}</span>
-                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", width: 100, textAlign: "right" }}>
-                        {formatDate(l.completed_at)}
-                      </span>
-                    </div>
-                  </RevealSection>
-                ))}
-              </div>
-            )}
-          </section>
+          <DetailSection title="Leçons" empty="Aucune progression enregistrée." count={detail.lessons.length} head={["Leçon", "Avancement", "Statut", "Terminée le"]}>
+            {detail.lessons.map((l) => (
+              <tr key={l.lesson_id}>
+                <td><span className="admin-title">{l.lesson_title}</span></td>
+                <td className="metric">{l.progress_pct} %</td>
+                <td className="col-status"><span className={`status status-${STATUS_KINDS[l.status] ?? "draft"}`}>{STATUS_LABELS[l.status] ?? l.status}</span></td>
+                <td className="admin-sub">{formatDate(l.completed_at)}</td>
+              </tr>
+            ))}
+          </DetailSection>
 
-          <section style={{ marginBottom: 32 }}>
-            <h3 style={{ fontSize: "1rem", marginBottom: 12 }}>Tentatives de quiz</h3>
-            {detail.quiz_attempts.length === 0 ? (
-              <p style={{ color: "var(--color-text-muted)" }}>Aucune tentative enregistrée.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {detail.quiz_attempts.map((q, i) => (
-                  <RevealSection key={q.attempt_id} as="div" delayMs={Math.min(i, 8) * 30}>
-                    <div
-                      className="card"
-                      style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 16 }}
-                    >
-                      <span style={{ flex: 1 }}>{q.quiz_title}</span>
-                      <span className="mono" style={{ fontSize: "0.8rem" }}>{q.score}%</span>
-                      <span
-                        className="badge"
-                        style={{
-                          background: q.passed ? "var(--color-accent-teal-soft)" : "var(--color-accent-coral-soft)",
-                          color: q.passed ? "var(--color-accent-teal)" : "var(--color-accent-coral)",
-                        }}
-                      >
-                        {q.passed ? "Réussi" : "Échoué"}
-                      </span>
-                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", width: 100, textAlign: "right" }}>
-                        {formatDate(q.started_at)}
-                      </span>
-                    </div>
-                  </RevealSection>
-                ))}
-              </div>
-            )}
-          </section>
+          <DetailSection title="Tentatives de quiz" empty="Aucune tentative enregistrée." count={detail.quiz_attempts.length} head={["Quiz", "Score", "Résultat", "Date"]}>
+            {detail.quiz_attempts.map((q) => (
+              <tr key={q.attempt_id}>
+                <td><span className="admin-title">{q.quiz_title}</span></td>
+                <td className="metric">{q.score} %</td>
+                <td className="col-status"><Result ok={q.passed} yes="Réussi" no="Échoué" /></td>
+                <td className="admin-sub">{formatDate(q.started_at)}</td>
+              </tr>
+            ))}
+          </DetailSection>
 
-          <section>
-            <h3 style={{ fontSize: "1rem", marginBottom: 12 }}>Labs</h3>
-            {detail.lab_results.length === 0 ? (
-              <p style={{ color: "var(--color-text-muted)" }}>Aucun résultat enregistré.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {detail.lab_results.map((r, i) => (
-                  <RevealSection key={r.result_id} as="div" delayMs={Math.min(i, 8) * 30}>
-                    <div
-                      className="card"
-                      style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 16 }}
-                    >
-                      <span style={{ flex: 1 }}>{r.lab_title}</span>
-                      <span className="mono" style={{ fontSize: "0.8rem" }}>
-                        {r.score !== null ? `${r.score}%` : "—"}
-                      </span>
-                      <span className="badge">{r.completed ? "Terminé" : "En cours"}</span>
-                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", width: 100, textAlign: "right" }}>
-                        {formatDate(r.submitted_at)}
-                      </span>
-                    </div>
-                  </RevealSection>
-                ))}
-              </div>
-            )}
-          </section>
-        </RevealSection>
+          <DetailSection title="Labs" empty="Aucun résultat enregistré." count={detail.lab_results.length} head={["Lab", "Score", "Statut", "Soumis le"]}>
+            {detail.lab_results.map((r) => (
+              <tr key={r.result_id}>
+                <td><span className="admin-title">{r.lab_title}</span></td>
+                <td className="metric">{r.score !== null ? `${r.score} %` : "—"}</td>
+                <td className="col-status"><span className={`status ${r.completed ? "status-done" : "status-progress"}`}>{r.completed ? "Terminé" : "En cours"}</span></td>
+                <td className="admin-sub">{formatDate(r.submitted_at)}</td>
+              </tr>
+            ))}
+          </DetailSection>
+        </>
       )}
     </AdminLayout>
   );

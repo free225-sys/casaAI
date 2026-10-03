@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Link } from "../../components/AppLink";
+import { ConfirmDialog, Notice, PageHeader } from "../../components/ui";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
@@ -41,6 +42,7 @@ function AdminQuizEditPageContent() {
   const [loadError, setLoadError] = useState(false);
   const [reload, setReload] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const backTo = searchParams.get("back") || "/admin/courses";
 
@@ -91,7 +93,7 @@ function AdminQuizEditPageContent() {
       }
       navigate(backTo);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur.");
+      setError(e instanceof Error ? e.message : "L’enregistrement a échoué.");
     } finally {
       setSaving(false);
     }
@@ -99,13 +101,13 @@ function AdminQuizEditPageContent() {
 
   const handleDelete = async () => {
     if (!quizId || isNew) return;
-    if (!confirm("Supprimer ce quiz et toutes ses questions ?")) return;
     setSaving(true);
     try {
       await adminService.deleteQuiz(quizId);
       navigate(backTo);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur.");
+      setConfirmDelete(false);
+      setError(e instanceof Error ? e.message : "La suppression a échoué.");
       setSaving(false);
     }
   };
@@ -125,166 +127,108 @@ function AdminQuizEditPageContent() {
 
   return (
     <AdminLayout>
-      <Link to={backTo} style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-        ← Retour
-      </Link>
+      <Link to={backTo} className="admin-back">← Retour</Link>
+      <PageHeader title={isNew ? "Nouveau quiz" : "Modifier le quiz"} description="Les modifications ne sont enregistrées qu’avec le bouton « Enregistrer le quiz »." />
+      {error && <Notice>{error}</Notice>}
 
-      <h2 style={{ fontSize: "1.1rem", margin: "16px 0 24px" }}>{isNew ? "Nouveau quiz" : "Modifier le quiz"}</h2>
-
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-
-      <div className="card" style={{ padding: 22, marginBottom: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-        <div className="field">
-          <label htmlFor="title">Titre</label>
-          <input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          <div className="field" style={{ flex: 1 }}>
-            <label htmlFor="kind">Type</label>
-            <select
-              id="kind"
-              value={kind}
-              onChange={(e) => setKind(e.target.value as QuizKind)}
-              disabled={!isNew}
-              style={{ background: "var(--color-surface-raised)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "10px 12px" }}
-            >
-              {Object.entries(KIND_LABELS).map(([k, label]) => (
-                <option key={k} value={k}>{label}</option>
-              ))}
-            </select>
-          </div>
-          <div className="field" style={{ flex: 1 }}>
-            <label htmlFor="pass">Seuil de réussite (%)</label>
-            <input id="pass" type="number" min={0} max={100} value={passThreshold} onChange={(e) => setPassThreshold(Number(e.target.value))} />
-          </div>
-        </div>
-
-        {kind === "VALIDATION" && (
+      <div className="editor">
+        <section className="panel editor-panel" aria-labelledby="quiz-general">
+          <h2 id="quiz-general">Informations générales</h2>
           <div className="field">
-            <label htmlFor="lesson_id">ID de la leçon</label>
-            <input id="lesson_id" value={lessonId} onChange={(e) => setLessonId(e.target.value)} disabled={!isNew} />
+            <label htmlFor="title">Titre</label>
+            <input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
-        )}
-        {kind === "FINAL" && (
-          <div className="field">
-            <label htmlFor="course_id">ID du cours</label>
-            <input id="course_id" value={courseId} onChange={(e) => setCourseId(e.target.value)} disabled={!isNew} />
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="kind">Type</label>
+              <select id="kind" value={kind} onChange={(e) => setKind(e.target.value as QuizKind)} disabled={!isNew}>
+                {Object.entries(KIND_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="pass">Seuil de réussite (%)</label>
+              <input id="pass" type="number" min={0} max={100} value={passThreshold} onChange={(e) => setPassThreshold(Number(e.target.value))} />
+            </div>
           </div>
-        )}
-        {kind === "PRACTICE" && (
-          <div className="field">
-            <label htmlFor="skill_id">ID de la compétence</label>
-            <input id="skill_id" value={skillId} onChange={(e) => setSkillId(e.target.value)} disabled={!isNew} />
-          </div>
-        )}
-
-        <div className="field">
-          <label htmlFor="status">Statut</label>
-          <select
-            id="status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ContentStatus)}
-            style={{ background: "var(--color-surface-raised)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "10px 12px" }}
-          >
-            <option value="DRAFT">Brouillon</option>
-            <option value="PUBLISHED">Publié</option>
-            <option value="ARCHIVED">Archivé</option>
-          </select>
-          {status !== "PUBLISHED" && (
-            <p style={{ fontSize: "0.78rem", marginTop: 6, color: "var(--color-text-muted)" }}>
-              Un quiz non publié reste invisible pour les apprenants, même si un bouton y mène.
-            </p>
+          {kind === "VALIDATION" && (
+            <div className="field">
+              <label htmlFor="lesson_id">ID de la leçon</label>
+              <input id="lesson_id" value={lessonId} onChange={(e) => setLessonId(e.target.value)} disabled={!isNew} />
+            </div>
           )}
+          {kind === "FINAL" && (
+            <div className="field">
+              <label htmlFor="course_id">ID du cours</label>
+              <input id="course_id" value={courseId} onChange={(e) => setCourseId(e.target.value)} disabled={!isNew} />
+            </div>
+          )}
+          {kind === "PRACTICE" && (
+            <div className="field">
+              <label htmlFor="skill_id">ID de la compétence</label>
+              <input id="skill_id" value={skillId} onChange={(e) => setSkillId(e.target.value)} disabled={!isNew} />
+            </div>
+          )}
+          <div className="field">
+            <label htmlFor="status">Statut</label>
+            <select id="status" value={status} onChange={(e) => setStatus(e.target.value as ContentStatus)}>
+              <option value="DRAFT">Brouillon</option>
+              <option value="PUBLISHED">Publié</option>
+              <option value="ARCHIVED">Archivé</option>
+            </select>
+            {status !== "PUBLISHED" && <p className="editor-hint">Un quiz non publié reste invisible pour les apprenants, même si un bouton y mène.</p>}
+          </div>
+        </section>
+
+        <section className="panel editor-panel" aria-labelledby="quiz-questions">
+          <h2 id="quiz-questions">Questions <span className="admin-count">({questions.length})</span></h2>
+          {questions.map((q, qi) => (
+            <fieldset key={qi} className="subpanel choice-group">
+              <legend className="subpanel-head"><span>Question {qi + 1}</span></legend>
+              <div className="field">
+                <label htmlFor={`question-${qi}`}>Énoncé de la question {qi + 1}</label>
+                <textarea id={`question-${qi}`} rows={2} value={q.question_text} onChange={(e) => updateQuestion(qi, { question_text: e.target.value })} />
+              </div>
+              <p className="editor-hint" id={`options-hint-${qi}`}>Options : sélectionnez la bonne réponse.</p>
+              {q.options.map((opt, oi) => (
+                <div key={oi} className="option-row">
+                  <input type="radio" name={`correct-${qi}`} aria-label={`Bonne réponse : option ${oi + 1} de la question ${qi + 1}`} checked={opt.is_correct} onChange={() => setCorrectOption(qi, oi)} />
+                  <input
+                    className="input"
+                    aria-label={`Texte de l’option ${oi + 1} de la question ${qi + 1}`}
+                    value={opt.option_text}
+                    placeholder={`Option ${oi + 1}`}
+                    onChange={(e) => updateQuestion(qi, { options: q.options.map((o, k) => (k === oi ? { ...o, option_text: e.target.value } : o)) })}
+                  />
+                  {q.options.length > 2 && (
+                    <button type="button" className="btn btn-secondary" aria-label={`Retirer l’option ${oi + 1} de la question ${qi + 1}`} onClick={() => updateQuestion(qi, { options: q.options.filter((_, k) => k !== oi) })}>Retirer</button>
+                  )}
+                </div>
+              ))}
+              <div><button type="button" className="btn btn-secondary" onClick={() => updateQuestion(qi, { options: [...q.options, { option_text: "", is_correct: false }] })}>Ajouter une option</button></div>
+              <div className="field">
+                <label htmlFor={`explanation-${qi}`}>Explication de la question {qi + 1} (optionnelle, affichée après réponse)</label>
+                <input id={`explanation-${qi}`} value={q.explanation ?? ""} onChange={(e) => updateQuestion(qi, { explanation: e.target.value })} />
+              </div>
+              <div><button type="button" className="btn btn-quiet btn-text-danger" onClick={() => setQuestions(questions.filter((_, j) => j !== qi))}>Supprimer la question {qi + 1}</button></div>
+            </fieldset>
+          ))}
+          <div><button type="button" className="btn btn-secondary" onClick={() => setQuestions([...questions, emptyQuestion()])}>Ajouter une question</button></div>
+        </section>
+
+        <div className="editor-actions">
+          <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || !title}>
+            {saving ? "Enregistrement…" : "Enregistrer le quiz"}
+          </button>
+          <Link to={backTo} className="btn btn-secondary">Annuler</Link>
+          {!isNew && <button type="button" className="btn btn-danger spacer" onClick={() => setConfirmDelete(true)} disabled={saving}>Supprimer le quiz</button>}
         </div>
       </div>
 
-      <div className="card" style={{ padding: 22, marginBottom: 28 }}>
-        <h3 style={{ fontSize: "0.95rem", marginBottom: 14 }}>
-          Questions <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>({questions.length})</span>
-        </h3>
-
-        {questions.map((q, qi) => (
-          <div key={qi} className="card" style={{ padding: 16, marginBottom: 12, background: "var(--color-surface-raised)" }}>
-            <textarea
-              placeholder="Énoncé de la question"
-              rows={2}
-              value={q.question_text}
-              onChange={(e) => updateQuestion(qi, { question_text: e.target.value })}
-              style={{ width: "100%", marginBottom: 10, background: "transparent", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "8px 10px", fontFamily: "inherit", resize: "vertical" }}
-            />
-
-            <p style={{ fontSize: "0.78rem", marginBottom: 6, color: "var(--color-text-muted)" }}>
-              Options — sélectionnez la bonne réponse
-            </p>
-            {q.options.map((opt, oi) => (
-              <div key={oi} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <input
-                  type="radio"
-                  name={`correct-${qi}`}
-                  checked={opt.is_correct}
-                  onChange={() => setCorrectOption(qi, oi)}
-                />
-                <input
-                  value={opt.option_text}
-                  placeholder={`Option ${oi + 1}`}
-                  onChange={(e) =>
-                    updateQuestion(qi, {
-                      options: q.options.map((o, k) => (k === oi ? { ...o, option_text: e.target.value } : o)),
-                    })
-                  }
-                  style={{ flex: 1, background: "transparent", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "6px 10px" }}
-                />
-                {q.options.length > 2 && (
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => updateQuestion(qi, { options: q.options.filter((_, k) => k !== oi) })}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              className="btn btn-secondary"
-              onClick={() => updateQuestion(qi, { options: [...q.options, { option_text: "", is_correct: false }] })}
-              style={{ fontSize: "0.8rem", marginBottom: 10 }}
-            >
-              + Ajouter une option
-            </button>
-
-            <input
-              placeholder="Explication (optionnelle, affichée après réponse)"
-              value={q.explanation ?? ""}
-              onChange={(e) => updateQuestion(qi, { explanation: e.target.value })}
-              style={{ width: "100%", marginBottom: 10, background: "transparent", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "8px 10px" }}
-            />
-
-            <button
-              className="btn btn-secondary"
-              onClick={() => setQuestions(questions.filter((_, j) => j !== qi))}
-              style={{ color: "var(--color-accent-coral)" }}
-            >
-              Supprimer cette question
-            </button>
-          </div>
-        ))}
-
-        <button className="btn btn-secondary" onClick={() => setQuestions([...questions, emptyQuestion()])}>
-          + Ajouter une question
-        </button>
-      </div>
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-        <button className="btn btn-primary" onClick={handleSave} disabled={saving || !title}>
-          {saving ? "Enregistrement…" : "Enregistrer le quiz"}
-        </button>
-        {!isNew && (
-          <button className="btn btn-secondary" onClick={handleDelete} disabled={saving} style={{ color: "var(--color-accent-coral)" }}>
-            Supprimer le quiz
-          </button>
-        )}
-      </div>
+      {confirmDelete && (
+        <ConfirmDialog title="Supprimer ce quiz ?" confirmLabel="Supprimer le quiz" busy={saving} onConfirm={handleDelete} onCancel={() => setConfirmDelete(false)}>
+          <p>Le quiz « {title || "sans titre"} » et ses {questions.length} question{questions.length > 1 ? "s" : ""} seront supprimés définitivement.</p>
+        </ConfirmDialog>
+      )}
     </AdminLayout>
   );
 }

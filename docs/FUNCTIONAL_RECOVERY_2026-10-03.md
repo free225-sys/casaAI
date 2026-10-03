@@ -36,7 +36,7 @@ Le rapport Claude a été lu via Library. Les « avant » de cette revue sont de
 
 Le skill Windows Computer Use est présent, mais son runtime `node_repl`/`@oai/sky` n'est pas exposé à cette tâche. Aucune capture navigateur n'a été produite, aucune mesure réelle de débordement/contraste n'est annoncée. La vérification visuelle et l'intégration « Aurore lisible » attendent l'accès aux visuels et un workflow navigateur supporté.
 
-Les services QA existants sur loopback 5184/8014 ont répondu, sans lancement ni redémarrage dans ce lot. Le frontend Vite suit les fichiers modifiés ; l'API existante, démarrée auparavant sans reload, doit être redémarrée de façon ciblée par son propriétaire avant une recette du nouveau champ `is_available`. La suite backend ci-dessus charge les nouveaux fichiers dans son propre processus.
+Les services QA dédiés ont depuis été redémarrés de façon ciblée sur loopback 5184/8014. L'API a servi le SHA `6809361c9b893253868b229fb4a0fece365c7d2d` lors des contrôles HTTP : health, connexion synthétique et historique ont répondu 200 ; CORS, l'URL API du frontend et le champ `is_available` ont été vérifiés. Le nouveau module de leçon est servi par Vite. Aucun nouveau jeu de données n'a été créé pour ces contrôles ; les instances 5173/8000 restent intactes. Il s'agit de vérifications HTTP et de modules servis, pas d'une recette navigateur.
 
 Prochaine étape : rendre les livrables Claude accessibles sur une branche dédiée, inspecter réellement les PNG, puis intégrer et vérifier les écrans approuvés en conservant résumé/anomalies PDF sur mobile, accès évident à toutes les cartes, pagination cohérente, clavier, zoom et contenus pédagogiques visibles. Aucun merge ni déploiement n'est effectué.
 
@@ -50,3 +50,10 @@ Le frontend restaure désormais toute réponse utile tant que la route est activ
 Le serveur conserve également le maximum, après plafonnement à 99 % tant que la leçon n'est pas terminée. La ligne existante est rafraîchie sous le verrou transactionnel pour éviter qu'un objet déjà chargé dans la session masque une progression ou une complétion enregistrée par une autre session. Le verrou, les bornes 422 et les contrats de complétion restent conservés.
 
 Vérifications : 29 tests React, 25 contrats mockés séparés, 382 tests backend réussis, build/lint réussis avec les avertissements existants. Un test dernier SUPER_ADMIN est toujours ignoré et les six anciens scénarios exigeant une base vide restent exclus pour préserver les comptes QA. Les nouvelles preuves comprennent deux réponses save résolues dans l'ordre inverse, start résolu après échec de complete, HTTP 80 puis 35/10, et deux sessions PostgreSQL réutilisant une ligne en cache avant progression/complétion par l'autre session. Le dernier test crée des identifiants synthétiques uniques, les journalise et ne retire que ses propres lignes. Les clés primaires QA avant/après la suite restent identiques. Ce sont des interleavings contrôlés, pas un test de charge ni une preuve de toutes les courses possibles.
+
+
+### Dernier ajustement : erreur tardive après complétion confirmée
+
+Un test a reproduit le cas suivant : complete est en attente, start confirme COMPLETED à 100 %, puis complete échoue. Le rejet tardif ne doit pas afficher « la leçon n'a pas pu être marquée » à côté d'une complétion déjà confirmée par le serveur. Le catch vérifie maintenant l'état confirmé ; les erreurs de complétion sans confirmation restent visibles et réessayables.
+
+La suite frontend compte désormais 30 tests React réussis ; build et lint sont revérifiés pour cet ajustement. L'API et les données ne changent pas dans cet ajustement final ; les 25 contrats et 382 tests backend du complément précédent restent les résultats de cette validation récente, sans être présentés comme exécutés une fois de plus.

@@ -406,3 +406,21 @@ describe("Progress response races", () => {
     }
   });
 });
+
+
+describe("Confirmed completion dominates late errors", () => {
+  it("does not contradict start confirming COMPLETED when complete later rejects", async () => {
+    const start = deferred<{ lesson_id: string; status: string; progress_pct: number }>();
+    let rejectComplete!: (reason: Error) => void;
+    vi.mocked(progressService.startLesson).mockReturnValue(start.promise);
+    vi.mocked(progressService.completeLesson).mockReturnValue(new Promise((_, reject) => { rejectComplete = reject; }));
+    await mountLesson();
+    await act(async () => button("Marquer comme terminée").click());
+    await act(async () => start.resolve({ lesson_id: "a", status: "COMPLETED", progress_pct: 100 }));
+    await act(async () => rejectComplete(new Error("Late network error")));
+    expect(host.textContent).toContain("Progression enregistrée : 100 %");
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.textContent).not.toContain("n'a pas pu être marquée");
+    expect([...host.querySelectorAll("button")].find(el => el.textContent?.includes("Leçon terminée"))?.disabled).toBe(true);
+  });
+});

@@ -137,7 +137,7 @@ function LessonContent({ lessonId }: { lessonId: string | undefined }) {
       persistedProgress.current = result.progress_pct;
       setSavedProgress(result.progress_pct);
       setSyncError(null);
-    } catch { if (mounted.current) setCompleteError(true); }
+    } catch { if (mounted.current && !completedRef.current) setCompleteError(true); }
     finally { if (mounted.current) setCompleting(false); }
   };
 

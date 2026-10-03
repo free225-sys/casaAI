@@ -54,9 +54,9 @@ export function PathwayDetailPage() {
               as="li"
               delayMs={Math.min(i, 6) * 50}
               className="card"
-              style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 18, borderLeft: `3px solid ${course.color ?? accent}` }}
+              style={{ padding: "18px 22px", display: "flex", alignItems: "center", gap: 18 }}
             >
-              <span className="mono" style={{ color: course.color ?? accent, fontSize: "0.95rem", fontWeight: 600 }}>
+              <span className="mono" style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", fontWeight: 600 }}>
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div style={{ flex: 1 }}>

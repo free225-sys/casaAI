@@ -151,3 +151,5 @@
 .editor .btn-quiet.btn-text-danger:hover { background: var(--color-danger-soft); color: var(--color-danger); }
 .editor fieldset.subpanel > legend { padding: 0; float: left; width: 100%; }
 .editor fieldset.subpanel > legend + * { clear: both; }
+/* R1 : une date dans une cellule reste une cellule de tableau en desktop ; `.admin-sub` n'est un bloc que dans un contenu de cellule. */
+@media (min-width: 721px) { td.admin-sub { display: table-cell; margin-top: 0; } }

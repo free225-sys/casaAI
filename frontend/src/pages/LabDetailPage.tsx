@@ -98,7 +98,7 @@ export function LabDetailPage() {
           </Link>
         </div>
       ) : result ? (
-        <div className="card" style={{ padding: 24, borderColor: "var(--color-accent-teal)" }}>
+        <div className="card" style={{ padding: 24 }}>
           <span className="badge badge-teal" style={{ marginBottom: 12 }}>
             Soumission enregistrée
           </span>

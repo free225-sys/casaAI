@@ -1,0 +1,810 @@
+[
+ {
+  "file": "integ-catalogue--desktop-1440.png",
+  "scenario": "catalogue",
+  "viewport": "desktop-1440",
+  "path": "/catalog",
+  "role": null,
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Catalogue",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 167,
+  "catalog_count_text": "167 résultat(s)",
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-catalogue--mobile-390.png",
+  "scenario": "catalogue",
+  "viewport": "mobile-390",
+  "path": "/catalog",
+  "role": null,
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Catalogue",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 167,
+  "catalog_count_text": "167 résultat(s)",
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-catalogue--mobile-320.png",
+  "scenario": "catalogue",
+  "viewport": "mobile-320",
+  "path": "/catalog",
+  "role": null,
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Catalogue",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 167,
+  "catalog_count_text": "167 résultat(s)",
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-catalogue--zoom200-720.png",
+  "scenario": "catalogue",
+  "viewport": "zoom200-720",
+  "path": "/catalog",
+  "role": null,
+  "scrollWidth": 720,
+  "clientWidth": 720,
+  "h1": "Catalogue",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 167,
+  "catalog_count_text": "167 résultat(s)",
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/courses",
+   "GET /api/pathways",
+   "GET /api/labs"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-dashboard--desktop-1440.png",
+  "scenario": "dashboard",
+  "viewport": "desktop-1440",
+  "path": "/app/dashboard",
+  "role": "LEARNER",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Bonjour TEST",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/progress",
+   "GET /api/me/skills",
+   "GET /api/me/badges",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-dashboard--mobile-390.png",
+  "scenario": "dashboard",
+  "viewport": "mobile-390",
+  "path": "/app/dashboard",
+  "role": "LEARNER",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Bonjour TEST",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/progress",
+   "GET /api/me/skills",
+   "GET /api/me/badges",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-dashboard--mobile-320.png",
+  "scenario": "dashboard",
+  "viewport": "mobile-320",
+  "path": "/app/dashboard",
+  "role": "LEARNER",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Bonjour TEST",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/progress",
+   "GET /api/me/skills",
+   "GET /api/me/badges",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-dashboard--zoom200-720.png",
+  "scenario": "dashboard",
+  "viewport": "zoom200-720",
+  "path": "/app/dashboard",
+  "role": "LEARNER",
+  "scrollWidth": 720,
+  "clientWidth": 720,
+  "h1": "Bonjour TEST",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/me/progress",
+   "GET /api/me/skills",
+   "GET /api/me/badges",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-lecon--desktop-1440.png",
+  "scenario": "lecon",
+  "viewport": "desktop-1440",
+  "path": "/app/lessons/a",
+  "role": "LEARNER",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "TEST leçon de lecture",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "POST /api/lessons/a/start",
+   "GET /api/lessons/a",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-lecon--mobile-390.png",
+  "scenario": "lecon",
+  "viewport": "mobile-390",
+  "path": "/app/lessons/a",
+  "role": "LEARNER",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "TEST leçon de lecture",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "POST /api/lessons/a/start",
+   "GET /api/lessons/a",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-lecon--mobile-320.png",
+  "scenario": "lecon",
+  "viewport": "mobile-320",
+  "path": "/app/lessons/a",
+  "role": "LEARNER",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "TEST leçon de lecture",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "POST /api/lessons/a/start",
+   "GET /api/lessons/a",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-lecon--zoom200-720.png",
+  "scenario": "lecon",
+  "viewport": "zoom200-720",
+  "path": "/app/lessons/a",
+  "role": "LEARNER",
+  "scrollWidth": 720,
+  "clientWidth": 720,
+  "h1": "TEST leçon de lecture",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "POST /api/lessons/a/start",
+   "GET /api/lessons/a",
+   "GET /api/courses/course-a"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-admin-progression-detail--desktop-1440.png",
+  "scenario": "admin-progression-detail",
+  "viewport": "desktop-1440",
+  "path": "/admin/progress/u1",
+  "role": "SUPER_ADMIN",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "TEST1 Learner",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [
+   "table-cell",
+   "table-cell",
+   "table-cell"
+  ],
+  "mobile_labels": [
+   "none",
+   "none",
+   "none",
+   "none",
+   "none",
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners/u1"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-admin-progression-detail--mobile-390.png",
+  "scenario": "admin-progression-detail",
+  "viewport": "mobile-390",
+  "path": "/admin/progress/u1",
+  "role": "SUPER_ADMIN",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "TEST1 Learner",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [
+   "block",
+   "block",
+   "block"
+  ],
+  "mobile_labels": [
+   "\"Avancement : \"",
+   "\"Statut : \"",
+   "\"Terminée le : \"",
+   "\"Score : \"",
+   "\"Résultat : \"",
+   "\"Date : \"",
+   "\"Score : \"",
+   "\"Statut : \"",
+   "\"Soumis le : \""
+  ],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners/u1"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-admin-progression-detail--mobile-320.png",
+  "scenario": "admin-progression-detail",
+  "viewport": "mobile-320",
+  "path": "/admin/progress/u1",
+  "role": "SUPER_ADMIN",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "TEST1 Learner",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [
+   "block",
+   "block",
+   "block"
+  ],
+  "mobile_labels": [
+   "\"Avancement : \"",
+   "\"Statut : \"",
+   "\"Terminée le : \"",
+   "\"Score : \"",
+   "\"Résultat : \"",
+   "\"Date : \"",
+   "\"Score : \"",
+   "\"Statut : \"",
+   "\"Soumis le : \""
+  ],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners/u1"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-admin-progression-detail--zoom200-720.png",
+  "scenario": "admin-progression-detail",
+  "viewport": "zoom200-720",
+  "path": "/admin/progress/u1",
+  "role": "SUPER_ADMIN",
+  "scrollWidth": 720,
+  "clientWidth": 720,
+  "h1": "TEST1 Learner",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [
+   "block",
+   "block",
+   "block"
+  ],
+  "mobile_labels": [
+   "\"Avancement : \"",
+   "\"Statut : \"",
+   "\"Terminée le : \"",
+   "\"Score : \"",
+   "\"Résultat : \"",
+   "\"Date : \"",
+   "\"Score : \"",
+   "\"Statut : \"",
+   "\"Soumis le : \""
+  ],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/progress/learners/u1"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-1-selection--desktop-1440.png",
+  "scenario": "pdf-1-selection",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-1-selection--mobile-390.png",
+  "scenario": "pdf-1-selection",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-1-selection--mobile-320.png",
+  "scenario": "pdf-1-selection",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-1-selection--zoom200-720.png",
+  "scenario": "pdf-1-selection",
+  "viewport": "zoom200-720",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 720,
+  "clientWidth": 720,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-2-previsualisation--desktop-1440.png",
+  "scenario": "pdf-2-previsualisation",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": {
+   "position": "static",
+   "overlaps": 0,
+   "inViewportWidth": true
+  },
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-2-previsualisation--mobile-390.png",
+  "scenario": "pdf-2-previsualisation",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": {
+   "position": "static",
+   "overlaps": 0,
+   "inViewportWidth": true
+  },
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-2-previsualisation--mobile-320.png",
+  "scenario": "pdf-2-previsualisation",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": {
+   "position": "static",
+   "overlaps": 0,
+   "inViewportWidth": true
+  },
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-2-previsualisation--zoom200-720.png",
+  "scenario": "pdf-2-previsualisation",
+  "viewport": "zoom200-720",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 720,
+  "clientWidth": 720,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": {
+   "position": "static",
+   "overlaps": 0,
+   "inViewportWidth": true
+  },
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-3-resultat--desktop-1440.png",
+  "scenario": "pdf-3-resultat",
+  "viewport": "desktop-1440",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf",
+   "POST /api/admin/courses/import-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-3-resultat--mobile-390.png",
+  "scenario": "pdf-3-resultat",
+  "viewport": "mobile-390",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf",
+   "POST /api/admin/courses/import-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-3-resultat--mobile-320.png",
+  "scenario": "pdf-3-resultat",
+  "viewport": "mobile-320",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf",
+   "POST /api/admin/courses/import-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ },
+ {
+  "file": "integ-pdf-3-resultat--zoom200-720.png",
+  "scenario": "pdf-3-resultat",
+  "viewport": "zoom200-720",
+  "path": "/admin/import-pdf",
+  "role": "ADMIN",
+  "scrollWidth": 720,
+  "clientWidth": 720,
+  "h1": "Importer un PDF",
+  "axe_violations": [],
+  "js_errors": [],
+  "catalog_cards": 0,
+  "colored_borders_outside_active": [],
+  "date_cell_display": [],
+  "mobile_labels": [],
+  "pdf_confirm": null,
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/schools",
+   "GET /api/me/notifications",
+   "POST /api/admin/courses/preview-pdf",
+   "POST /api/admin/courses/import-pdf"
+  ],
+  "blocked_external_hosts": [
+   "fonts.googleapis.com"
+  ]
+ }
+]

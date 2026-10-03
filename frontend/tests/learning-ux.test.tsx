@@ -87,7 +87,9 @@ describe("Lesson navigation", () => {
       id: "course-a", title: "Course", lessons: [{ id: "b", position: 3 }, { id: "earlier", position: 1 }, { id: "a", position: 2 }],
     } as never);
     await mountLesson();
-    expect(host.querySelector('a[href="/app/lessons/b"]')?.textContent).toContain("Leçon suivante");
+    // Deux liens mènent à "b" : l'entrée du plan du cours et l'action de fin de leçon. Chacun est vérifié séparément.
+    expect(host.querySelector('.lesson-actions a[href="/app/lessons/b"]')?.textContent).toContain("Leçon suivante");
+    expect(host.querySelector('.course-outline a[href="/app/lessons/b"]')).not.toBeNull();
     expect(button("Marquer comme terminée").disabled).toBe(false);
     expect(progressService.completeLesson).not.toHaveBeenCalled();
   });

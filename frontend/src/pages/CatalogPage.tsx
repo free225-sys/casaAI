@@ -28,6 +28,12 @@ async function allPages<T>(read: (params: { limit: number; offset: number }) => 
   return items;
 }
 
+interface Searchable { title: string; description: string | null; level: string | null }
+/** Filtre pur (niveau puis texte) : défini hors du composant pour que les `useMemo` n'aient que des dépendances d'état. */
+function matchesFilters(item: Searchable, query: string, level: string): boolean {
+  return (!level || item.level === level) && (!query || item.title.toLowerCase().includes(query) || (item.description ?? "").toLowerCase().includes(query));
+}
+
 export function CatalogPage() {
   const [courses, setCourses] = useState<CourseListItem[] | null>(null);
   const [pathways, setPathways] = useState<PathwayListItem[] | null>(null);
@@ -57,18 +63,17 @@ export function CatalogPage() {
   }, [reload]);
 
   const q = query.trim().toLowerCase();
-  const matchesLevel = (value: string | null) => !level || value === level;
   const levels = [...new Set([...(pathways ?? []), ...(courses ?? []), ...(labs ?? [])].map(item => item.level).filter((value): value is string => !!value))].sort();
   const shownPathways = useMemo(
-    () => (pathways ?? []).filter((p) => matchesLevel(p.level) && (!q || p.title.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q))),
+    () => (pathways ?? []).filter((p) => matchesFilters(p, q, level)),
     [pathways, q, level],
   );
   const shownCourses = useMemo(
-    () => (courses ?? []).filter((c) => matchesLevel(c.level) && (!q || c.title.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q))),
+    () => (courses ?? []).filter((c) => matchesFilters(c, q, level)),
     [courses, q, level],
   );
   const shownLabs = useMemo(
-    () => (labs ?? []).filter((l) => matchesLevel(l.level) && (!q || l.title.toLowerCase().includes(q) || (l.description ?? "").toLowerCase().includes(q))),
+    () => (labs ?? []).filter((l) => matchesFilters(l, q, level)),
     [labs, q, level],
   );
 

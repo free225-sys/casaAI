@@ -47,7 +47,7 @@ export function AdminCertificationsPage() {
                         <span className="admin-title">{c.title}</span>
                         {c.level && <span className="admin-sub">{c.level}</span>}
                       </td>
-                      <td className="col-status">
+                      <td className="col-status" data-label="Critères reliés">
                         <span className={`status ${complete ? "status-done" : "status-warning"}`}>
                           {c.linked_requirement_count}/{c.requirement_count} critères reliés{complete ? "" : " : à compléter"}
                         </span>

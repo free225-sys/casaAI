@@ -74,9 +74,9 @@ export function AdminLearnerProgressDetailPage() {
             {detail.lessons.map((l) => (
               <tr key={l.lesson_id}>
                 <td><span className="admin-title">{l.lesson_title}</span></td>
-                <td className="metric">{l.progress_pct} %</td>
-                <td className="col-status"><span className={`status status-${STATUS_KINDS[l.status] ?? "draft"}`}>{STATUS_LABELS[l.status] ?? l.status}</span></td>
-                <td className="admin-sub">{formatDate(l.completed_at)}</td>
+                <td className="metric" data-label="Avancement">{l.progress_pct} %</td>
+                <td className="col-status" data-label="Statut"><span className={`status status-${STATUS_KINDS[l.status] ?? "draft"}`}>{STATUS_LABELS[l.status] ?? l.status}</span></td>
+                <td className="admin-sub" data-label="Terminée le">{formatDate(l.completed_at)}</td>
               </tr>
             ))}
           </DetailSection>
@@ -85,9 +85,9 @@ export function AdminLearnerProgressDetailPage() {
             {detail.quiz_attempts.map((q) => (
               <tr key={q.attempt_id}>
                 <td><span className="admin-title">{q.quiz_title}</span></td>
-                <td className="metric">{q.score} %</td>
-                <td className="col-status"><Result ok={q.passed} yes="Réussi" no="Échoué" /></td>
-                <td className="admin-sub">{formatDate(q.started_at)}</td>
+                <td className="metric" data-label="Score">{q.score} %</td>
+                <td className="col-status" data-label="Résultat"><Result ok={q.passed} yes="Réussi" no="Échoué" /></td>
+                <td className="admin-sub" data-label="Date">{formatDate(q.started_at)}</td>
               </tr>
             ))}
           </DetailSection>
@@ -96,9 +96,9 @@ export function AdminLearnerProgressDetailPage() {
             {detail.lab_results.map((r) => (
               <tr key={r.result_id}>
                 <td><span className="admin-title">{r.lab_title}</span></td>
-                <td className="metric">{r.score !== null ? `${r.score} %` : "—"}</td>
-                <td className="col-status"><span className={`status ${r.completed ? "status-done" : "status-progress"}`}>{r.completed ? "Terminé" : "En cours"}</span></td>
-                <td className="admin-sub">{formatDate(r.submitted_at)}</td>
+                <td className="metric" data-label="Score">{r.score !== null ? `${r.score} %` : "—"}</td>
+                <td className="col-status" data-label="Statut"><span className={`status ${r.completed ? "status-done" : "status-progress"}`}>{r.completed ? "Terminé" : "En cours"}</span></td>
+                <td className="admin-sub" data-label="Soumis le">{formatDate(r.submitted_at)}</td>
               </tr>
             ))}
           </DetailSection>

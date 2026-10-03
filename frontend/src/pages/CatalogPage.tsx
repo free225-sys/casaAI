@@ -108,7 +108,7 @@ export function CatalogPage() {
         )}
       </section>
 
-      <section style={{ marginTop: 48 }}>
+      <section style={{ marginTop: 48, display: chip === "all" || chip === "labs" ? "block" : "none" }}>
         <h2 style={{ fontSize: "1.15rem", marginBottom: 16 }}>Laboratoires</h2>
         {labs === null ? (
           <CardGridSkeleton count={6} />

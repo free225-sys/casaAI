@@ -26,22 +26,32 @@ export function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<"" | UserRole>("");
   const [page, setPage] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = () => {
-    adminService.listUsers({
-      search: search || undefined,
-      role: role || undefined,
-      limit: ADMIN_PAGE_SIZE,
-      offset: page * ADMIN_PAGE_SIZE,
-    }).then((res) => {
-      setUsers(res.items);
-      setTotal(res.total);
-    });
-  };
+  const refresh = () => setReloadKey((n) => n + 1);
 
-  useEffect(() => { setPage(0); }, [search, role]);
-  useEffect(refresh, [search, role, page]);
+  useEffect(() => {
+    let cancelled = false;
+    adminService
+      .listUsers({
+        search: search || undefined,
+        role: role || undefined,
+        limit: ADMIN_PAGE_SIZE,
+        offset: page * ADMIN_PAGE_SIZE,
+      })
+      .then((res) => {
+        if (cancelled) return;
+        setUsers(res.items);
+        setTotal(res.total);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Erreur.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [search, role, page, reloadKey]);
 
   const handleRoleChange = async (u: AdminUser, role: UserRole) => {
     if (role === u.role) return;
@@ -81,7 +91,10 @@ export function AdminUsersPage() {
         <input
           placeholder="Rechercher par nom ou email…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(0);
+          }}
           style={{
             background: "var(--color-surface-raised)",
             border: "1px solid var(--color-border)",
@@ -91,6 +104,24 @@ export function AdminUsersPage() {
             width: 280,
           }}
         />
+        <select
+          value={role}
+          onChange={(e) => {
+            setRole(e.target.value as "" | UserRole);
+            setPage(0);
+          }}
+          style={{
+            background: "var(--color-surface-raised)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-sm)",
+            padding: "8px 12px",
+          }}
+        >
+          <option value="">Tous les rôles</option>
+          <option value="LEARNER">Apprenant</option>
+          <option value="ADMIN">Admin</option>
+          <option value="SUPER_ADMIN">Super admin</option>
+        </select>
         <span className="mono" style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
           {total} utilisateur{total > 1 ? "s" : ""}
         </span>

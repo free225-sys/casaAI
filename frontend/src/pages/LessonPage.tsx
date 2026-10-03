@@ -9,7 +9,7 @@ import { LessonDocumentView } from "../components/LessonDocumentView";
 import { API_BASE_URL } from "../services/apiClient";
 import { contentService } from "../services/contentService";
 import { progressService } from "../services/progressService";
-import type { CourseListItem, LessonDepthLevel, LessonDetail, LessonDocument } from "../types/api";
+import type { CourseDetail, LessonDepthLevel, LessonDetail, LessonDocument } from "../types/api";
 
 function resolveImageSrc(url: string): string {
   return url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
@@ -24,7 +24,7 @@ const DEPTH_ACCENTS = ["var(--color-accent-blue)", "var(--color-accent-gold)", "
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
-  const [course, setCourse] = useState<CourseListItem | null>(null);
+  const [course, setCourse] = useState<CourseDetail | null>(null);
   const [documentTree, setDocumentTree] = useState<LessonDocument | null>(null);
   const [activeDepth, setActiveDepth] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
@@ -99,6 +99,14 @@ export function LessonPage() {
       setCompleting(false);
     }
   };
+
+  const nextFromOutline = useMemo(() => {
+    if (!course || !lessonId) return null;
+    const ordered = [...course.lessons].sort((a, b) => a.position - b.position);
+    const index = ordered.findIndex((item) => item.id === lessonId);
+    if (index < 0 || index >= ordered.length - 1) return null;
+    return ordered[index + 1].id;
+  }, [course, lessonId]);
 
   const depthAccentByKey = useMemo(() => {
     if (!lesson) return {};
@@ -261,8 +269,8 @@ export function LessonPage() {
       <button className="btn btn-primary" onClick={handleComplete} disabled={completing || completed}>
         {completed ? "Leçon terminée ✓" : completing ? "Enregistrement…" : "Marquer comme terminée"}
       </button>
-      {nextLessonId && (
-        <Link to={`/app/lessons/${nextLessonId}`} className="btn btn-primary" style={{ marginLeft: 12 }}>
+      { (nextLessonId ?? nextFromOutline) && (
+        <Link to={`/app/lessons/${nextLessonId ?? nextFromOutline}`} className="btn btn-primary" style={{ marginLeft: 12 }}>
           Leçon suivante
         </Link>
       )}

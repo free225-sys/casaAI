@@ -17,8 +17,15 @@ export function AdminCoursesPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "PUBLISHED" | "DRAFT">("all");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
+  const refresh = () => setReloadKey((n) => n + 1);
 
-  const refresh = () =>
+  useEffect(() => {
+    contentService.listSchools().then(setSchools);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
     adminService
       .listCourses({
         status: statusFilter === "all" ? undefined : statusFilter,
@@ -26,21 +33,17 @@ export function AdminCoursesPage() {
         offset: page * ADMIN_PAGE_SIZE,
       })
       .then((res) => {
+        if (cancelled) return;
         setCourses(res.items);
         setTotal(res.total);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Impossible de charger les cours.");
       });
-
-  useEffect(() => {
-    contentService.listSchools().then(setSchools);
-  }, []);
-
-  useEffect(() => {
-    setPage(0);
-  }, [statusFilter]);
-
-  useEffect(() => {
-    refresh();
-  }, [statusFilter, page]);
+    return () => {
+      cancelled = true;
+    };
+  }, [statusFilter, page, reloadKey]);
 
   const handlePublishToggle = async (course: AdminCourse) => {
     setError(null);
@@ -83,7 +86,15 @@ export function AdminCoursesPage() {
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
         <input placeholder="Rechercher un cours…" value={query} onChange={(e) => setQuery(e.target.value)} />
         {(["all", "PUBLISHED", "DRAFT"] as const).map((value) => (
-          <button key={value} type="button" className="btn btn-secondary" onClick={() => setStatusFilter(value)}>
+          <button
+            key={value}
+            type="button"
+            className={`btn btn-secondary${statusFilter === value ? " is-on" : ""}`}
+            onClick={() => {
+              setStatusFilter(value);
+              setPage(0);
+            }}
+          >
             {value === "all" ? "Tous" : value === "PUBLISHED" ? "Publiés" : "Brouillons"}
           </button>
         ))}
@@ -146,10 +157,6 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "PUBLISHED" | "DRAFT">("all");
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
 
   useEffect(() => {
     if (!schoolId && schools.length > 0) setSchoolId(schools[0].id);
@@ -197,14 +204,6 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
       <div className="field">
         <label htmlFor="description">Description</label>
         <input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
-      </div>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-        <input placeholder="Rechercher un cours…" value={query} onChange={(e) => setQuery(e.target.value)} />
-        {(["all", "PUBLISHED", "DRAFT"] as const).map((value) => (
-          <button key={value} type="button" className="btn btn-secondary" onClick={() => setStatusFilter(value)}>
-            {value === "all" ? "Tous" : value === "PUBLISHED" ? "Publiés" : "Brouillons"}
-          </button>
-        ))}
       </div>
       {error && <p className="error-text">{error}</p>}
       <button type="submit" className="btn btn-primary" disabled={submitting || !title || !schoolId}>

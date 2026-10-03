@@ -380,8 +380,8 @@ a.card:active {
 /* --- Reveal au scroll (LessonPage) --- */
 
 .reveal {
-  opacity: 0;
-  transform: translateY(20px);
+  opacity: 1;
+  transform: none;
   transition: opacity var(--duration-reveal) var(--ease-out),
     transform var(--duration-reveal) var(--ease-out);
 }
@@ -562,7 +562,7 @@ a.card:active {
 
 .reading-progress-track {
   position: sticky;
-  top: 0;
+  top: var(--header-height, 65px);
   z-index: 5;
   height: 3px;
   background: var(--color-border);
@@ -1072,3 +1072,33 @@ a.card:active {
   .lesson-layout { grid-template-columns: 1fr; }
   .lesson-toc { position: static; }
 }
+
+/* Functional layout guards: keep reading and actions available at narrow widths. */
+.section-error { padding: 16px; margin-block: 12px; border: 1px solid var(--color-accent-coral); border-radius: var(--radius-sm); }
+.section-error p { margin-bottom: 8px; }
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; }
+.dashboard-grid > *, .lesson-layout > *, .admin-row > * { min-width: 0; }
+.progress-list { display: flex; flex-direction: column; gap: 14px; margin-block: 16px; }
+.progress-row { padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.progress-row span { overflow-wrap: anywhere; }
+.skill-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; margin-bottom: 6px; }
+.skill-track { height: 6px; border-radius: 4px; background: var(--color-surface-raised); overflow: hidden; }
+.skill-track > div { height: 100%; background: var(--color-accent-blue); }
+.lesson-actions, .admin-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.lesson-layout section[id] { scroll-margin-top: calc(var(--header-height, 65px) + 16px); }
+.btn[aria-pressed="true"], .chip[aria-pressed="true"] { border-color: var(--color-accent-blue); background: var(--color-accent-blue-soft); font-weight: 700; box-shadow: inset 0 -2px var(--color-accent-blue); }
+.admin-pagination { flex-wrap: wrap; }
+.admin-workspace input, .admin-workspace select { min-width: 0; max-width: 100%; }
+.admin-row p, .admin-row span { overflow-wrap: anywhere; }
+.notification-panel { max-width: min(360px, calc(100vw - 32px)); overflow-wrap: anywhere; }
+@media (max-width: 960px) { .dashboard-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) {
+  .admin-row { align-items: flex-start; flex-direction: column; }
+  .admin-workspace > div[style] { flex-wrap: wrap; gap: 12px; }
+  .admin-workspace .field { min-width: 0; }
+  .lesson-actions > .btn { width: 100%; }
+  .badge-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.import-steps { flex-wrap: wrap; }
+.import-decision { margin-block: 16px; padding: 16px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow-wrap: anywhere; }

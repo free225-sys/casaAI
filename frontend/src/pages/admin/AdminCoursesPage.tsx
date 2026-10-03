@@ -11,6 +11,8 @@ import type { AdminCourse, School } from "../../types/api";
 export function AdminCoursesPage() {
   const [courses, setCourses] = useState<AdminCourse[] | null>(null);
   const [schools, setSchools] = useState<School[]>([]);
+  const [schoolsError, setSchoolsError] = useState(false);
+  const [schoolsReload, setSchoolsReload] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -21,11 +23,16 @@ export function AdminCoursesPage() {
   const refresh = () => setReloadKey((n) => n + 1);
 
   useEffect(() => {
-    contentService.listSchools().then(setSchools);
-  }, []);
+    let active = true;
+    setSchoolsError(false);
+    contentService.listSchools().then(rows => { if (active) setSchools(rows); }).catch(() => { if (active) setSchoolsError(true); });
+    return () => { active = false; };
+  }, [schoolsReload]);
 
   useEffect(() => {
     let cancelled = false;
+    setCourses(null);
+    setError(null);
     adminService
       .listCourses({
         status: statusFilter === "all" ? undefined : statusFilter,
@@ -34,6 +41,8 @@ export function AdminCoursesPage() {
       })
       .then((res) => {
         if (cancelled) return;
+        const lastPage = Math.max(0, Math.ceil(res.total / ADMIN_PAGE_SIZE) - 1);
+        if (page > lastPage) { setPage(lastPage); return; }
         setCourses(res.items);
         setTotal(res.total);
       })
@@ -84,10 +93,11 @@ export function AdminCoursesPage() {
       </div>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-        <input placeholder="Rechercher un cours…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input aria-label="Rechercher un cours dans cette page" placeholder="Rechercher dans cette page…" value={query} onChange={(e) => setQuery(e.target.value)} />
         {(["all", "PUBLISHED", "DRAFT"] as const).map((value) => (
           <button
             key={value}
+            aria-pressed={statusFilter === value}
             type="button"
             className={`btn btn-secondary${statusFilter === value ? " is-on" : ""}`}
             onClick={() => {
@@ -99,8 +109,9 @@ export function AdminCoursesPage() {
           </button>
         ))}
       </div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+      {error && <div role="alert" className="section-error"><p>{error}</p><button type="button" className="btn btn-secondary" onClick={refresh}>Réessayer les cours</button></div>}
 
+      {schoolsError && <div role="alert" className="section-error"><p>Impossible de charger les écoles.</p><button type="button" className="btn btn-secondary" onClick={() => setSchoolsReload(value => value + 1)}>Réessayer les écoles</button></div>}
       {showForm && (
         <CourseCreateForm
           schools={schools}
@@ -111,13 +122,13 @@ export function AdminCoursesPage() {
         />
       )}
 
-      {courses === null ? (
+      {courses === null && !error ? (
         <ListSkeleton count={4} />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {filtered.map((c, i) => (
             <RevealSection key={c.id} as="div" delayMs={Math.min(i, 8) * 40}>
-              <div className="card" style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
+              <div className="card admin-row" style={{ padding: "14px 18px" }}>
                 <span
                   className="badge"
                   style={{
@@ -145,7 +156,8 @@ export function AdminCoursesPage() {
           ))}
         </div>
       )}
-      <AdminPagination total={total} page={page} onPageChange={setPage} />
+      <p className="text-caption" role="status">{filtered.length} résultat(s) affiché(s) sur {courses?.length ?? 0} cours chargés dans cette page.</p>
+      {courses !== null && <AdminPagination total={total} page={page} onPageChange={setPage} />}
     </AdminLayout>
   );
 }

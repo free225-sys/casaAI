@@ -10,6 +10,11 @@ import type { AdminLessonDepthLevelInput, AdminLessonSectionInput } from "../../
 const DEPTH_KEYS = ["ESSENTIAL", "TECHNICAL", "MATHEMATICS", "IMPLEMENTATION", "ARCHITECTURE", "GOVERNANCE"] as const;
 
 export function AdminLessonEditPage() {
+  const params = useParams();
+  return <AdminLessonEditPageContent key={JSON.stringify(params)} />;
+}
+
+function AdminLessonEditPageContent() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
   const isNew = lessonId === "new";
@@ -27,12 +32,17 @@ export function AdminLessonEditPage() {
 
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [validationQuizId, setValidationQuizId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isNew || !lessonId) return;
+    let active = true;
+    setLoading(true); setLoadError(false);
     adminService.getLesson(lessonId).then((l) => {
+      if (!active) return;
       setTitle(l.title);
       setLevel(l.level ?? "");
       setDurationMin(l.duration_min ? String(l.duration_min) : "");
@@ -44,11 +54,12 @@ export function AdminLessonEditPage() {
       setSections(l.sections);
       setDepthLevels(l.depth_levels);
       setLoading(false);
-    });
+    }).catch(() => { if (active) { setLoading(false); setLoadError(true); } });
     adminService.listQuizzes({ lessonId }).then((res) => {
-      setValidationQuizId(res.items[0]?.id ?? null);
-    });
-  }, [isNew, lessonId]);
+      if (active) setValidationQuizId(res.items[0]?.id ?? null);
+    }).catch(() => { if (active) { setLoading(false); setLoadError(true); } });
+    return () => { active = false; };
+  }, [isNew, lessonId, reload]);
 
   const handleSave = async () => {
     if (!courseId) return;
@@ -81,6 +92,7 @@ export function AdminLessonEditPage() {
     }
   };
 
+  if (loadError) return <AdminLayout><div role="alert" className="section-error"><p>Impossible de charger cet éditeur. Aucun changement n’a été enregistré.</p><button type="button" className="btn btn-secondary" onClick={() => setReload(value => value + 1)}>Réessayer le chargement</button></div></AdminLayout>;
   if (loading) return <AdminLayout><ListSkeleton count={5} height={44} /></AdminLayout>;
 
   return (
@@ -98,7 +110,7 @@ export function AdminLessonEditPage() {
           <label htmlFor="title">Titre</label>
           <input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
           <div className="field" style={{ flex: 1 }}>
             <label htmlFor="level">Niveau</label>
             <input id="level" value={level} onChange={(e) => setLevel(e.target.value)} placeholder="ex: N2" />

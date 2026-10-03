@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "../../components/AppLink";
+import { useAsyncSection } from "../../hooks/useAsyncSection";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { RevealSection } from "../../components/RevealSection";
 import { adminService } from "../../services/adminService";
@@ -95,7 +96,11 @@ function SectionNode({ section, depth }: { section: PdfPreviewSection; depth: nu
 }
 
 export function AdminImportPdfPage() {
-  const [schools, setSchools] = useState<School[]>([]);
+  const schoolLoad = useAsyncSection(contentService.listSchools);
+  const schools: School[] = schoolLoad.data ?? [];
+  const fileInput = useRef<HTMLInputElement>(null);
+  const mounted = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [schoolId, setSchoolId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [createCourse, setCreateCourse] = useState(true);
@@ -106,13 +111,12 @@ export function AdminImportPdfPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    contentService.listSchools().then((s) => {
-      setSchools(s);
-      if (s.length > 0) setSchoolId(s[0].id);
-    });
-  }, []);
+    if (!schoolId && schoolLoad.data?.length) setSchoolId(schoolLoad.data[0].id);
+  }, [schoolId, schoolLoad.data]);
 
   const chooseFile = (chosen: File | null) => {
+    if (analyzing || importing) return;
+    if (!chosen && fileInput.current) fileInput.current.value = "";
     setFile(chosen);
     setPreview(null);
     setResult(null);
@@ -121,28 +125,30 @@ export function AdminImportPdfPage() {
 
   const handleAnalyze = async (e: FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file || analyzing || importing) return;
     setAnalyzing(true);
     setError(null);
     try {
-      setPreview(await adminService.previewPdf(file));
+      const preview = await adminService.previewPdf(file);
+      if (mounted.current) setPreview(preview);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de l'analyse.");
+      if (mounted.current) setError(err instanceof Error ? err.message : "Échec de l'analyse.");
     } finally {
-      setAnalyzing(false);
+      if (mounted.current) setAnalyzing(false);
     }
   };
 
   const handleImport = async () => {
-    if (!file || !schoolId) return;
+    if (!file || !schoolId || importing || analyzing || !preview || result) return;
     setImporting(true);
     setError(null);
     try {
-      setResult(await adminService.importPdf(file, schoolId, createCourse));
+      const result = await adminService.importPdf(file, schoolId, createCourse);
+      if (mounted.current) setResult(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de l'import.");
+      if (mounted.current) setError(err instanceof Error ? err.message : "Échec de l'import.");
     } finally {
-      setImporting(false);
+      if (mounted.current) setImporting(false);
     }
   };
 
@@ -152,7 +158,7 @@ export function AdminImportPdfPage() {
   return (
     <AdminLayout>
       <div style={{ maxWidth: 720 }}>
-        <ol className="import-steps">
+        <ol className="import-steps" aria-label="Étapes de l’import">
           <li className={!preview && !result ? "is-current" : ""}>1. Fichier</li>
           <li className={preview && !result ? "is-current" : ""}>2. Aperçu</li>
           <li className={result ? "is-current" : ""}>3. Import</li>
@@ -172,6 +178,7 @@ export function AdminImportPdfPage() {
             <label htmlFor="school">École de rattachement</label>
             <select
               id="school"
+              disabled={analyzing || importing || schoolLoad.loading}
               value={schoolId}
               onChange={(e) => setSchoolId(e.target.value)}
               style={{ background: "var(--color-surface-raised)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "10px 12px" }}
@@ -186,6 +193,8 @@ export function AdminImportPdfPage() {
             <label htmlFor="file">Fichier PDF</label>
             <input
               id="file"
+              ref={fileInput}
+              disabled={analyzing || importing}
               type="file"
               accept="application/pdf"
               onChange={(e) => chooseFile(e.target.files?.[0] ?? null)}
@@ -195,6 +204,7 @@ export function AdminImportPdfPage() {
           <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}>
             <input
               type="checkbox"
+              disabled={analyzing || importing}
               checked={!createCourse}
               onChange={(e) => setCreateCourse(!e.target.checked)}
               style={{ marginTop: 3 }}
@@ -210,9 +220,10 @@ export function AdminImportPdfPage() {
             </span>
           </label>
 
-          {error && <p className="error-text">{error}</p>}
+          {schoolLoad.error && <div role="alert" className="section-error"><p>Impossible de charger les écoles.</p><button type="button" className="btn btn-secondary" onClick={schoolLoad.retry}>Réessayer les écoles</button></div>}
+          {error && <p role="alert" className="error-text">{error}</p>}
 
-          <button type="submit" className="btn btn-primary" disabled={analyzing || !file || !!result}>
+          <button type="submit" className="btn btn-primary" disabled={analyzing || importing || !file || !!result}>
             {analyzing ? "Analyse en cours…" : "Analyser"}
           </button>
         </form>
@@ -267,7 +278,7 @@ export function AdminImportPdfPage() {
               )}
 
               {report && report.anomalies.length > 0 && (
-                <details style={{ marginBottom: 16 }}>
+                <details open style={{ marginBottom: 16 }}>
                   <summary style={{ cursor: "pointer" }}>
                     {report.anomalies.length} élément
                     {report.anomalies.length > 1 ? "s nécessitent" : " nécessite"} une vérification
@@ -300,12 +311,18 @@ export function AdminImportPdfPage() {
                 </p>
               )}
 
-              <div style={{ display: "flex", gap: 10 }}>
+              <div className="import-decision" aria-label="Résumé avant import">
+                <p><strong>Fichier :</strong> {file?.name}</p>
+                <p><strong>École :</strong> {schools.find(school => school.id === schoolId)?.name ?? "Aucune école sélectionnée"}</p>
+                <p><strong>Mode :</strong> {createCourse ? "Créer un cours en brouillon" : "Document de référence uniquement"}</p>
+                <p>{report?.anomalies.length ?? 0} point(s) à vérifier avant de confirmer.</p>
+              </div>
+              <div className="lesson-actions">
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={handleImport}
-                  disabled={importing || !schoolId}
+                  disabled={importing || analyzing || schoolLoad.loading || schoolLoad.error || !schoolId}
                 >
                   {importing
                     ? "Import en cours…"
@@ -313,7 +330,7 @@ export function AdminImportPdfPage() {
                       ? "Valider et importer"
                       : "Verser au corpus"}
                 </button>
-                <button type="button" className="btn btn-secondary" onClick={() => chooseFile(null)}>
+                <button type="button" className="btn btn-secondary" disabled={analyzing || importing} onClick={() => chooseFile(null)}>
                   Choisir un autre fichier
                 </button>
               </div>

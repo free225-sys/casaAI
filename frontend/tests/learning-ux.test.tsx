@@ -2,9 +2,13 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DashboardPage } from "../src/pages/DashboardPage";
+import { ApiError } from "../src/services/apiClient";
 import { CatalogPage } from "../src/pages/CatalogPage";
 import { LessonPage } from "../src/pages/LessonPage";
 import { AdminUsersPage } from "../src/pages/admin/AdminUsersPage";
+import { AdminImportPdfPage } from "../src/pages/admin/AdminImportPdfPage";
+import { AdminLessonEditPage } from "../src/pages/admin/AdminLessonEditPage";
 import { AdminCoursesPage } from "../src/pages/admin/AdminCoursesPage";
 import { adminService } from "../src/services/adminService";
 import { contentService } from "../src/services/contentService";
@@ -13,12 +17,12 @@ import { progressService } from "../src/services/progressService";
 vi.mock("../src/services/contentService", () => ({ contentService: {
   listCourses: vi.fn(), listPathways: vi.fn(), listLabs: vi.fn(), getCourse: vi.fn(), listSchools: vi.fn(),
 } }));
-vi.mock("../src/services/adminService", () => ({ adminService: { listUsers: vi.fn(), listCourses: vi.fn() } }));
+vi.mock("../src/services/adminService", () => ({ adminService: { listUsers: vi.fn(), listCourses: vi.fn(), getLesson: vi.fn(), listQuizzes: vi.fn(), previewPdf: vi.fn(), importPdf: vi.fn() } }));
 vi.mock("../src/stores/authStore", () => ({ useAuth: () => ({ user: { id: "current" } }) }));
 vi.mock("../src/layouts/AdminLayout", () => ({ AdminLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("../src/services/progressService", () => ({ progressService: {
   getLesson: vi.fn(), getLessonDocument: vi.fn(), startLesson: vi.fn(),
-  saveProgress: vi.fn(), completeLesson: vi.fn(),
+  saveProgress: vi.fn(), completeLesson: vi.fn(), getMyProgress: vi.fn(), getMySkills: vi.fn(), getMyBadges: vi.fn(), acknowledgeBadges: vi.fn(),
 } }));
 
 let host: HTMLDivElement;
@@ -104,7 +108,7 @@ describe("Lesson navigation", () => {
     expect(progressService.startLesson).toHaveBeenCalledWith("b");
   });
   it("recovers after a failed lesson load", async () => {
-    vi.mocked(progressService.getLesson).mockRejectedValueOnce(new Error("Not found"));
+    vi.mocked(progressService.getLesson).mockRejectedValueOnce(new ApiError(404, "Not found"));
     await mountLesson();
     expect(host.textContent).toContain("introuvable");
     await go("b");
@@ -146,5 +150,216 @@ describe("Administration", () => {
     const form = host.querySelector("form")!;
     expect(form.querySelectorAll("input")).toHaveLength(3);
     expect([...form.querySelectorAll("button")].map(el => el.textContent)).toEqual(["Créer le cours (brouillon)"]);
+  });
+});
+
+
+describe("Lesson persistence and recovery", () => {
+  it("restores an already completed lesson from start without completing again", async () => {
+    vi.mocked(progressService.startLesson).mockResolvedValue({ lesson_id: "a", status: "COMPLETED", progress_pct: 100 });
+    await mountLesson();
+    expect(host.textContent).toContain("Progression enregistrée : 100 %");
+    expect([...host.querySelectorAll("button")].find(el => el.textContent?.includes("Leçon terminée"))?.disabled).toBe(true);
+    expect(progressService.completeLesson).not.toHaveBeenCalled();
+  });
+  it("restores partial progress without confusing reading position with persistence", async () => {
+    vi.mocked(progressService.startLesson).mockResolvedValue({ lesson_id: "a", status: "IN_PROGRESS", progress_pct: 62 });
+    await mountLesson();
+    expect(host.textContent).toContain("Progression enregistrée : 62 %");
+    expect(host.querySelector('[role="progressbar"]')?.getAttribute("aria-label")).toBe("Lecture de la page");
+  });
+  it("shows completion failure, allows retry, then confirms success", async () => {
+    vi.mocked(progressService.completeLesson).mockRejectedValueOnce(new Error("Network unavailable"))
+      .mockResolvedValueOnce({ lesson_id: "a", status: "COMPLETED", progress_pct: 100 });
+    await mountLesson();
+    await act(async () => button("Marquer comme terminée").click());
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("n'a pas pu être marquée");
+    expect(button("Marquer comme terminée").disabled).toBe(false);
+    await act(async () => button("Marquer comme terminée").click());
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.textContent).toContain("Progression enregistrée : 100 %");
+    expect(progressService.completeLesson).toHaveBeenCalledTimes(2);
+  });
+  it("ignores a late start response after completion", async () => {
+    const start = deferred<{ lesson_id: string; status: string; progress_pct: number }>();
+    vi.mocked(progressService.startLesson).mockReturnValue(start.promise);
+    vi.mocked(progressService.completeLesson).mockResolvedValue({ lesson_id: "a", status: "COMPLETED", progress_pct: 100 });
+    await mountLesson();
+    await act(async () => button("Marquer comme terminée").click());
+    await act(async () => start.resolve({ lesson_id: "a", status: "IN_PROGRESS", progress_pct: 5 }));
+    expect(host.textContent).toContain("Progression enregistrée : 100 %");
+    expect([...host.querySelectorAll("button")].find(el => el.textContent?.includes("Leçon terminée"))?.disabled).toBe(true);
+  });
+  it("offers a load retry for a network error rather than claiming 404", async () => {
+    vi.mocked(progressService.getLesson).mockRejectedValueOnce(new Error("Offline"));
+    await mountLesson();
+    expect(host.textContent).not.toContain("introuvable");
+    await act(async () => button("Réessayer le chargement").click());
+    expect(host.querySelector("h1")?.textContent).toBe("Lesson a");
+  });
+  it("drops an old start response and completion failure after navigating", async () => {
+    const start = deferred<{ lesson_id: string; status: string; progress_pct: number }>();
+    const finish = deferred<{ lesson_id: string; status: string; progress_pct: number }>();
+    vi.mocked(progressService.startLesson).mockReturnValueOnce(start.promise);
+    vi.mocked(progressService.completeLesson).mockReturnValueOnce(finish.promise);
+    await mountLesson();
+    await act(async () => button("Marquer comme terminée").click());
+    await go("b");
+    await act(async () => { start.resolve({ lesson_id: "a", status: "COMPLETED", progress_pct: 100 }); finish.resolve({ lesson_id: "a", status: "COMPLETED", progress_pct: 100 }); });
+    expect(host.textContent).toContain("Progression enregistrée : 0 %");
+    expect(button("Marquer comme terminée").disabled).toBe(false);
+  });
+});
+
+describe("Dashboard truthful states", () => {
+  const row = (id: string, is_available = true) => ({ lesson_id: id, lesson_title: `History ${id}`, course_id: "course", status: "IN_PROGRESS", progress_pct: 40, started_at: null, completed_at: null, is_available });
+  beforeEach(() => {
+    vi.mocked(progressService.getMyProgress).mockResolvedValue([row("a")] as never);
+    vi.mocked(progressService.getMySkills).mockResolvedValue([{ skill_id: "skill", skill_name: "Skill retained", mastery_level: 2 }] as never);
+    vi.mocked(progressService.getMyBadges).mockResolvedValue([{ id: "first", title: "First badge", description: "Earned", earned: true, new: true }] as never);
+    vi.mocked(progressService.acknowledgeBadges).mockResolvedValue({ ok: true });
+  });
+  const mount = () => act(async () => root.render(<MemoryRouter><DashboardPage /></MemoryRouter>));
+  it("keeps successful sections when progress fails, and retries only that section", async () => {
+    vi.mocked(progressService.getMyProgress).mockRejectedValueOnce(new Error("Offline"));
+    await mount();
+    expect(host.textContent).toContain("Skill retained");
+    expect(host.textContent).toContain("First badge");
+    expect(host.textContent).not.toContain("Vous n'avez pas encore commencé");
+    expect(host.textContent).not.toContain("0 leçon terminée");
+    await act(async () => button("Réessayer : la progression").click());
+    expect(host.textContent).toContain("History a");
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(progressService.getMySkills).toHaveBeenCalledTimes(1);
+    expect(progressService.getMyBadges).toHaveBeenCalledTimes(1);
+  });
+  it("acknowledges badges only after explicit user action", async () => {
+    await mount();
+    expect(progressService.acknowledgeBadges).not.toHaveBeenCalled();
+    expect(host.textContent).toContain("Nouveau");
+    await act(async () => button("Marquer les nouveaux badges comme lus").click());
+    expect(progressService.acknowledgeBadges).toHaveBeenCalledTimes(1);
+    expect(host.textContent).not.toContain("Nouveau");
+  });
+  it("retains new badges when acknowledgement fails and allows retry", async () => {
+    vi.mocked(progressService.acknowledgeBadges).mockRejectedValueOnce(new Error("Offline")).mockResolvedValueOnce({ ok: true });
+    await mount();
+    await act(async () => button("Marquer les nouveaux badges comme lus").click());
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.textContent).toContain("Nouveau");
+    await act(async () => button("Marquer les nouveaux badges comme lus").click());
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.textContent).not.toContain("Nouveau");
+  });
+  it("keeps unavailable history but does not link or resume it", async () => {
+    vi.mocked(progressService.getMyProgress).mockResolvedValue([row("old", false), row("current")] as never);
+    await mount();
+    expect(host.textContent).toContain("History old");
+    expect(host.textContent).toContain("acquis conservés");
+    expect(host.querySelector('a[href="/app/lessons/old"]')).toBeNull();
+    expect(host.querySelector('a[href="/app/lessons/current"]')).not.toBeNull();
+  });
+  it("shows section-specific errors when every API read fails", async () => {
+    vi.mocked(progressService.getMyProgress).mockRejectedValue(new Error("Offline"));
+    vi.mocked(progressService.getMySkills).mockRejectedValue(new Error("Offline"));
+    vi.mocked(progressService.getMyBadges).mockRejectedValue(new Error("Offline"));
+    await mount();
+    expect(host.querySelectorAll('[role="alert"]')).toHaveLength(3);
+    expect(host.textContent).not.toContain("Aucun badge");
+    expect(host.textContent).not.toContain("Réussissez un quiz");
+  });
+});
+
+
+describe("Catalogue and administration recovery", () => {
+  beforeEach(() => {
+    vi.mocked(contentService.listPathways).mockResolvedValue({ items: [], total: 0 } as never);
+    vi.mocked(contentService.listLabs).mockResolvedValue({ items: [], total: 0 } as never);
+    vi.mocked(contentService.listSchools).mockResolvedValue([{ id: "school", name: "TEST school" }] as never);
+    vi.mocked(adminService.listCourses).mockResolvedValue({ items: [], total: 0, limit: 20, offset: 0 });
+  });
+  it("loads subsequent catalogue pages and exposes every returned card", async () => {
+    vi.mocked(contentService.listCourses).mockImplementation(async params => params?.offset
+      ? { items: [{ id: "second", title: "Second course" }], total: 2 } as never
+      : { items: [{ id: "first", title: "First course" }], total: 2 } as never);
+    await act(async () => root.render(<MemoryRouter><CatalogPage /></MemoryRouter>));
+    expect(host.querySelector('a[href="/courses/first"]')).not.toBeNull();
+    expect(host.querySelector('a[href="/courses/second"]')).not.toBeNull();
+    expect(contentService.listCourses).toHaveBeenLastCalledWith({ limit: 50, offset: 1 });
+    expect(button("Tout").getAttribute("aria-pressed")).toBe("true");
+  });
+  it("distinguishes a catalogue failure from empty results and recovers", async () => {
+    vi.mocked(contentService.listCourses).mockRejectedValueOnce(new Error("Offline")).mockResolvedValueOnce({ items: [], total: 0 } as never);
+    await act(async () => root.render(<MemoryRouter><CatalogPage /></MemoryRouter>));
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    await act(async () => button("Réessayer le catalogue").click());
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.textContent).toContain("Aucun résultat");
+  });
+  it("labels admin search as page-scoped and exposes the active status", async () => {
+    await act(async () => root.render(<AdminCoursesPage />));
+    expect(host.querySelector('input[aria-label="Rechercher un cours dans cette page"]')).not.toBeNull();
+    await act(async () => button("Brouillons").click());
+    expect(button("Brouillons").getAttribute("aria-pressed")).toBe("true");
+    expect(button("Tous").getAttribute("aria-pressed")).toBe("false");
+    expect(adminService.listCourses).toHaveBeenLastCalledWith({ status: "DRAFT", limit: 20, offset: 0 });
+  });
+  it("recovers a failed admin list without keeping a stale error", async () => {
+    vi.mocked(adminService.listCourses).mockRejectedValueOnce(new Error("Offline"));
+    await act(async () => root.render(<AdminCoursesPage />));
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    await act(async () => button("Réessayer les cours").click());
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+  });
+  it("presents a failed lesson editor as a retryable error, never an editable empty lesson", async () => {
+    vi.mocked(adminService.getLesson).mockRejectedValue(new Error("Offline"));
+    vi.mocked(adminService.listQuizzes).mockResolvedValue({ items: [], total: 0 } as never);
+    await act(async () => root.render(<MemoryRouter initialEntries={["/admin/courses/course/lessons/a"]}><Routes><Route path="/admin/courses/:courseId/lessons/:lessonId" element={<AdminLessonEditPage />} /></Routes></MemoryRouter>));
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.querySelector('input[id="title"]')).toBeNull();
+    expect(button("Réessayer le chargement").disabled).toBe(false);
+  });
+});
+
+describe("PDF decision context", () => {
+  const preview = { title: "TEST PDF", pages: 2, sections: [], report: { anomalies: [{ message: "Titre à relire", page: 0 }], document_type: "TEXT", sections: 0, subsections: 0, blocks: 0, lists: 0, tables: 0, formulas: 0, code_blocks: 0, captions: 0 } };
+  beforeEach(() => {
+    vi.mocked(contentService.listSchools).mockResolvedValue([{ id: "school", name: "TEST school" }] as never);
+    vi.mocked(adminService.previewPdf).mockResolvedValue(preview as never);
+    vi.mocked(adminService.importPdf).mockResolvedValue({ title: "TEST PDF", course_id: "created", lesson_id: "created", pages_extracted: 2 } as never);
+  });
+  const mount = () => act(async () => root.render(<MemoryRouter><AdminImportPdfPage /></MemoryRouter>));
+  async function choose() {
+    const input = host.querySelector<HTMLInputElement>('input[type="file"]')!;
+    await act(async () => { Object.defineProperty(input, "files", { configurable: true, value: [new File(["TEST"], "TEST.pdf", { type: "application/pdf" })] }); input.dispatchEvent(new Event("change", { bubbles: true })); });
+  }
+  it("keeps file, school, mode and anomalies visible before import and clears selection coherently", async () => {
+    await mount(); await choose();
+    await act(async () => button("Analyser").click());
+    const summary = host.querySelector('[aria-label="Résumé avant import"]');
+    expect(summary?.textContent).toContain("TEST.pdf");
+    expect(summary?.textContent).toContain("TEST school");
+    expect(summary?.textContent).toContain("Créer un cours en brouillon");
+    expect(host.querySelector("details")?.open).toBe(true);
+    expect(host.textContent).toContain("Titre à relire");
+    expect(adminService.importPdf).not.toHaveBeenCalled();
+    await act(async () => button("Choisir un autre fichier").click());
+    expect(host.querySelector('[aria-label="Résumé avant import"]')).toBeNull();
+    expect(button("Analyser").disabled).toBe(true);
+    await choose();
+    expect(button("Analyser").disabled).toBe(false);
+  });
+  it("prevents changing the decision while import is pending and preserves a retry after failure", async () => {
+    let reject!: (error: Error) => void;
+    vi.mocked(adminService.importPdf).mockReturnValueOnce(new Promise((_, fail) => { reject = fail; }));
+    await mount(); await choose();
+    await act(async () => button("Analyser").click());
+    await act(async () => button("Valider et importer").click());
+    expect(host.querySelector<HTMLSelectElement>("select")?.disabled).toBe(true);
+    expect(button("Choisir un autre fichier").disabled).toBe(true);
+    await act(async () => reject(new Error("Network failed")));
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("Network failed");
+    expect(button("Valider et importer").disabled).toBe(false);
+    expect(host.querySelector('[aria-label="Résumé avant import"]')?.textContent).toContain("TEST.pdf");
   });
 });

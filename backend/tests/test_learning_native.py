@@ -159,6 +159,9 @@ def test_native_admin_self_guards_are_400_and_leave_last_super_active(client, db
 def test_native_last_super_guard_at_service_boundary_uses_real_sql(db_session, learning):
     # Direct service call to exercise the invariant. This is not an authenticated
     # HTTP 409 scenario: another active SUPER_ADMIN would make the count >= 2.
+    active_supers = db_session.scalar(select(func.count()).select_from(User).where(User.role == UserRole.SUPER_ADMIN, User.status == AccountStatus.ACTIVE))
+    if active_supers != 1:
+        pytest.skip("Last-super invariant requires one active super; existing QA accounts preserved")
     service = AdminUserService(db_session)
     target, actor = learning["super"], learning["learner"]
     for payload in (AdminUserUpdateRequest(role=UserRole.LEARNER), AdminUserUpdateRequest(status=AccountStatus.SUSPENDED)):
@@ -168,3 +171,24 @@ def test_native_last_super_guard_at_service_boundary_uses_real_sql(db_session, l
         service.delete_user(actor=actor, target_id=target.id)
     db_session.refresh(target)
     assert target.role == UserRole.SUPER_ADMIN and target.status == AccountStatus.ACTIVE
+
+
+
+def test_unpublished_lesson_retains_history_and_earned_badge(client, db_session, learning):
+    learner = learning["learner"]
+    auth = headers(learner)
+    assert client.post("/api/lessons/native-first/complete", headers=auth).status_code == 200
+    assert any(row["id"] == "first_step" and row["earned"] for row in client.get("/api/me/badges", headers=auth).json())
+    lesson = db_session.get(Lesson, "native-first")
+    lesson.status = ContentStatus.DRAFT
+    db_session.commit()
+    history = client.get("/api/me/progress", headers=auth)
+    assert history.status_code == 200
+    row = next(row for row in history.json() if row["lesson_id"] == "native-first")
+    assert row["is_available"] is False
+    assert row["status"] == "COMPLETED"
+    assert row["progress_pct"] == 100
+    assert client.get("/api/lessons/native-first", headers=auth).status_code == 404
+    badges = client.get("/api/me/badges", headers=auth).json()
+    assert any(row["id"] == "first_step" and row["earned"] for row in badges)
+    assert count(db_session, UserBadge, learner) == 1

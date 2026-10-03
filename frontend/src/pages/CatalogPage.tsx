@@ -15,27 +15,44 @@ const FALLBACK_ACCENT = {
   lab: "var(--color-accent-coral)",
 } as const;
 
+async function allPages<T>(read: (params: { limit: number; offset: number }) => Promise<{ items: T[]; total: number }>, limit: number): Promise<T[]> {
+  const items: T[] = [];
+  let total = 1;
+  while (items.length < total) {
+    const page = await read({ limit, offset: items.length });
+    total = page.total;
+    if (page.items.length === 0 && items.length < total) throw new Error("Catalogue incomplet.");
+    items.push(...page.items);
+  }
+  return items;
+}
+
 export function CatalogPage() {
   const [courses, setCourses] = useState<CourseListItem[] | null>(null);
   const [pathways, setPathways] = useState<PathwayListItem[] | null>(null);
   const [labs, setLabs] = useState<LabListItem[] | null>(null);
   const [error, setError] = useState(false);
+  const [reload, setReload] = useState(0);
   const [query, setQuery] = useState("");
   const [chip, setChip] = useState<"all" | "pathways" | "courses" | "labs">("all");
 
   useEffect(() => {
+    let active = true;
+    setError(false);
     Promise.all([
-      contentService.listCourses({ limit: 50 }),
-      contentService.listPathways({ limit: 20 }),
-      contentService.listLabs({ limit: 20 }),
+      allPages(contentService.listCourses, 50),
+      allPages(contentService.listPathways, 20),
+      allPages(contentService.listLabs, 20),
     ])
       .then(([coursesPage, pathwaysPage, labsPage]) => {
-        setCourses(coursesPage.items);
-        setPathways(pathwaysPage.items);
-        setLabs(labsPage.items);
+        if (!active) return;
+        setCourses(coursesPage);
+        setPathways(pathwaysPage);
+        setLabs(labsPage);
       })
-      .catch(() => setError(true));
-  }, []);
+      .catch(() => { if (active) setError(true); });
+    return () => { active = false; };
+  }, [reload]);
 
   const q = query.trim().toLowerCase();
   const shownPathways = useMemo(
@@ -52,7 +69,7 @@ export function CatalogPage() {
   );
 
   if (error) {
-    return <p className="error-text">Impossible de charger le catalogue pour le moment.</p>;
+    return <div role="alert" className="section-error"><p>Impossible de charger le catalogue pour le moment.</p><button type="button" className="btn btn-secondary" onClick={() => setReload(value => value + 1)}>Réessayer le catalogue</button></div>;
   }
 
   return (
@@ -60,10 +77,10 @@ export function CatalogPage() {
       <RevealSection as="div">
         <h1 style={{ fontSize: "1.8rem", marginBottom: 8 }}>Catalogue</h1>
         <p style={{ marginBottom: 16 }}>Parcours, cours et labs disponibles dès aujourd'hui.</p>
-        <input className="catalog-search" placeholder="Rechercher…" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input aria-label="Rechercher dans le catalogue" className="catalog-search" placeholder="Rechercher…" value={query} onChange={(e) => setQuery(e.target.value)} />
         <div className="catalog-chips">
           {(["all", "pathways", "courses", "labs"] as const).map((value) => (
-            <button key={value} type="button" className={`chip${chip === value ? " is-on" : ""}`} onClick={() => setChip(value)}>
+            <button key={value} aria-pressed={chip === value} type="button" className={`chip${chip === value ? " is-on" : ""}`} onClick={() => setChip(value)}>
               {value === "all" ? "Tout" : value === "pathways" ? "Parcours" : value === "courses" ? "Cours" : "Labs"}
             </button>
           ))}
@@ -72,10 +89,11 @@ export function CatalogPage() {
 
       <section style={{ marginBottom: 48, display: chip === "all" || chip === "pathways" ? "block" : "none" }}>
         <h2 style={{ fontSize: "1.15rem", marginBottom: 16 }}>Parcours</h2>
+        {pathways !== null && shownPathways.length === 0 && <p role="status">Aucun résultat dans cette catégorie.</p>}
         {pathways === null ? (
           <CardGridSkeleton count={3} />
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16 }}>
             {shownPathways.map((p, i) => (
               <RevealSection key={p.id} as="div" delayMs={Math.min(i, 8) * 50} style={{ height: "100%" }}>
                 <Link to={`/pathways/${p.id}`} className="card" style={{ padding: 20, display: "block", height: "100%" }}>
@@ -91,10 +109,11 @@ export function CatalogPage() {
 
       <section style={{ display: chip === "all" || chip === "courses" ? "block" : "none" }}>
         <h2 style={{ fontSize: "1.15rem", marginBottom: 16 }}>Cours</h2>
+        {courses !== null && shownCourses.length === 0 && <p role="status">Aucun résultat dans cette catégorie.</p>}
         {courses === null ? (
           <CardGridSkeleton count={6} />
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16 }}>
             {shownCourses.map((c, i) => (
               <RevealSection key={c.id} as="div" delayMs={Math.min(i, 8) * 50} style={{ height: "100%" }}>
                 <Link to={`/courses/${c.id}`} className="card" style={{ padding: 20, display: "block", height: "100%" }}>
@@ -110,10 +129,11 @@ export function CatalogPage() {
 
       <section style={{ marginTop: 48, display: chip === "all" || chip === "labs" ? "block" : "none" }}>
         <h2 style={{ fontSize: "1.15rem", marginBottom: 16 }}>Laboratoires</h2>
+        {labs !== null && shownLabs.length === 0 && <p role="status">Aucun résultat dans cette catégorie.</p>}
         {labs === null ? (
           <CardGridSkeleton count={6} />
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16 }}>
             {shownLabs.map((l, i) => (
               <RevealSection key={l.id} as="div" delayMs={Math.min(i, 8) * 50} style={{ height: "100%" }}>
                 <Link to={`/labs/${l.id}`} className="card" style={{ padding: 20, display: "block", height: "100%" }}>

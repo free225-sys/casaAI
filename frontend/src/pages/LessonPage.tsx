@@ -23,6 +23,11 @@ const DEPTH_ACCENTS = ["var(--color-accent-blue)", "var(--color-accent-gold)", "
 
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
+  // Keep reading and completion state specific to each route, including A → B → A.
+  return <LessonContent key={lessonId} lessonId={lessonId} />;
+}
+
+function LessonContent({ lessonId }: { lessonId: string | undefined }) {
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [documentTree, setDocumentTree] = useState<LessonDocument | null>(null);
@@ -57,23 +62,30 @@ export function LessonPage() {
 
   useEffect(() => {
     if (!lessonId) return;
+    let active = true;
     progressService
       .getLesson(lessonId)
       .then((data) => {
+        if (!active) return;
         setLesson(data);
         if (data.depth_levels.length > 0) setActiveDepth(data.depth_levels[0].depth_key);
         // Fil d'Ariane : retrouver le cours parent pour répondre à
         // « où suis-je ? ». Best-effort — l'absence de titre de cours
         // n'empêche pas la lecture de la leçon.
-        contentService.getCourse(data.course_id).then(setCourse).catch(() => {});
+        contentService.getCourse(data.course_id).then((value) => {
+          if (active) setCourse(value);
+        }).catch(() => {});
         // Structure documentaire, pour les seules leçons issues d'un import.
         // Best-effort là aussi : son absence ramène à l'affichage plat, qui
         // porte le même contenu.
         if (data.has_document) {
-          progressService.getLessonDocument(lessonId).then(setDocumentTree).catch(() => {});
+          progressService.getLessonDocument(lessonId).then((value) => {
+            if (active) setDocumentTree(value);
+          }).catch(() => {});
         }
       })
-      .catch(() => setNotFound(true));
+      .catch(() => { if (active) setNotFound(true); });
+    return () => { active = false; };
   }, [lessonId]);
 
   // Barre de progression de lecture : proportion de la page déjà scrollée.

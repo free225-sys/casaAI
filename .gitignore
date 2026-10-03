@@ -7,6 +7,7 @@ __pycache__/
 *.pyc
 *.pyo
 .venv/
+.venv-ux-tests/
 venv/
 
 # Images uploadées en local (stockage MVP, cf. backend/app/services/storage_service.py)

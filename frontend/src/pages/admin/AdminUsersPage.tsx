@@ -105,6 +105,7 @@ export function AdminUsersPage() {
           }}
         />
         <select
+          aria-label="Filtrer par rôle"
           value={role}
           onChange={(e) => {
             setRole(e.target.value as "" | UserRole);

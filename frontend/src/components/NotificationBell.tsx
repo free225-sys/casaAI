@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "./AppLink";
 import { progressService } from "../services/progressService";
 import { useAsyncSection } from "../hooks/useAsyncSection";
+import { useAuth } from "../stores/authStore";
 
 export function NotificationBell() {
+  // La seule préférence de notification existante concerne les badges, donc l'espace apprenant ; la lecture des notifications reste commune.
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const notifications = useAsyncSection(progressService.listNotifications);
   const ref = useRef<HTMLDivElement>(null);
@@ -32,7 +35,7 @@ export function NotificationBell() {
       {notifications.data?.slice(0, 8).map(item => <div key={item.id} className={`notification-item${item.read ? "" : " is-unread"}`}>
         <strong>{item.title}</strong>{item.body && <p className="text-caption">{item.body}</p>}
       </div>)}
-      <Link to="/app/profile">Régler les notifications</Link>
+      {user?.role === "LEARNER" && <Link to="/app/profile">Régler les notifications</Link>}
     </div>}
   </div>;
 }

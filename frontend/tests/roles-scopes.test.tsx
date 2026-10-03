@@ -108,6 +108,37 @@ describe("Lot 1 : menus par rôle", () => {
   });
 });
 
+describe("Lot 1 : cloche de notifications par rôle", () => {
+  const open = async () => { await act(async () => host.querySelector<HTMLButtonElement>('button[aria-controls="notifications-panel"]')!.click()); };
+  beforeEach(() => { vi.mocked(progressService.listNotifications).mockResolvedValue([{ id: "n1", type: "info", title: "Notification générique", body: null, read: false, created_at: "2026-10-03T10:00:00Z" }] as never); });
+  it("un apprenant lit ses notifications et peut ouvrir le réglage", async () => {
+    auth.user = account("LEARNER");
+    await mount(<Nav />);
+    await open();
+    expect(host.textContent).toContain("Notification générique");
+    expect(host.querySelector('#notifications-panel a[href="/app/profile"]')?.textContent).toBe("Régler les notifications");
+  });
+  it.each(["ADMIN", "SUPER_ADMIN"])("%s lit les notifications génériques mais n'a pas de lien vers un réglage de badges", async role => {
+    auth.user = account(role);
+    await mount(<Nav />);
+    await open();
+    expect(progressService.listNotifications).toHaveBeenCalled();
+    expect(host.textContent).toContain("Notification générique");
+    expect(host.querySelector('#notifications-panel a[href="/app/profile"]')).toBeNull();
+    expect(host.textContent).not.toContain("Régler les notifications");
+    // Compte et sécurité restent accessibles par le menu du compte.
+    expect(host.querySelector('button[aria-controls="account-panel"]')).not.toBeNull();
+  });
+  it("le profil d'un administrateur garde compte et sécurité mais pas la préférence de badges", async () => {
+    auth.user = account("SUPER_ADMIN");
+    await mount(<ProfilePage />);
+    expect(host.textContent).toContain("Informations du compte");
+    expect(host.textContent).toContain("Sécurité");
+    expect(host.textContent).not.toContain("débloque un badge");
+    expect(progressService.getNotificationSettings).not.toHaveBeenCalled();
+  });
+});
+
 describe("Lot 1 : routes pédagogiques réservées aux apprenants", () => {
   const Guarded = () => <Routes><Route path="/app/dashboard" element={<RequireLearner><p>PAGE PEDAGOGIQUE</p></RequireLearner>} /><Route path="/login" element={<p>CONNEXION</p>} /></Routes>;
   it.each(["ADMIN", "SUPER_ADMIN"])("%s voit un état explicite avec un lien vers son espace, sans monter la page", async role => {

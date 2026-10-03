@@ -18,8 +18,24 @@ export function isLearnerOnlyPath(path: string): boolean {
   return path.startsWith("/app/") && !path.startsWith("/app/profile");
 }
 
-/** Destination après connexion : l'URL d'origine, sauf si elle est interdite au rôle (alors son accueil). */
-export function postLoginPath(role: UserRole, from: string | undefined): string {
-  if (!from || (role !== "LEARNER" && isLearnerOnlyPath(from))) return homePathFor(role);
+/** Routes d'administration réservées au SUPER_ADMIN (gardes serveur et `RequireRole` inchangés ; ici, seulement le choix du retour). */
+const SUPER_ADMIN_ONLY = ["/admin/users", "/admin/progress", "/admin/certifications"];
+
+/** Un retour n'est accepté que s'il s'agit d'un chemin interne (« /… », jamais « //hôte », « http://… » ni un schéma). */
+function isInternalPath(path: string): boolean {
+  return /^\/(?![\\/])[^\s]*$/.test(path) && !path.includes("://");
+}
+
+function isAllowedFor(role: UserRole, path: string): boolean {
+  const pathname = path.split(/[?#]/)[0];
+  if (role === "LEARNER") return pathname !== "/admin" && !pathname.startsWith("/admin/");
+  if (isLearnerOnlyPath(pathname)) return false;
+  if (role === "ADMIN") return !SUPER_ADMIN_ONLY.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  return true;
+}
+
+/** Destination après connexion : l'URL d'origine si elle est interne et permise au rôle, sinon l'accueil du rôle. */
+export function postLoginPath(role: UserRole, from: unknown): string {
+  if (typeof from !== "string" || !isInternalPath(from) || !isAllowedFor(role, from)) return homePathFor(role);
   return from;
 }

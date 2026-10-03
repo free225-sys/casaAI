@@ -65,6 +65,18 @@ describe("Lot 1 : accueil et redirections par rôle", () => {
     expect(postLoginPath("ADMIN", "/admin/courses/c1")).toBe("/admin/courses/c1");
     expect(postLoginPath("ADMIN", "/app/profile")).toBe("/app/profile");
   });
+  it("n'accepte jamais une URL de retour externe, malformée ou interdite au rôle", () => {
+    for (const from of ["https://example.test/x", "//example.test/x", "javascript:alert(1)", "/\\example.test", "app/dashboard", "", undefined, null, 42, "/ x"]) {
+      expect(postLoginPath("LEARNER", from)).toBe("/app/dashboard");
+      expect(postLoginPath("ADMIN", from)).toBe("/admin/courses");
+      expect(postLoginPath("SUPER_ADMIN", from)).toBe("/admin/users");
+    }
+    expect(postLoginPath("ADMIN", "/admin/users")).toBe("/admin/courses");
+    expect(postLoginPath("ADMIN", "/admin/progress/u1")).toBe("/admin/courses");
+    expect(postLoginPath("SUPER_ADMIN", "/admin/users")).toBe("/admin/users");
+    expect(postLoginPath("LEARNER", "/admin/courses")).toBe("/app/dashboard");
+    expect(postLoginPath("LEARNER", "/courses/c1?x=1#a")).toBe("/courses/c1?x=1#a");
+  });
   it("redirige après connexion vers l'accueil du rôle, même depuis une URL d'apprenant", async () => {
     auth.login.mockResolvedValue(account("SUPER_ADMIN") as never);
     await act(async () => root.render(

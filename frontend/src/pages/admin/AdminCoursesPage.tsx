@@ -25,7 +25,8 @@ export function AdminCoursesPage() {
   // Lot 2 : un ADMIN ne gère que le catalogue attribué ; le serveur filtre la liste et ses compteurs, l'écran ne fait que l'expliquer.
   const scoped = user?.role === "ADMIN";
   const myScopes = useMyScopes(scoped);
-  const myPathways = useScopedPathways(scoped ? myScopes.scopes : null);
+  const scopedPathways = useScopedPathways(scoped ? myScopes.scopes : null);
+  const myPathways = scopedPathways.pathways;
   const [courses, setCourses] = useState<AdminCourse[] | null>(null);
   const [schools, setSchools] = useState<School[]>([]);
   const [schoolsError, setSchoolsError] = useState(false);
@@ -134,6 +135,7 @@ export function AdminCoursesPage() {
       />
 
       {scoped && myScopes.error && <div role="alert" className="section-error"><p>Impossible de lire votre périmètre. La liste ci-dessous reste filtrée par le serveur.</p><button type="button" className="btn btn-secondary" onClick={myScopes.retry}>Réessayer le périmètre</button></div>}
+      {scoped && scopedPathways.error && <div role="alert" className="section-error"><p>Impossible de charger vos parcours : la création avec rattachement à un parcours est indisponible.</p><button type="button" className="btn btn-secondary" onClick={scopedPathways.retry}>Réessayer les parcours</button></div>}
       {noScope && <Notice kind="warning"><p>Aucun périmètre ne vous est attribué : vous ne voyez aucun contenu. Demandez à un super administrateur de vous attribuer des écoles ou des parcours.</p></Notice>}
       {scoped && myScopes.scopes && !noScope && <Notice kind="info"><p>Votre périmètre : {scopeSchoolIds(myScopes.scopes).length} école(s) et {scopePathwayIds(myScopes.scopes).length} parcours. La liste est filtrée par le serveur, compteurs compris.</p></Notice>}
       {schoolsError && <div role="alert" className="section-error"><p>Impossible de charger les écoles.</p><button type="button" className="btn btn-secondary" onClick={() => setSchoolsReload(value => value + 1)}>Réessayer les écoles</button></div>}

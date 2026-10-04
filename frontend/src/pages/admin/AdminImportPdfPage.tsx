@@ -90,7 +90,8 @@ export function AdminImportPdfPage() {
   const allSchools: School[] = schoolLoad.data ?? [];
   const attributedSchoolIds = scoped && myScopes.scopes ? scopeSchoolIds(myScopes.scopes) : [];
   const schools: School[] = allSchools;
-  const pathways = useScopedPathways(scoped ? myScopes.scopes : null);
+  const scopedPathways = useScopedPathways(scoped ? myScopes.scopes : null);
+  const pathways = scopedPathways.pathways;
   const [pathwayId, setPathwayId] = useState("");
   const noScope = scoped && myScopes.scopes !== null && !hasScope(myScopes.scopes);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -99,6 +100,8 @@ export function AdminImportPdfPage() {
   const [schoolId, setSchoolId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [createCourse, setCreateCourse] = useState(true);
+  // R8 : la cible (école, parcours) autorise l'analyse d'un ADMIN ; elle est figée avec l'aperçu et toute modification l'invalide.
+  const [analyzedTarget, setAnalyzedTarget] = useState<{ schoolId: string; pathwayId: string } | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [importing, setImporting] = useState(false);
   const [preview, setPreview] = useState<PdfPreviewResult | null>(null);
@@ -116,11 +119,26 @@ export function AdminImportPdfPage() {
   }, [schoolId, schoolKey, attributedKey]);
   // Contrat du Lot 2 : un ADMIN fournit une école attribuée OU un parcours attribué ; le serveur reste l'autorité.
   const targetMissing = scoped && !attributedSchoolIds.includes(schoolId) && !pathwayId;
+  const targetStale = scoped && !!preview && (analyzedTarget?.schoolId !== schoolId || analyzedTarget?.pathwayId !== pathwayId);
+  const pathwayLabel = pathways.find(p => p.id === pathwayId)?.title;
 
+  const [targetChanged, setTargetChanged] = useState(false);
+  const changeTarget = (nextSchoolId: string, nextPathwayId: string) => {
+    setSchoolId(nextSchoolId);
+    setPathwayId(nextPathwayId);
+    // Un aperçu d'ADMIN n'est valable que pour la cible analysée : la changer l'invalide, il faut analyser de nouveau.
+    if (scoped && preview && !result && (nextSchoolId !== analyzedTarget?.schoolId || nextPathwayId !== analyzedTarget?.pathwayId)) {
+      setPreview(null);
+      setAnalyzedTarget(null);
+      setTargetChanged(true);
+    }
+  };
   const chooseFile = (chosen: File | null) => {
     if (analyzing || importing) return;
     if (!chosen && fileInput.current) fileInput.current.value = "";
     setFile(chosen);
+    setAnalyzedTarget(null);
+    setTargetChanged(false);
     setPreview(null);
     setResult(null);
     setError(null);
@@ -133,7 +151,7 @@ export function AdminImportPdfPage() {
     setError(null);
     try {
       const preview = await adminService.previewPdf(file, scoped ? { schoolId, pathwayId: pathwayId || undefined } : undefined);
-      if (mounted.current) setPreview(preview);
+      if (mounted.current) { setPreview(preview); setAnalyzedTarget({ schoolId, pathwayId }); setTargetChanged(false); }
     } catch (err) {
       if (mounted.current) setError(err instanceof Error ? err.message : "Échec de l'analyse.");
     } finally {
@@ -142,7 +160,7 @@ export function AdminImportPdfPage() {
   };
 
   const handleImport = async () => {
-    if (!file || !schoolId || importing || analyzing || !preview || result) return;
+    if (!file || !schoolId || importing || analyzing || !preview || result || noScope || targetMissing || targetStale) return;
     setImporting(true);
     setError(null);
     try {
@@ -175,6 +193,8 @@ export function AdminImportPdfPage() {
   const startOver = () => {
     if (busy) return;
     if (fileInput.current) fileInput.current.value = "";
+    setAnalyzedTarget(null);
+    setTargetChanged(false);
     setFile(null);
     setPreview(null);
     setResult(null);
@@ -209,7 +229,7 @@ export function AdminImportPdfPage() {
                 id="school"
                 disabled={busy || schoolLoad.loading}
                 value={schoolId}
-                onChange={(e) => setSchoolId(e.target.value)}
+                onChange={(e) => changeTarget(e.target.value, pathwayId)}
               >
                 {schools.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}{scoped && attributedSchoolIds.includes(s.id) ? " (attribuée)" : ""}</option>
@@ -220,13 +240,15 @@ export function AdminImportPdfPage() {
             {pathways.length > 0 && (
               <div className="field">
                 <label htmlFor="pathway">Parcours (facultatif)</label>
-                <select id="pathway" disabled={busy} value={pathwayId} onChange={(e) => setPathwayId(e.target.value)}>
+                <select id="pathway" disabled={busy} value={pathwayId} onChange={(e) => changeTarget(schoolId, e.target.value)}>
                   <option value="">Aucun parcours</option>
                   {pathways.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
                 </select>
               </div>
             )}
             {scoped && myScopes.error && <div role="alert" className="section-error"><p>Impossible de lire votre périmètre : aucune école ne peut être proposée.</p><button type="button" className="btn btn-secondary" onClick={myScopes.retry}>Réessayer le périmètre</button></div>}
+            {scoped && scopedPathways.error && <div role="alert" className="section-error"><p>Impossible de charger vos parcours : l’import avec rattachement à un parcours est indisponible.</p><button type="button" className="btn btn-secondary" onClick={scopedPathways.retry}>Réessayer les parcours</button></div>}
+            {targetChanged && <Notice kind="warning"><p>La cible de l’import a changé : l’analyse précédente n’est plus valable. Lancez l’analyse de nouveau avant d’importer.</p></Notice>}
             {noScope && <Notice kind="warning"><p>Aucun périmètre ne vous est attribué : demandez à un super administrateur de vous attribuer une école ou un parcours avant d’importer.</p></Notice>}
             {!noScope && targetMissing && <p className="editor-hint" role="status">Choisissez une école qui vous est attribuée, ou l’un de vos parcours : un import doit s’inscrire dans votre périmètre.</p>}
 
@@ -312,6 +334,7 @@ export function AdminImportPdfPage() {
               <dl>
                 <dt>Fichier</dt><dd>{file?.name}</dd>
                 <dt>École</dt><dd>{schoolName}</dd>
+                {scoped && <><dt>Parcours</dt><dd>{pathwayId ? (pathwayLabel ?? pathwayId) : "Aucun"}</dd></>}
                 <dt>Mode</dt><dd>{createCourse ? "Créer un cours en brouillon" : "Document de référence uniquement"}</dd>
                 <dt>À vérifier</dt><dd>{report?.anomalies.length ?? 0} point(s)</dd>
               </dl>
@@ -325,7 +348,7 @@ export function AdminImportPdfPage() {
                   type="button"
                   className="btn btn-primary"
                   onClick={handleImport}
-                  disabled={busy || schoolLoad.loading || schoolLoad.error || !schoolId}
+                  disabled={busy || schoolLoad.loading || schoolLoad.error || !schoolId || noScope || targetMissing || targetStale}
                 >
                   {importing ? "Import en cours…" : createCourse ? "Valider et importer" : "Verser au corpus"}
                 </button>

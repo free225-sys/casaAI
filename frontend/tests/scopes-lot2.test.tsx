@@ -227,3 +227,71 @@ describe("Lot 2 : import PDF avec cible autorisée", () => {
     expect(adminService.previewPdf).toHaveBeenCalledWith(expect.any(File), undefined);
   });
 });
+
+describe("Lot 2 : réserves R7 et R8 de la revue", () => {
+  const preview = { title: "TEST", pages: 2, sections: [], report: { anomalies: [], document_type: "TEXT", sections: 0, subsections: 0, blocks: 0, lists: 0, tables: 0, formulas: 0, code_blocks: 0, captions: 0 } };
+  const pickFile = async () => { const input = host.querySelector<HTMLInputElement>('input[type="file"]')!; await act(async () => { Object.defineProperty(input, "files", { configurable: true, value: [new File(["T"], "T.pdf", { type: "application/pdf" })] }); input.dispatchEvent(new Event("change", { bubbles: true })); }); };
+  const choose = (id: string, value: string) => act(async () => { const el = host.querySelector<HTMLSelectElement>(`#${id}`)!; el.value = value; el.dispatchEvent(new Event("change", { bubbles: true })); });
+  beforeEach(() => {
+    auth.role = "ADMIN";
+    vi.mocked(adminService.previewPdf).mockResolvedValue(preview as never);
+    vi.mocked(adminService.importPdf).mockResolvedValue({ title: "TEST", course_id: "c", lesson_id: "l", pages_extracted: 2, warning: null, document_id: "d", report: null } as never);
+    vi.mocked(adminService.getMyScopes).mockResolvedValue(scopes(["s2"], ["p1"]) as never);
+  });
+  it("R8 : changer la cible après l'aperçu l'invalide, retire la validation et exige une nouvelle analyse", async () => {
+    await mount(<AdminImportPdfPage />);
+    await pickFile();
+    await choose("school", "s1"); await choose("pathway", "p1");
+    await click(button("Analyser"));
+    expect(button("Valider et importer")).toBeTruthy();
+    expect(host.querySelector(".import-decision")?.textContent).toContain("Parcours");
+    expect(host.querySelector(".import-decision")?.textContent).toContain("Parcours 1");
+    await choose("pathway", "");
+    expect([...host.querySelectorAll("button")].some(b => b.textContent === "Valider et importer")).toBe(false);
+    expect(host.textContent).toContain("La cible de l’import a changé");
+    expect(button("Analyser").disabled).toBe(true);
+    expect(adminService.importPdf).not.toHaveBeenCalled();
+    await choose("pathway", "p1");
+    await click(button("Analyser"));
+    expect(adminService.previewPdf).toHaveBeenCalledTimes(2);
+    await click(button("Valider et importer"));
+    expect(adminService.importPdf).toHaveBeenCalledTimes(1);
+    expect(adminService.importPdf).toHaveBeenCalledWith(expect.any(File), "s1", true, "p1");
+  });
+  it("R8 : changer l'école de l'aperçu invalide aussi, même avec le même parcours", async () => {
+    await mount(<AdminImportPdfPage />);
+    await pickFile();
+    await choose("school", "s1"); await choose("pathway", "p1");
+    await click(button("Analyser"));
+    await choose("school", "s3");
+    expect([...host.querySelectorAll("button")].some(b => b.textContent === "Valider et importer")).toBe(false);
+    expect(host.textContent).toContain("La cible de l’import a changé");
+  });
+  it("R7 : un parcours attribué non publié reste proposé sous une étiquette explicite et part dans l'aperçu", async () => {
+    vi.mocked(adminService.getMyScopes).mockResolvedValue(scopes([], ["p1", "p9"]) as never);
+    await mount(<AdminImportPdfPage />);
+    expect([...host.querySelectorAll<HTMLOptionElement>("#pathway option")].map(o => o.textContent)).toEqual(["Aucun parcours", "Parcours 1", "Parcours attribué non publié (p9)"]);
+    await pickFile();
+    await choose("pathway", "p9");
+    await click(button("Analyser"));
+    expect(adminService.previewPdf).toHaveBeenCalledWith(expect.any(File), { schoolId: "s1", pathwayId: "p9" });
+  });
+  it("R7 : une panne du référentiel des parcours est signalée avec retry, jamais une liste vide silencieuse", async () => {
+    vi.mocked(adminService.getMyScopes).mockResolvedValue(scopes(["s2"], ["p1"]) as never);
+    vi.mocked(contentService.listPathways).mockRejectedValueOnce(new Error("Offline"));
+    await mount(<AdminImportPdfPage />);
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("Impossible de charger vos parcours");
+    expect(host.querySelector("#pathway")).toBeNull();
+    await click(button("Réessayer les parcours"));
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect([...host.querySelectorAll<HTMLOptionElement>("#pathway option")].map(o => o.textContent)).toEqual(["Aucun parcours", "Parcours 1"]);
+  });
+  it("R7 : même signalement dans la création de cours", async () => {
+    vi.mocked(contentService.listPathways).mockRejectedValueOnce(new Error("Offline"));
+    await mount(<AdminCoursesPage />);
+    expect(host.textContent).toContain("Impossible de charger vos parcours");
+    await click(button("Réessayer les parcours"));
+    expect(host.textContent).not.toContain("Impossible de charger vos parcours");
+  });
+});
+

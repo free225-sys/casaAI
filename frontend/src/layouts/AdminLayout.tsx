@@ -10,6 +10,7 @@ const TABS = [
   { to: "/admin/users", label: "Utilisateurs", roles: ["SUPER_ADMIN"] as const },
   { to: "/admin/progress", label: "Progression", roles: ["SUPER_ADMIN"] as const },
   { to: "/admin/certifications", label: "Certifications", roles: ["SUPER_ADMIN"] as const },
+  { to: "/admin/certification-requests", label: "Demandes CASA", roles: ["SUPER_ADMIN"] as const },
   { to: "/admin/courses", label: "Cours", roles: ["ADMIN", "SUPER_ADMIN"] as const },
   { to: "/admin/import-pdf", label: "Importer un PDF", roles: ["ADMIN", "SUPER_ADMIN"] as const },
 ];

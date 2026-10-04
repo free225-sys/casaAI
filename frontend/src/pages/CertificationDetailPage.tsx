@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { certificationService } from "../services/certificationService";
 import { RevealSection } from "../components/RevealSection";
 import { CourseSkeleton } from "../components/Skeleton";
+import { CertificationRequestSection } from "../components/CertificationRequestSection";
 import type { CertificationDetail, CertificationEligibility } from "../types/api";
 
 function StatusIcon({ satisfied }: { satisfied: boolean | null }) {
@@ -54,6 +55,9 @@ export function CertificationDetailPage() {
             >
               {eligibility.eligible ? "Conditions remplies" : "Conditions non encore remplies"}
             </span>
+            <p className="text-caption" style={{ marginTop: 10 }}>
+              Éligibilité indicative, calculée à partir de votre progression : elle ne délivre aucune certification. La validation officielle est une décision de CASA Institut, à demander ci-dessous.
+            </p>
           </div>
         )}
       </RevealSection>
@@ -84,6 +88,7 @@ export function CertificationDetailPage() {
           );
         })}
       </div>
+      {certificationId && <CertificationRequestSection certificationId={certificationId} certificationTitle={cert.title} />}
     </div>
   );
 }

@@ -4,6 +4,7 @@ const statuses = {
   PUBLISHED: ["published", "Publié"], DRAFT: ["draft", "Brouillon"], ARCHIVED: ["draft", "Archivé"],
   COMPLETED: ["done", "Terminée"], IN_PROGRESS: ["progress", "En cours"], NOT_STARTED: ["draft", "À commencer"],
   UNAVAILABLE: ["unavailable", "Indisponible"],
+  SUBMITTED: ["progress", "En attente de décision CASA"], APPROVED: ["done", "Approuvée par CASA"], REJECTED: ["warning", "Refusée par CASA"],
 } as const;
 export function Status({ value }: { value: keyof typeof statuses }) {
   const [kind, label] = statuses[value];

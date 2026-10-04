@@ -340,6 +340,8 @@ export interface CourseQuizScore {
 }
 
 export interface CourseCertificateEligibility {
+  /** Le calcul est indicatif : aucune décision officielle (contrat du Lot 3). */
+  official_decision_required?: boolean;
   course_id: string;
   threshold: number;
   quizzes: CourseQuizScore[];
@@ -351,10 +353,43 @@ export interface CourseCertificateEligibility {
 }
 
 export interface CourseCertificate {
+  /** `LEGACY_AUTOMATIC` : certificat délivré automatiquement avant la validation officielle CASA, conservé tel quel. */
+  provenance?: string;
   id: string;
   course_id: string;
   average_score: number;
   issued_at: string;
+}
+
+// --- Demandes de certification officielle (Lot 3, contrat `CertificationRequestOut`) -------------
+
+export type CertificationRequestStatus = "SUBMITTED" | "APPROVED" | "REJECTED";
+
+export interface CertificationRequest {
+  id: string;
+  user_id: string;
+  certification_id: string;
+  statement: string;
+  evidence_ids: string[];
+  /** Copie des preuves au moment de la demande : base stable de l'examen. */
+  evidence_snapshot: Array<Record<string, unknown>>;
+  status: CertificationRequestStatus;
+  submitted_at: string;
+  decided_by: string | null;
+  decided_at: string | null;
+  reason: string | null;
+  official_certificate_id?: string | null;
+}
+
+export interface CertificationRequestInput {
+  certification_id: string;
+  evidence_ids: string[];
+  statement: string;
+}
+
+export interface CertificationDecisionInput {
+  decision: "APPROVED" | "REJECTED";
+  reason: string;
 }
 
 // --- Administration -----------------------------------------------------

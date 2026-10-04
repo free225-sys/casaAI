@@ -23,6 +23,9 @@ import { CertificationDetailPage } from "./pages/CertificationDetailPage";
 import { RequireRole } from "./components/RequireRole";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { AdminUserScopesPage } from "./pages/admin/AdminUserScopesPage";
+import { AdminCertificationRequestsPage } from "./pages/admin/AdminCertificationRequestsPage";
+import { AdminCertificationRequestDetailPage } from "./pages/admin/AdminCertificationRequestDetailPage";
+import { CertificationRequestsPage } from "./pages/CertificationRequestsPage";
 import { AdminCoursesPage } from "./pages/admin/AdminCoursesPage";
 import { AdminCourseLessonsPage } from "./pages/admin/AdminCourseLessonsPage";
 import { AdminLessonEditPage } from "./pages/admin/AdminLessonEditPage";
@@ -114,6 +117,14 @@ function App() {
               }
             />
             <Route
+              path="/app/certification-requests"
+              element={
+                <RequireLearner>
+                  <CertificationRequestsPage />
+                </RequireLearner>
+              }
+            />
+            <Route
               path="/app/certifications/:certificationId"
               element={
                 <RequireLearner>
@@ -138,6 +149,24 @@ function App() {
               element={
                 <RequireRole roles={["SUPER_ADMIN"]}>
                   <AdminUserScopesPage />
+                </RequireRole>
+              }
+            />
+
+            {/* Réservé à SUPER_ADMIN (représentant CASA) : examen et décision des demandes de certification officielle */}
+            <Route
+              path="/admin/certification-requests"
+              element={
+                <RequireRole roles={["SUPER_ADMIN"]}>
+                  <AdminCertificationRequestsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/admin/certification-requests/:requestId"
+              element={
+                <RequireRole roles={["SUPER_ADMIN"]}>
+                  <AdminCertificationRequestDetailPage />
                 </RequireRole>
               }
             />

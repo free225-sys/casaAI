@@ -16,7 +16,8 @@ export function CertificationsPage() {
     <div>
       <RevealSection as="div">
         <h1 style={{ fontSize: "1.7rem", marginBottom: 8 }}>Certifications</h1>
-        <p style={{ marginBottom: 32 }}>Des critères explicites, vérifiés à partir de votre progression réelle.</p>
+        <p style={{ marginBottom: 16 }}>Des critères explicites, vérifiés à partir de votre progression réelle. La certification officielle est délivrée par CASA Institut après examen de votre demande.</p>
+        <p style={{ marginBottom: 32 }}><Link to="/app/certification-requests" className="btn btn-secondary">Mes demandes de certification</Link></p>
       </RevealSection>
 
       {certifications === null ? (

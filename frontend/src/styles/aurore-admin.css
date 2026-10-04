@@ -153,3 +153,22 @@
 .editor fieldset.subpanel > legend + * { clear: both; }
 /* R1 : une date dans une cellule reste une cellule de tableau en desktop ; `.admin-sub` n'est un bloc que dans un contenu de cellule. */
 @media (min-width: 721px) { td.admin-sub { display: table-cell; margin-top: 0; } }
+
+/* Demandes de certification officielle (apprenant et SUPER_ADMIN) : lecture sobre, aucune bordure ni liseré coloré (D10). */
+.request-section { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-6); }
+.request-view { display: flex; flex-direction: column; gap: var(--space-3); }
+.request-view h3 { font-size: var(--text-md); margin-top: var(--space-3); }
+.request-statement { white-space: pre-wrap; overflow-wrap: anywhere; }
+.request-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px var(--space-4); margin: 0; font-size: var(--text-sm); }
+.request-facts > div { display: contents; }
+.request-facts dt { color: var(--color-text-muted); }
+.request-facts dd { margin: 0; overflow-wrap: anywhere; }
+.request-evidence { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.request-evidence dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px var(--space-4); margin: 0; font-size: var(--text-sm); }
+.request-evidence dl > div { display: contents; }
+.request-evidence dt { color: var(--color-text-muted); }
+.request-evidence dd { margin: 0; overflow-wrap: anywhere; }
+.decision-form { display: flex; flex-direction: column; gap: var(--space-4); }
+@media (max-width: 720px) {
+  .request-facts, .request-evidence dl { grid-template-columns: minmax(0, 1fr); }
+}

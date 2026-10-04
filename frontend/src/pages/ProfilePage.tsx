@@ -462,7 +462,7 @@ export function ProfilePage() {
           <StatCard
             to="/app/certifications"
             value={certificates === null ? "…" : String(certificates.length)}
-            label={`Certificat${(certificates?.length ?? 0) > 1 ? "s" : ""} obtenu${(certificates?.length ?? 0) > 1 ? "s" : ""}`}
+            label={`Certificat${(certificates?.length ?? 0) > 1 ? "s" : ""} historique${(certificates?.length ?? 0) > 1 ? "s" : ""}`}
           />
           <StatCard
             to="/app/portfolio"

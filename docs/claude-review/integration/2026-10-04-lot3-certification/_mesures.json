@@ -1,0 +1,220 @@
+{
+ "decision_envoyee_par_le_navigateur": [
+  {
+   "decision": "APPROVED",
+   "reason": "Dossier conforme."
+  }
+ ],
+ "ecrans": [
+  {
+   "screen": "demande-formulaire",
+   "role": "LEARNER",
+   "viewport": "desktop-1440",
+   "h1": "TEST certification IA",
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-formulaire",
+   "role": "LEARNER",
+   "viewport": "mobile-390",
+   "h1": "TEST certification IA",
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-formulaire",
+   "role": "LEARNER",
+   "viewport": "mobile-320",
+   "h1": "TEST certification IA",
+   "scrollWidth": 320,
+   "clientWidth": 320,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-en-attente",
+   "role": "LEARNER",
+   "viewport": "desktop-1440",
+   "h1": "TEST certification IA",
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-en-attente",
+   "role": "LEARNER",
+   "viewport": "mobile-390",
+   "h1": "TEST certification IA",
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-en-attente",
+   "role": "LEARNER",
+   "viewport": "mobile-320",
+   "h1": "TEST certification IA",
+   "scrollWidth": 320,
+   "clientWidth": 320,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-refusee",
+   "role": "LEARNER",
+   "viewport": "desktop-1440",
+   "h1": "TEST certification IA",
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-refusee",
+   "role": "LEARNER",
+   "viewport": "mobile-390",
+   "h1": "TEST certification IA",
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-refusee",
+   "role": "LEARNER",
+   "viewport": "mobile-320",
+   "h1": "TEST certification IA",
+   "scrollWidth": 320,
+   "clientWidth": 320,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-approuvee",
+   "role": "LEARNER",
+   "viewport": "desktop-1440",
+   "h1": "Mes demandes de certification",
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-approuvee",
+   "role": "LEARNER",
+   "viewport": "mobile-390",
+   "h1": "Mes demandes de certification",
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "demande-approuvee",
+   "role": "LEARNER",
+   "viewport": "mobile-320",
+   "h1": "Mes demandes de certification",
+   "scrollWidth": 320,
+   "clientWidth": 320,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "file-casa",
+   "role": "SUPER_ADMIN",
+   "viewport": "desktop-1440",
+   "h1": "Demandes de certification",
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "file-casa",
+   "role": "SUPER_ADMIN",
+   "viewport": "mobile-390",
+   "h1": "Demandes de certification",
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "file-casa",
+   "role": "SUPER_ADMIN",
+   "viewport": "mobile-320",
+   "h1": "Demandes de certification",
+   "scrollWidth": 320,
+   "clientWidth": 320,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "decision-casa",
+   "role": "SUPER_ADMIN",
+   "viewport": "desktop-1440",
+   "h1": "Demande : TEST certification IA",
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "decision-casa",
+   "role": "SUPER_ADMIN",
+   "viewport": "mobile-390",
+   "h1": "Demande : TEST certification IA",
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "decision-casa",
+   "role": "SUPER_ADMIN",
+   "viewport": "mobile-320",
+   "h1": "Demande : TEST certification IA",
+   "scrollWidth": 320,
+   "clientWidth": 320,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "decision-casa-confirmation",
+   "role": "SUPER_ADMIN",
+   "viewport": "desktop-1440",
+   "h1": "Demande : TEST certification IA",
+   "scrollWidth": 1440,
+   "clientWidth": 1440,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "decision-casa-confirmation",
+   "role": "SUPER_ADMIN",
+   "viewport": "mobile-390",
+   "h1": "Demande : TEST certification IA",
+   "scrollWidth": 390,
+   "clientWidth": 390,
+   "axe_violations": [],
+   "js_errors": []
+  },
+  {
+   "screen": "decision-casa-confirmation",
+   "role": "SUPER_ADMIN",
+   "viewport": "mobile-320",
+   "h1": "Demande : TEST certification IA",
+   "scrollWidth": 320,
+   "clientWidth": 320,
+   "axe_violations": [],
+   "js_errors": []
+  }
+ ]
+}

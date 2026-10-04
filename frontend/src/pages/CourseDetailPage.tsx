@@ -17,8 +17,6 @@ export function CourseDetailPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [eligibility, setEligibility] = useState<CourseCertificateEligibility | null>(null);
-  const [issuing, setIssuing] = useState(false);
-  const [issueError, setIssueError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!courseId) return;
@@ -35,21 +33,6 @@ export function CourseDetailPage() {
       .then(setEligibility)
       .catch(() => setEligibility(null));
   }, [courseId, isLearner]);
-
-  const handleIssueCertificate = async () => {
-    if (!courseId) return;
-    setIssuing(true);
-    setIssueError(null);
-    try {
-      await certificationService.issueCourseCertificate(courseId);
-      const refreshed = await certificationService.getCourseCertificateEligibility(courseId);
-      setEligibility(refreshed);
-    } catch {
-      setIssueError("Le certificat n'a pas pu être délivré — vérifiez que le seuil de 80% est atteint.");
-    } finally {
-      setIssuing(false);
-    }
-  };
 
   if (notFound) return <p className="error-text">Ce cours est introuvable.</p>;
   if (!course) return <CourseSkeleton />;
@@ -126,10 +109,11 @@ export function CourseDetailPage() {
 
       {eligibility && eligibility.quizzes.length > 0 && (
         <RevealSection as="div" className="card" style={{ padding: 24, marginTop: 32 }}>
-          <h3 style={{ marginBottom: 6 }}>Certificat de module</h3>
+          <h3 style={{ marginBottom: 6 }}>Résultats aux quiz du cours</h3>
           <p style={{ fontSize: "0.88rem", marginBottom: 18 }}>
-            Réussissez tous les quiz de ce cours avec une moyenne d'au moins {eligibility.threshold}% pour obtenir
-            votre certificat.
+            Calcul indicatif : une moyenne d'au moins {eligibility.threshold}% aux quiz de ce cours ne délivre plus de certificat
+            automatiquement. La certification officielle est une décision de CASA Institut, à{" "}
+            <Link to="/app/certifications">demander depuis les certifications</Link>.
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
@@ -156,21 +140,12 @@ export function CourseDetailPage() {
               {!eligibility.all_attempted && " (quiz restants)"}
             </span>
 
-            {eligibility.already_issued ? (
+            {eligibility.already_issued && (
               <span className="badge badge-teal">
-                Certificat obtenu {eligibility.issued_at && `le ${new Date(eligibility.issued_at).toLocaleDateString("fr-FR")}`}
+                Certificat historique délivré {eligibility.issued_at && `le ${new Date(eligibility.issued_at).toLocaleDateString("fr-FR")}`}
               </span>
-            ) : (
-              <button
-                className="btn btn-primary"
-                disabled={!eligibility.eligible || issuing}
-                onClick={handleIssueCertificate}
-              >
-                {issuing ? "…" : "Obtenir mon certificat"}
-              </button>
             )}
           </div>
-          {issueError && <p className="error-text" style={{ marginTop: 12, fontSize: "0.85rem" }}>{issueError}</p>}
         </RevealSection>
       )}
 

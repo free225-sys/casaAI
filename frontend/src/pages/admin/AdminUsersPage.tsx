@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "../../components/AppLink";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { ConfirmDialog, EmptyState, Notice, PageHeader } from "../../components/ui";
 import { ListSkeleton } from "../../components/Skeleton";
@@ -167,6 +168,11 @@ export function AdminUsersPage() {
                           <option value="ADMIN">{ROLE_LABELS.ADMIN}</option>
                           <option value="SUPER_ADMIN">{ROLE_LABELS.SUPER_ADMIN}</option>
                         </select>
+                        {u.role === "ADMIN" && (
+                          <Link to={`/admin/users/${u.id}/scopes`} state={{ name: fullName(u), email: u.email }} className="btn btn-secondary" aria-label={`Périmètre de ${fullName(u)}`}>
+                            Périmètre
+                          </Link>
+                        )}
                         <button type="button" className="btn btn-secondary" disabled={self || busy} onClick={() => setPending({ kind: "status", user: u })}>
                           {u.status === "ACTIVE" ? "Suspendre" : "Réactiver"}
                         </button>

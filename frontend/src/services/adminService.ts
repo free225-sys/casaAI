@@ -12,6 +12,8 @@ import type {
   AdminQuiz,
   AdminQuizInput,
   AdminQuizListResponse,
+  AdminScopeReplacement,
+  AdminScopes,
   AdminUser,
   MediaUploadResult,
   Page,
@@ -43,9 +45,15 @@ export const adminService = {
     return api.get<Page<AdminCourse>>(`/api/admin/courses?${q.toString()}`, true);
   },
   getCourse: (id: string) => api.get<AdminCourse>(`/api/admin/courses/${id}`, true),
-  createCourse: (data: Partial<AdminCourse>) => api.post<AdminCourse>("/api/admin/courses", data, true),
+  /** `pathway_id` : rattachement atomique à un parcours, autorisé à la création seulement (le serveur refuse un PUT avec parcours). */
+  createCourse: (data: Partial<AdminCourse> & { pathway_id?: string | null }) => api.post<AdminCourse>("/api/admin/courses", data, true),
   updateCourse: (id: string, data: Partial<AdminCourse>) => api.put<AdminCourse>(`/api/admin/courses/${id}`, data),
   deleteCourse: (id: string) => api.delete<void>(`/api/admin/courses/${id}`),
+
+  // --- Périmètres (Lot 2) : attribution école/parcours, remplacement atomique par le SUPER_ADMIN -----
+  getMyScopes: () => api.get<AdminScopes>("/api/admin/me/scopes", true),
+  getUserScopes: (userId: string) => api.get<AdminScopes>(`/api/admin/users/${userId}/scopes`, true),
+  setUserScopes: (userId: string, data: AdminScopeReplacement) => api.put<AdminScopes>(`/api/admin/users/${userId}/scopes`, data),
 
   // --- Leçons -----------------------------------------------------------
   listLessons: (courseId: string) =>
@@ -56,24 +64,31 @@ export const adminService = {
   deleteLesson: (id: string) => api.delete<void>(`/api/admin/lessons/${id}`),
 
   // --- Import PDF -----------------------------------------------------------
-  previewPdf: (file: File) => {
+  /** `target` : école et parcours autorisés, exigés par le serveur pour un ADMIN ; sans effet pour un SUPER_ADMIN. */
+  previewPdf: (file: File, target?: { schoolId?: string; pathwayId?: string }) => {
     const form = new FormData();
     form.append("file", file);
+    if (target?.schoolId) form.append("school_id", target.schoolId);
+    if (target?.pathwayId) form.append("pathway_id", target.pathwayId);
     return api.postForm<PdfPreviewResult>("/api/admin/courses/preview-pdf", form);
   },
 
-  importPdf: (file: File, schoolId: string, createCourse = true) => {
+  importPdf: (file: File, schoolId: string, createCourse = true, pathwayId?: string) => {
     const form = new FormData();
     form.append("school_id", schoolId);
+    if (pathwayId) form.append("pathway_id", pathwayId);
     form.append("file", file);
     form.append("create_course", String(createCourse));
     return api.postForm<PdfImportResult>("/api/admin/courses/import-pdf", form);
   },
 
   // --- Médias (images de section) --------------------------------------
-  uploadSectionImage: (file: File) => {
+  /** Le serveur exige exactement une cible (`course_id` ou `school_id`) : l'éditeur de leçon fournit toujours le cours. */
+  uploadSectionImage: (file: File, target: { courseId?: string; schoolId?: string }) => {
     const form = new FormData();
     form.append("file", file);
+    if (target.courseId) form.append("course_id", target.courseId);
+    else if (target.schoolId) form.append("school_id", target.schoolId);
     return api.postForm<MediaUploadResult>("/api/admin/media/images", form);
   },
 

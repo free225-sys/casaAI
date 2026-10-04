@@ -4,9 +4,13 @@ import { Link } from "../../components/AppLink";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { ConfirmDialog, EmptyState, Notice, PageHeader, Segmented, Status } from "../../components/ui";
 import { ListSkeleton } from "../../components/Skeleton";
+import { useMyScopes } from "../../hooks/useMyScopes";
+import { useScopedPathways } from "../../hooks/useScopedPathways";
 import { adminService } from "../../services/adminService";
+import { useAuth } from "../../stores/authStore";
+import { hasScope, scopePathwayIds, scopeSchoolIds } from "../../utils/scopes";
 import { contentService } from "../../services/contentService";
-import type { AdminCourse, School } from "../../types/api";
+import type { AdminCourse, PathwayListItem, School } from "../../types/api";
 
 type StatusFilter = "all" | "PUBLISHED" | "DRAFT";
 const STATUS_OPTIONS = [
@@ -16,6 +20,11 @@ const STATUS_OPTIONS = [
 ] as const;
 
 export function AdminCoursesPage() {
+  const { user } = useAuth();
+  // Lot 2 : un ADMIN ne gère que le catalogue attribué ; le serveur filtre la liste et ses compteurs, l'écran ne fait que l'expliquer.
+  const scoped = user?.role === "ADMIN";
+  const myScopes = useMyScopes(scoped);
+  const myPathways = useScopedPathways(scoped ? myScopes.scopes : null);
   const [courses, setCourses] = useState<AdminCourse[] | null>(null);
   const [schools, setSchools] = useState<School[]>([]);
   const [schoolsError, setSchoolsError] = useState(false);
@@ -100,6 +109,8 @@ export function AdminCoursesPage() {
     const q = query.trim().toLowerCase();
     return (courses ?? []).filter((c) => !q || c.title.toLowerCase().includes(q));
   }, [courses, query]);
+  const attributedSchoolIds = scoped && myScopes.scopes ? scopeSchoolIds(myScopes.scopes) : [];
+  const noScope = scoped && myScopes.scopes !== null && !hasScope(myScopes.scopes);
   const schoolName = (id: string) => schools.find((school) => school.id === id)?.name ?? id;
   const searching = query.trim().length > 0;
 
@@ -109,16 +120,28 @@ export function AdminCoursesPage() {
         title="Cours"
         description="Cours de tous statuts. Un brouillon reste invisible des apprenants jusqu’à sa publication."
         actions={<>
-          <button type="button" className="btn btn-primary" onClick={() => setShowForm((v) => !v)}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={noScope}
+            title={noScope ? "Un cours se crée dans une école ou un parcours qui vous est attribué." : undefined}
+            onClick={() => setShowForm((v) => !v)}
+          >
             {showForm ? "Annuler" : "Nouveau cours"}
           </button>
         </>}
       />
 
+      {scoped && myScopes.error && <div role="alert" className="section-error"><p>Impossible de lire votre périmètre. La liste ci-dessous reste filtrée par le serveur.</p><button type="button" className="btn btn-secondary" onClick={myScopes.retry}>Réessayer le périmètre</button></div>}
+      {noScope && <Notice kind="warning"><p>Aucun périmètre ne vous est attribué : vous ne voyez aucun contenu. Demandez à un super administrateur de vous attribuer des écoles ou des parcours.</p></Notice>}
+      {scoped && myScopes.scopes && !noScope && <Notice kind="info"><p>Votre périmètre : {scopeSchoolIds(myScopes.scopes).length} école(s) et {scopePathwayIds(myScopes.scopes).length} parcours. La liste est filtrée par le serveur, compteurs compris.</p></Notice>}
       {schoolsError && <div role="alert" className="section-error"><p>Impossible de charger les écoles.</p><button type="button" className="btn btn-secondary" onClick={() => setSchoolsReload(value => value + 1)}>Réessayer les écoles</button></div>}
       {showForm && (
         <CourseCreateForm
           schools={schools}
+          scoped={scoped}
+          attributedSchoolIds={attributedSchoolIds}
+          pathways={myPathways}
           onCreated={() => {
             setShowForm(false);
             refresh();
@@ -144,8 +167,8 @@ export function AdminCoursesPage() {
         {courses === null && !error ? (
           <div className="admin-toolbar"><ListSkeleton count={4} /></div>
         ) : courses !== null && filtered.length === 0 ? (
-          <EmptyState title={searching ? "Aucun cours ne correspond dans cette page" : "Aucun cours pour ce filtre"}>
-            {searching ? "Effacez la recherche ou changez de page." : "Créez un cours, ou importez un PDF depuis l’onglet dédié."}
+          <EmptyState title={searching ? "Aucun cours ne correspond dans cette page" : noScope ? "Aucun contenu dans votre périmètre" : "Aucun cours pour ce filtre"}>
+            {searching ? "Effacez la recherche ou changez de page." : noScope ? "Votre périmètre est vide : ce n’est pas une panne." : "Créez un cours, ou importez un PDF depuis l’onglet dédié."}
           </EmptyState>
         ) : courses !== null && (
           <table className="admin-table">
@@ -205,8 +228,11 @@ export function AdminCoursesPage() {
   );
 }
 
-function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated: () => void }) {
-  const [schoolId, setSchoolId] = useState(schools[0]?.id ?? "");
+function CourseCreateForm({ schools, scoped, attributedSchoolIds, pathways, onCreated }: { schools: School[]; scoped: boolean; attributedSchoolIds: string[]; pathways: PathwayListItem[]; onCreated: () => void }) {
+  const [schoolId, setSchoolId] = useState(attributedSchoolIds.find(id => schools.some(school => school.id === id)) ?? schools[0]?.id ?? "");
+  const [pathwayId, setPathwayId] = useState("");
+  // Contrat du Lot 2 : un ADMIN crée dans une école attribuée ou en fournissant un parcours attribué ; le serveur reste l'autorité.
+  const targetMissing = scoped && !attributedSchoolIds.includes(schoolId) && !pathwayId;
   const [title, setTitle] = useState("");
   const [level, setLevel] = useState("");
   const [description, setDescription] = useState("");
@@ -223,7 +249,7 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
     setError(null);
     try {
       await adminService.createCourse({
-        school_id: schoolId, title, level: level || null, description: description || null, status: "DRAFT",
+        school_id: schoolId, pathway_id: scoped && pathwayId ? pathwayId : undefined, title, level: level || null, description: description || null, status: "DRAFT",
       });
       onCreated();
     } catch (err) {
@@ -243,10 +269,21 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
           onChange={(e) => setSchoolId(e.target.value)}
         >
           {schools.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
+            <option key={s.id} value={s.id}>{s.name}{scoped && attributedSchoolIds.includes(s.id) ? " (attribuée)" : ""}</option>
           ))}
         </select>
       </div>
+      {scoped && pathways.length > 0 && (
+        <div className="field">
+          <label htmlFor="pathway">Parcours (facultatif)</label>
+          <select id="pathway" value={pathwayId} onChange={(e) => setPathwayId(e.target.value)}>
+            <option value="">Aucun parcours</option>
+            {pathways.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+          </select>
+          <p className="editor-hint">Le cours est rattaché à ce parcours dès sa création.</p>
+        </div>
+      )}
+      {targetMissing && <p className="editor-hint" role="status">Cette école ne vous est pas attribuée : choisissez l’un de vos parcours pour y rattacher le cours.</p>}
       <div className="field">
         <label htmlFor="title">Titre</label>
         <input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -262,7 +299,7 @@ function CourseCreateForm({ schools, onCreated }: { schools: School[]; onCreated
       {error && <Notice>{error}</Notice>}
       <div className="form-foot">
         <span className="admin-count">Le cours est créé en brouillon.</span>
-        <button type="submit" className="btn btn-primary" disabled={submitting || !title || !schoolId}>
+        <button type="submit" className="btn btn-primary" disabled={submitting || !title || !schoolId || targetMissing}>
           {submitting ? "Création…" : "Créer le cours (brouillon)"}
         </button>
       </div>

@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "../../components/AppLink";
 import { useAsyncSection } from "../../hooks/useAsyncSection";
+import { useMyScopes } from "../../hooks/useMyScopes";
+import { useScopedPathways } from "../../hooks/useScopedPathways";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { Notice, PageHeader, Stepper } from "../../components/ui";
 import { adminService } from "../../services/adminService";
 import { contentService } from "../../services/contentService";
+import { useAuth } from "../../stores/authStore";
+import { hasScope, scopeSchoolIds } from "../../utils/scopes";
 import type {
   PdfImportResult,
   PdfPreviewResult,
@@ -78,8 +82,17 @@ function SectionNode({ section, depth }: { section: PdfPreviewSection; depth: nu
 }
 
 export function AdminImportPdfPage() {
+  const { user } = useAuth();
+  // Lot 2 : un ADMIN n'importe que dans une école attribuée (et un parcours attribué, facultatif) ; le corpus sans cours est réservé au SUPER_ADMIN.
+  const scoped = user?.role === "ADMIN";
+  const myScopes = useMyScopes(scoped);
   const schoolLoad = useAsyncSection(contentService.listSchools);
-  const schools: School[] = schoolLoad.data ?? [];
+  const allSchools: School[] = schoolLoad.data ?? [];
+  const attributedSchoolIds = scoped && myScopes.scopes ? scopeSchoolIds(myScopes.scopes) : [];
+  const schools: School[] = allSchools;
+  const pathways = useScopedPathways(scoped ? myScopes.scopes : null);
+  const [pathwayId, setPathwayId] = useState("");
+  const noScope = scoped && myScopes.scopes !== null && !hasScope(myScopes.scopes);
   const fileInput = useRef<HTMLInputElement>(null);
   const mounted = useRef(false);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
@@ -92,9 +105,17 @@ export function AdminImportPdfPage() {
   const [result, setResult] = useState<PdfImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const schoolKey = schools.map(school => school.id).join("|");
+  const attributedKey = attributedSchoolIds.join("|");
   useEffect(() => {
-    if (!schoolId && schoolLoad.data?.length) setSchoolId(schoolLoad.data[0].id);
-  }, [schoolId, schoolLoad.data]);
+    const ids = schoolKey ? schoolKey.split("|") : [];
+    const attributed = attributedKey ? attributedKey.split("|") : [];
+    // L'école choisie doit toujours appartenir à la liste ; un ADMIN part d'une école qui lui est attribuée quand il en a une.
+    if (ids.length === 0) { if (schoolId) setSchoolId(""); }
+    else if (!ids.includes(schoolId)) setSchoolId(attributed.find(id => ids.includes(id)) ?? ids[0]);
+  }, [schoolId, schoolKey, attributedKey]);
+  // Contrat du Lot 2 : un ADMIN fournit une école attribuée OU un parcours attribué ; le serveur reste l'autorité.
+  const targetMissing = scoped && !attributedSchoolIds.includes(schoolId) && !pathwayId;
 
   const chooseFile = (chosen: File | null) => {
     if (analyzing || importing) return;
@@ -111,7 +132,7 @@ export function AdminImportPdfPage() {
     setAnalyzing(true);
     setError(null);
     try {
-      const preview = await adminService.previewPdf(file);
+      const preview = await adminService.previewPdf(file, scoped ? { schoolId, pathwayId: pathwayId || undefined } : undefined);
       if (mounted.current) setPreview(preview);
     } catch (err) {
       if (mounted.current) setError(err instanceof Error ? err.message : "Échec de l'analyse.");
@@ -125,7 +146,7 @@ export function AdminImportPdfPage() {
     setImporting(true);
     setError(null);
     try {
-      const result = await adminService.importPdf(file, schoolId, createCourse);
+      const result = await adminService.importPdf(file, schoolId, scoped ? true : createCourse, scoped && pathwayId ? pathwayId : undefined);
       if (mounted.current) setResult(result);
     } catch (err) {
       if (mounted.current) setError(err instanceof Error ? err.message : "Échec de l'import.");
@@ -191,10 +212,23 @@ export function AdminImportPdfPage() {
                 onChange={(e) => setSchoolId(e.target.value)}
               >
                 {schools.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id}>{s.name}{scoped && attributedSchoolIds.includes(s.id) ? " (attribuée)" : ""}</option>
                 ))}
               </select>
             </div>
+
+            {pathways.length > 0 && (
+              <div className="field">
+                <label htmlFor="pathway">Parcours (facultatif)</label>
+                <select id="pathway" disabled={busy} value={pathwayId} onChange={(e) => setPathwayId(e.target.value)}>
+                  <option value="">Aucun parcours</option>
+                  {pathways.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+                </select>
+              </div>
+            )}
+            {scoped && myScopes.error && <div role="alert" className="section-error"><p>Impossible de lire votre périmètre : aucune école ne peut être proposée.</p><button type="button" className="btn btn-secondary" onClick={myScopes.retry}>Réessayer le périmètre</button></div>}
+            {noScope && <Notice kind="warning"><p>Aucun périmètre ne vous est attribué : demandez à un super administrateur de vous attribuer une école ou un parcours avant d’importer.</p></Notice>}
+            {!noScope && targetMissing && <p className="editor-hint" role="status">Choisissez une école qui vous est attribuée, ou l’un de vos parcours : un import doit s’inscrire dans votre périmètre.</p>}
 
             <fieldset className="choice-group">
               <legend>Que doit produire l’import ?</legend>
@@ -204,8 +238,8 @@ export function AdminImportPdfPage() {
                   <span><strong>Un cours en brouillon</strong><span>Cours et leçon créés en brouillon, à relire puis publier.</span></span>
                 </label>
                 <label className="choice">
-                  <input type="radio" name="pdf-mode" checked={!createCourse} disabled={busy} onChange={() => setCreateCourse(false)} />
-                  <span><strong>Un document de référence</strong><span>Versé au corpus documentaire, aucun cours créé. Pour un ouvrage entier.</span></span>
+                  <input type="radio" name="pdf-mode" checked={!createCourse} disabled={busy || scoped} onChange={() => setCreateCourse(false)} />
+                  <span><strong>Un document de référence</strong><span>Versé au corpus documentaire, aucun cours créé. Pour un ouvrage entier.{scoped && " Réservé aux super administrateurs."}</span></span>
                 </label>
               </div>
             </fieldset>
@@ -215,7 +249,7 @@ export function AdminImportPdfPage() {
 
             <div className="form-foot">
               <span className="admin-count">{preview ? "Analyse affichée ci-dessous." : "L’analyse ne crée rien."}</span>
-              <button type="submit" className="btn btn-primary" disabled={busy || !file}>
+              <button type="submit" className="btn btn-primary" disabled={busy || !file || !schoolId || noScope || targetMissing}>
                 {analyzing ? "Analyse en cours…" : "Analyser"}
               </button>
             </div>

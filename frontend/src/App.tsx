@@ -22,6 +22,7 @@ import { CertificationsPage } from "./pages/CertificationsPage";
 import { CertificationDetailPage } from "./pages/CertificationDetailPage";
 import { RequireRole } from "./components/RequireRole";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { AdminUserScopesPage } from "./pages/admin/AdminUserScopesPage";
 import { AdminCoursesPage } from "./pages/admin/AdminCoursesPage";
 import { AdminCourseLessonsPage } from "./pages/admin/AdminCourseLessonsPage";
 import { AdminLessonEditPage } from "./pages/admin/AdminLessonEditPage";
@@ -127,6 +128,16 @@ function App() {
               element={
                 <RequireRole roles={["SUPER_ADMIN"]}>
                   <AdminUsersPage />
+                </RequireRole>
+              }
+            />
+
+            {/* Réservé à SUPER_ADMIN : attribution du périmètre (écoles, parcours) d'un administrateur de contenu */}
+            <Route
+              path="/admin/users/:userId/scopes"
+              element={
+                <RequireRole roles={["SUPER_ADMIN"]}>
+                  <AdminUserScopesPage />
                 </RequireRole>
               }
             />

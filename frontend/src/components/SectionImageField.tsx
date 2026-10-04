@@ -3,6 +3,8 @@ import { adminService } from "../services/adminService";
 import { API_BASE_URL } from "../services/apiClient";
 
 interface SectionImageFieldProps {
+  /** Cours de la leçon éditée : cible obligatoire du téléversement (contrat média du Lot 2). */
+  courseId: string;
   imageUrl: string | null | undefined;
   imageAlt: string | null | undefined;
   onChange: (imageUrl: string | null, imageAlt: string | null) => void;
@@ -21,7 +23,7 @@ const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 /** Champ "image de section" : bouton d'import, aperçu, texte alternatif,
  * suppression. Utilisé à côté de chaque section de texte dans l'éditeur de
  * leçon (formulaire admin « Ajouter un cours »). */
-export function SectionImageField({ imageUrl, imageAlt, onChange }: SectionImageFieldProps) {
+export function SectionImageField({ courseId, imageUrl, imageAlt, onChange }: SectionImageFieldProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +46,7 @@ export function SectionImageField({ imageUrl, imageAlt, onChange }: SectionImage
 
     setUploading(true);
     try {
-      const result = await adminService.uploadSectionImage(file);
+      const result = await adminService.uploadSectionImage(file, { courseId });
       onChange(result.url, imageAlt ?? "");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Échec de l'import de l'image.");

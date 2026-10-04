@@ -182,6 +182,7 @@ function AdminLessonEditPageContent() {
                 <textarea id={`section-body-${i}`} rows={4} value={sec.body} onChange={(e) => setSections(sections.map((s, j) => (j === i ? { ...s, body: e.target.value } : s)))} />
               </div>
               <SectionImageField
+              courseId={courseId ?? ""}
                 imageUrl={sec.image_url}
                 imageAlt={sec.image_alt}
                 onChange={(imageUrl, imageAlt) =>

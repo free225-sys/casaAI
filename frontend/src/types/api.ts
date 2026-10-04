@@ -370,6 +370,28 @@ export interface AdminUser {
   last_login_at: string | null;
 }
 
+// --- Périmètres d'administration (Lot 2, contrat `ScopesOut` / `ScopeReplacement`) ----------------
+
+export interface ScopeGrant {
+  school_id: string | null;
+  pathway_id: string | null;
+  assigned_by: string | null;
+  assigned_at: string;
+}
+
+/** Périmètre d'un compte d'administration. `global_access` : SUPER_ADMIN, aucun filtre côté serveur. */
+export interface AdminScopes {
+  school_ids?: string[];
+  pathway_ids?: string[];
+  grants: ScopeGrant[];
+  global_access: boolean;
+}
+
+export interface AdminScopeReplacement {
+  school_ids: string[];
+  pathway_ids: string[];
+}
+
 export interface AdminLearnerProgressSummary {
   user_id: string;
   first_name: string;

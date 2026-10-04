@@ -5,6 +5,7 @@ import { PathwayIcon, SchoolIcon } from "../components/ModuleIcon";
 import { EmptyState, PageHeader, Segmented } from "../components/ui";
 import { CardGridSkeleton } from "../components/Skeleton";
 import { contentService } from "../services/contentService";
+import { allPages } from "../utils/pagination";
 import type { CourseListItem, LabListItem, PathwayListItem } from "../types/api";
 
 /** Couleurs de repli par catégorie quand l'élément n'a pas de couleur propre
@@ -15,18 +16,6 @@ const FALLBACK_ACCENT = {
   course: "var(--color-primary)",
   lab: "var(--color-primary)",
 } as const;
-
-async function allPages<T>(read: (params: { limit: number; offset: number }) => Promise<{ items: T[]; total: number }>, limit: number): Promise<T[]> {
-  const items: T[] = [];
-  let total = 1;
-  while (items.length < total) {
-    const page = await read({ limit, offset: items.length });
-    total = page.total;
-    if (page.items.length === 0 && items.length < total) throw new Error("Catalogue incomplet.");
-    items.push(...page.items);
-  }
-  return items;
-}
 
 interface Searchable { title: string; description: string | null; level: string | null }
 /** Filtre pur (niveau puis texte) : défini hors du composant pour que les `useMemo` n'aient que des dépendances d'état. */

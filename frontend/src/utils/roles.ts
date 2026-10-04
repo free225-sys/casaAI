@@ -27,7 +27,7 @@ export const KNOWN_ROUTES: ReadonlyArray<readonly [pattern: string, roles: reado
   ["/app/dashboard", LEARNER], ["/app/lessons/:id", LEARNER], ["/app/skills/:id/practice", LEARNER], ["/app/quizzes", LEARNER],
   ["/app/quizzes/:id", LEARNER], ["/app/portfolio", LEARNER], ["/app/certifications", LEARNER], ["/app/certifications/:id", LEARNER],
   ["/admin/courses", ADMINS], ["/admin/courses/:id", ADMINS], ["/admin/courses/:id/lessons/:id", ADMINS], ["/admin/quizzes/:id", ADMINS], ["/admin/import-pdf", ADMINS],
-  ["/admin/users", SUPER], ["/admin/progress", SUPER], ["/admin/progress/:id", SUPER], ["/admin/certifications", SUPER], ["/admin/certifications/:id", SUPER],
+  ["/admin/users", SUPER], ["/admin/users/:id/scopes", SUPER], ["/admin/progress", SUPER], ["/admin/progress/:id", SUPER], ["/admin/certifications", SUPER], ["/admin/certifications/:id", SUPER],
 ];
 
 /** Routes d'authentification : jamais une destination de retour (revenir à la connexion après s'être connecté n'a pas de sens). */

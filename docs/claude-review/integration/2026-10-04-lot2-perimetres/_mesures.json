@@ -1,0 +1,338 @@
+[
+ {
+  "screen": "scopes-attribution",
+  "role": "SUPER_ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Périmètre d’un administrateur",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "scopes-attribution",
+  "role": "SUPER_ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Périmètre d’un administrateur",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "scopes-attribution",
+  "role": "SUPER_ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Périmètre d’un administrateur",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "scopes-attribution-enregistre",
+  "role": "SUPER_ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Périmètre d’un administrateur",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [
+   {
+    "school_ids": [
+     "s1",
+     "s2"
+    ],
+    "pathway_ids": [
+     "p2",
+     "p3"
+    ]
+   }
+  ],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "scopes-attribution-enregistre",
+  "role": "SUPER_ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Périmètre d’un administrateur",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [
+   {
+    "school_ids": [
+     "s1",
+     "s2"
+    ],
+    "pathway_ids": [
+     "p2",
+     "p3"
+    ]
+   }
+  ],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "scopes-attribution-enregistre",
+  "role": "SUPER_ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Périmètre d’un administrateur",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [
+   {
+    "school_ids": [
+     "s1",
+     "s2"
+    ],
+    "pathway_ids": [
+     "p2",
+     "p3"
+    ]
+   }
+  ],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "utilisateurs",
+  "role": "SUPER_ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Utilisateurs",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "utilisateurs",
+  "role": "SUPER_ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Utilisateurs",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "utilisateurs",
+  "role": "SUPER_ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Utilisateurs",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "catalogue-admin-perimetre",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Cours",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "catalogue-admin-perimetre",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Cours",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "catalogue-admin-perimetre",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Cours",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "catalogue-admin-sans-perimetre",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Cours",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "catalogue-admin-sans-perimetre",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Cours",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "catalogue-admin-sans-perimetre",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Cours",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "import-pdf-admin",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Importer un PDF",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": [
+   [
+    "school_id=s2",
+    "pathway_id=p3"
+   ]
+  ]
+ },
+ {
+  "screen": "import-pdf-admin",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Importer un PDF",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": [
+   [
+    "school_id=s1",
+    "pathway_id=p3"
+   ]
+  ]
+ },
+ {
+  "screen": "import-pdf-admin",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Importer un PDF",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": [
+   [
+    "school_id=s1",
+    "pathway_id=p3"
+   ]
+  ]
+ },
+ {
+  "screen": "import-pdf-admin-sans-perimetre",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Importer un PDF",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "import-pdf-admin-sans-perimetre",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Importer un PDF",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "import-pdf-admin-sans-perimetre",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Importer un PDF",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "creation-cours-admin-ecole-non-attribuee",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Cours",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "creation-cours-admin-ecole-non-attribuee",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Cours",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ },
+ {
+  "screen": "creation-cours-admin-ecole-non-attribuee",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Cours",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "put_bodies": [],
+  "preview_form_fields": []
+ }
+]

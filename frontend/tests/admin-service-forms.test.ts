@@ -62,3 +62,14 @@ describe("Demandes de certification (contrat du Lot 3)", () => {
     expect(calls.post.mock.calls[1].slice(0, 2)).toEqual(["/api/admin/certification-requests/r1/decision", { decision: "REJECTED", reason: "M" }]);
   });
 });
+
+describe("Aperçus d'administration (contrat du Lot 4)", () => {
+  it("utilise les routes d'aperçu dédiées, en lecture seule", async () => {
+    await adminService.previewLesson("l1");
+    await adminService.previewLessonDocument("l1");
+    await adminService.previewQuiz("q1");
+    expect(calls.get.mock.calls.map(call => call[0])).toEqual(["/api/admin/preview/lessons/l1", "/api/admin/preview/lessons/l1/document", "/api/admin/preview/quizzes/q1"]);
+    expect(calls.post).not.toHaveBeenCalled();
+    expect(calls.put).not.toHaveBeenCalled();
+  });
+});

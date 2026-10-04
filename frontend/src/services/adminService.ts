@@ -15,6 +15,7 @@ import type {
   AdminScopeReplacement,
   AdminScopes,
   AdminUser,
+  LessonDocument,
   MediaUploadResult,
   Page,
   PdfImportResult,
@@ -54,6 +55,11 @@ export const adminService = {
   getMyScopes: () => api.get<AdminScopes>("/api/admin/me/scopes", true),
   getUserScopes: (userId: string) => api.get<AdminScopes>(`/api/admin/users/${userId}/scopes`, true),
   setUserScopes: (userId: string, data: AdminScopeReplacement) => api.put<AdminScopes>(`/api/admin/users/${userId}/scopes`, data),
+
+  // --- Aperçus d'administration (Lot 4) : lecture seule, soumis au périmètre, sans suivi ni tentative ni badge ----
+  previewLesson: (id: string) => api.get<AdminLesson>(`/api/admin/preview/lessons/${id}`, true),
+  previewLessonDocument: (id: string) => api.get<LessonDocument>(`/api/admin/preview/lessons/${id}/document`, true),
+  previewQuiz: (id: string) => api.get<AdminQuiz>(`/api/admin/preview/quizzes/${id}`, true),
 
   // --- Leçons -----------------------------------------------------------
   listLessons: (courseId: string) =>

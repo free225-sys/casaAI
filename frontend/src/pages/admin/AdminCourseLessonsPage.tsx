@@ -89,6 +89,7 @@ export function AdminCourseLessonsPage() {
                   </td>
                   <td className="col-actions">
                     <div className="admin-actions">
+                      <Link to={`/admin/preview/lessons/${l.id}`} className="btn btn-secondary" aria-label={`Aperçu de ${l.title}`}>Aperçu</Link>
                       <Link to={`/admin/courses/${courseId}/lessons/${l.id}`} className="btn btn-secondary">Éditer</Link>
                       <button type="button" className="btn btn-danger" onClick={() => setToDelete(l)}>Supprimer</button>
                     </div>

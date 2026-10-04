@@ -1,0 +1,227 @@
+[
+ {
+  "screen": "apercu-lecon",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Leçon brouillon à relire",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/preview/lessons/l1",
+   "GET /api/admin/preview/lessons/l1/document"
+  ]
+ },
+ {
+  "screen": "apercu-lecon",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Leçon brouillon à relire",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/preview/lessons/l1",
+   "GET /api/admin/preview/lessons/l1/document"
+  ]
+ },
+ {
+  "screen": "apercu-lecon",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Leçon brouillon à relire",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/preview/lessons/l1",
+   "GET /api/admin/preview/lessons/l1/document"
+  ]
+ },
+ {
+  "screen": "apercu-quiz",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "Quiz de validation brouillon",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/preview/quizzes/q1"
+  ]
+ },
+ {
+  "screen": "apercu-quiz",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "Quiz de validation brouillon",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/preview/quizzes/q1"
+  ]
+ },
+ {
+  "screen": "apercu-quiz",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "Quiz de validation brouillon",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/preview/quizzes/q1"
+  ]
+ },
+ {
+  "screen": "liste-lecons-apercu",
+  "role": "ADMIN",
+  "viewport": "desktop-1440",
+  "h1": "TEST cours",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/courses/c1",
+   "GET /api/admin/lessons",
+   "GET /api/admin/quizzes"
+  ]
+ },
+ {
+  "screen": "liste-lecons-apercu",
+  "role": "ADMIN",
+  "viewport": "mobile-390",
+  "h1": "TEST cours",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/courses/c1",
+   "GET /api/admin/lessons",
+   "GET /api/admin/quizzes"
+  ]
+ },
+ {
+  "screen": "liste-lecons-apercu",
+  "role": "ADMIN",
+  "viewport": "mobile-320",
+  "h1": "TEST cours",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 0,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/auth/me",
+   "GET /api/me/notifications",
+   "GET /api/admin/courses/c1",
+   "GET /api/admin/lessons",
+   "GET /api/admin/quizzes"
+  ]
+ },
+ {
+  "screen": "lab-sans-score",
+  "role": "LEARNER",
+  "viewport": "desktop-1440",
+  "h1": "TEST lab",
+  "scrollWidth": 1440,
+  "clientWidth": 1440,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 1,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/labs/lab",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "screen": "lab-sans-score",
+  "role": "LEARNER",
+  "viewport": "mobile-390",
+  "h1": "TEST lab",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 1,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/labs/lab",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ },
+ {
+  "screen": "lab-sans-score",
+  "role": "LEARNER",
+  "viewport": "mobile-320",
+  "h1": "TEST lab",
+  "scrollWidth": 320,
+  "clientWidth": 320,
+  "axe_violations": [],
+  "js_errors": [],
+  "form_controls_in_page": 1,
+  "range_inputs": 0,
+  "pedagogic_calls": [],
+  "api_calls": [
+   "GET /api/labs/lab",
+   "GET /api/auth/me",
+   "GET /api/me/notifications"
+  ]
+ }
+]

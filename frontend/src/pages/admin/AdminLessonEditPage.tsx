@@ -107,7 +107,11 @@ function AdminLessonEditPageContent() {
   return (
     <AdminLayout>
       <Link to={backTo} className="admin-back">← Retour aux leçons</Link>
-      <PageHeader title={isNew ? "Nouvelle leçon" : "Modifier la leçon"} description="Les modifications ne sont enregistrées qu’avec le bouton « Enregistrer la leçon »." />
+      <PageHeader
+        title={isNew ? "Nouvelle leçon" : "Modifier la leçon"}
+        description="Les modifications ne sont enregistrées qu’avec le bouton « Enregistrer la leçon »."
+        actions={!isNew && lessonId ? <Link to={`/admin/preview/lessons/${lessonId}`} className="btn btn-secondary">Aperçu de la leçon</Link> : undefined}
+      />
       {error && <Notice>{error}</Notice>}
 
       <div className="editor">
@@ -235,12 +239,15 @@ function AdminLessonEditPageContent() {
               <h2 id="lesson-quiz" style={{ fontSize: "1rem" }}>Quiz de validation</h2>
               <p className="editor-hint">{validationQuizId ? "Cette leçon a déjà un quiz de validation." : "Aucun quiz de validation pour l’instant."}</p>
             </div>
-            <Link
-              to={validationQuizId ? `/admin/quizzes/${validationQuizId}?back=${quizBack}` : `/admin/quizzes/new?kind=VALIDATION&lesson_id=${lessonId}&back=${quizBack}`}
-              className="btn btn-secondary"
-            >
-              {validationQuizId ? "Gérer le quiz" : "Créer un quiz"}
-            </Link>
+            <span className="ui-row">
+              {validationQuizId && <Link to={`/admin/preview/quizzes/${validationQuizId}`} className="btn btn-secondary">Aperçu du quiz</Link>}
+              <Link
+                to={validationQuizId ? `/admin/quizzes/${validationQuizId}?back=${quizBack}` : `/admin/quizzes/new?kind=VALIDATION&lesson_id=${lessonId}&back=${quizBack}`}
+                className="btn btn-secondary"
+              >
+                {validationQuizId ? "Gérer le quiz" : "Créer un quiz"}
+              </Link>
+            </span>
           </section>
         )}
 

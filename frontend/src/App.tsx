@@ -23,6 +23,8 @@ import { CertificationDetailPage } from "./pages/CertificationDetailPage";
 import { RequireRole } from "./components/RequireRole";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { AdminUserScopesPage } from "./pages/admin/AdminUserScopesPage";
+import { AdminPreviewLessonPage } from "./pages/admin/AdminPreviewLessonPage";
+import { AdminPreviewQuizPage } from "./pages/admin/AdminPreviewQuizPage";
 import { AdminCertificationRequestsPage } from "./pages/admin/AdminCertificationRequestsPage";
 import { AdminCertificationRequestDetailPage } from "./pages/admin/AdminCertificationRequestDetailPage";
 import { CertificationRequestsPage } from "./pages/CertificationRequestsPage";
@@ -149,6 +151,24 @@ function App() {
               element={
                 <RequireRole roles={["SUPER_ADMIN"]}>
                   <AdminUserScopesPage />
+                </RequireRole>
+              }
+            />
+
+            {/* Aperçus d'administration (Lot 4) : lecture seule, soumis au périmètre, sans effet pédagogique */}
+            <Route
+              path="/admin/preview/lessons/:lessonId"
+              element={
+                <RequireRole roles={["ADMIN", "SUPER_ADMIN"]}>
+                  <AdminPreviewLessonPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/admin/preview/quizzes/:quizId"
+              element={
+                <RequireRole roles={["ADMIN", "SUPER_ADMIN"]}>
+                  <AdminPreviewQuizPage />
                 </RequireRole>
               }
             />

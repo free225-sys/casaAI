@@ -221,6 +221,7 @@ function AdminQuizEditPageContent() {
             {saving ? "Enregistrement…" : "Enregistrer le quiz"}
           </button>
           <Link to={backTo} className="btn btn-secondary">Annuler</Link>
+          {!isNew && quizId && <Link to={`/admin/preview/quizzes/${quizId}`} className="btn btn-secondary">Aperçu du quiz</Link>}
           {!isNew && <button type="button" className="btn btn-danger spacer" onClick={() => setConfirmDelete(true)} disabled={saving}>Supprimer le quiz</button>}
         </div>
       </div>

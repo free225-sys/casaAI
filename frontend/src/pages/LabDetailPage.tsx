@@ -19,7 +19,6 @@ export function LabDetailPage() {
 
   const [mode, setMode] = useState("");
   const [submissionText, setSubmissionText] = useState("");
-  const [score, setScore] = useState(70);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<LabResult | null>(null);
 
@@ -44,7 +43,6 @@ export function LabDetailPage() {
       const res = await progressService.submitLab(labId, {
         mode: mode || undefined,
         submission: submissionText ? { texte: submissionText } : undefined,
-        score,
       });
       setResult(res);
     } finally {
@@ -107,7 +105,7 @@ export function LabDetailPage() {
           <span className="badge badge-teal" style={{ marginBottom: 12 }}>
             Soumission enregistrée
           </span>
-          <p>Votre travail a bien été soumis pour évaluation.</p>
+          <p>Votre entraînement est enregistré. Il ne donne ni note ni certification : la certification officielle est une décision de CASA Institut.</p>
         </div>
       ) : (
         <div className="card" style={{ padding: 24 }}>
@@ -152,18 +150,6 @@ export function LabDetailPage() {
                 fontSize: "0.9rem",
                 resize: "vertical",
               }}
-            />
-          </div>
-
-          <div className="field" style={{ marginBottom: 20 }}>
-            <label htmlFor="score">Auto-évaluation ({score}/100)</label>
-            <input
-              id="score"
-              type="range"
-              min={0}
-              max={100}
-              value={score}
-              onChange={(e) => setScore(Number(e.target.value))}
             />
           </div>
 

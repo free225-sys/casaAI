@@ -13,7 +13,7 @@ export function RootLayout({ children }: { children: ReactNode }) {
       <main id="contenu" style={{ flex: 1, padding: "40px 0 80px" }}>
         <div className={learn ? "container container--learn" : "container"}>{children}</div>
       </main>
-      <footer className="site-footer">
+      <footer className={pathname === "/login" ? "site-footer site-footer--center" : "site-footer"}>
         <div className="container">
           <p>Propulsé par <a href="http://www.relaisit.com/" target="_blank" rel="noopener noreferrer">Relais IT<span className="sr-only"> (s’ouvre dans un nouvel onglet)</span></a></p>
         </div>

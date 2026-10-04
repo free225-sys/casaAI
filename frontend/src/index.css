@@ -1279,7 +1279,8 @@ a.card:active {
 @media (max-width: 400px) { .nav-bar { gap: 6px; } .nav-brand { font-size: 1rem; } .nav-tools { gap: 4px; } .nav-tools .btn { padding-inline: 10px; } }
 
 /* Signature discrète : texte seul, sans liseré (D10). */
-.site-footer { padding: 16px 0 24px; font-size: var(--text-xs); color: var(--color-text-muted); text-align: center; }
+.site-footer { padding: 16px 0 24px; font-size: var(--text-xs); color: var(--color-text-muted); text-align: right; }
+.site-footer--center { text-align: center; }
 .site-footer p { margin: 0; }
 .site-footer a { color: var(--color-text); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

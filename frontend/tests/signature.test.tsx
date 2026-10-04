@@ -6,6 +6,21 @@ import { RootLayout } from "../src/layouts/RootLayout";
 
 vi.mock("../src/components/Nav", () => ({ Nav: () => <nav /> }));
 
+const render = async (path: string) => {
+  const host = document.createElement("div"); document.body.append(host);
+  await act(async () => createRoot(host).render(<MemoryRouter initialEntries={[path]}><RootLayout><p>contenu</p></RootLayout></MemoryRouter>));
+  return host;
+};
+
+it("centrée sur /login (querystring comprise), à droite ailleurs, toujours une seule signature", async () => {
+  for (const [path, centered] of [["/login", true], ["/login?next=%2Fapp%2Fdashboard", true], ["/register", false], ["/", false], ["/app/dashboard", false], ["/admin/users", false], ["/loginx", false]] as const) {
+    const host = await render(path);
+    const footer = host.querySelector("footer")!;
+    expect(footer.classList.contains("site-footer--center"), path).toBe(centered);
+    expect(host.querySelectorAll('a[href*="relaisit.com"]'), path).toHaveLength(1);
+  }
+});
+
 it("le pied de page partagé porte une seule signature Relais IT, lien natif sûr", async () => {
   const host = document.createElement("div"); document.body.append(host);
   await act(async () => createRoot(host).render(<MemoryRouter initialEntries={["/login"]}><RootLayout><p>contenu</p></RootLayout></MemoryRouter>));

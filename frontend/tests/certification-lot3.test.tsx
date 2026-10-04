@@ -95,6 +95,19 @@ describe("Lot 3 : demande de certification officielle (apprenant)", () => {
     expect(host.textContent).toContain("<b>gras</b>");
     expect(host.querySelector("dd b")).toBeNull();
   });
+  it("R11 : 409 puis rechargement en panne puis retry conserve la déclaration corrigée", async () => {
+    const rejected = request({ status: "REJECTED", reason: "Insuffisant", decided_at: "2026-10-04T09:00:00Z" });
+    vi.mocked(certificationService.listMyRequests).mockResolvedValueOnce(page([rejected]) as never).mockRejectedValueOnce(new Error("Offline")).mockResolvedValue(page([rejected]) as never);
+    vi.mocked(certificationService.submitRequest).mockRejectedValueOnce(new ApiError(409, "identique"));
+    await mount(<CertificationRequestSection certificationId="c1" certificationTitle="TEST certification" />);
+    await type("#request-statement", "Déclaration corrigée");
+    await click(button("Envoyer mon dossier corrigé à CASA"));
+    expect(host.textContent).toContain("L’actualisation de vos demandes a échoué");
+    expect(host.querySelector<HTMLTextAreaElement>("#request-statement")!.value).toBe("Déclaration corrigée");
+    await click(button("Réessayer la demande"));
+    expect(host.querySelector<HTMLTextAreaElement>("#request-statement")!.value).toBe("Déclaration corrigée");
+    expect(host.textContent).not.toContain("L’actualisation de vos demandes a échoué");
+  });
   it("une demande approuvée affiche l'identifiant du certificat officiel émis, sans lien de téléchargement inventé", async () => {
     vi.mocked(certificationService.listMyRequests).mockResolvedValue(page([request({ status: "APPROVED", reason: "Conforme", official_certificate_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", decided_at: "2026-10-04T09:00:00Z" })]) as never);
     await mount(<CertificationRequestSection certificationId="c1" certificationTitle="TEST certification" />);

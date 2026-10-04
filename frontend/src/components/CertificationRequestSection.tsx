@@ -110,13 +110,14 @@ export function CertificationRequestSection({ certificationId, certificationTitl
   const current = useMemo(() => (requests ? currentRequest(requests) : null), [requests]);
   const earlier = useMemo(() => (requests ?? []).filter(request => request.id !== current?.id).sort((a, b) => b.submitted_at.localeCompare(a.submitted_at)), [requests, current]);
 
-  if (loadError) return <div role="alert" className="section-error"><p>Impossible de charger votre demande de certification.</p><button type="button" className="btn btn-secondary" onClick={retry}>Réessayer la demande</button></div>;
+  if (loadError && requests === undefined) return <div role="alert" className="section-error"><p>Impossible de charger votre demande de certification.</p><button type="button" className="btn btn-secondary" onClick={retry}>Réessayer la demande</button></div>;
   if (requests === undefined) return <p role="status">Chargement de votre demande…</p>;
 
   return (
     <section className="panel request-section" aria-labelledby="request-title">
       <h2 id="request-title">Demande de certification officielle</h2>
       <p className="editor-hint">La certification est une validation officielle délivrée par CASA Institut après examen. Les critères ci-dessus sont une aide : les remplir ne délivre rien.</p>
+      {loadError && <div role="alert" className="section-error"><p>L’actualisation de vos demandes a échoué : l’état affiché peut être ancien. Votre saisie est conservée.</p><button type="button" className="btn btn-secondary" onClick={retry}>Réessayer la demande</button></div>}
       {current ? (
         <>
           <CertificationRequestView request={current} certificationTitle={certificationTitle} />

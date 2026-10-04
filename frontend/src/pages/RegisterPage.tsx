@@ -92,7 +92,7 @@ export function RegisterPage() {
 
         <p style={{ marginTop: 20, fontSize: "0.9rem" }}>
           Déjà inscrit ?{" "}
-          <Link to="/login" style={{ color: "var(--color-accent-blue)" }}>
+          <Link to="/login" style={{ color: "var(--color-accent-blue)", textDecoration: "underline", textUnderlineOffset: 2 }}>
             Se connecter
           </Link>
         </p>

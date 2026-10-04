@@ -52,7 +52,7 @@ export function LoginPage() {
           <div className="field">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <label htmlFor="password">Mot de passe</label>
-              <Link to="/forgot-password" style={{ fontSize: "0.82rem", color: "var(--color-accent-blue)" }}>
+              <Link to="/forgot-password" style={{ fontSize: "0.82rem", color: "var(--color-accent-blue)", textDecoration: "underline", textUnderlineOffset: 2 }}>
                 Mot de passe oublié ?
               </Link>
             </div>
@@ -75,7 +75,7 @@ export function LoginPage() {
 
         <p style={{ marginTop: 20, fontSize: "0.9rem" }}>
           Pas encore de compte ?{" "}
-          <Link to="/register" style={{ color: "var(--color-accent-blue)" }}>
+          <Link to="/register" style={{ color: "var(--color-accent-blue)", textDecoration: "underline", textUnderlineOffset: 2 }}>
             Créer un compte
           </Link>
         </p>

@@ -1277,3 +1277,9 @@ a.card:active {
 @media (max-width: 800px) { .lesson-intro { order: 0; width: 100%; } .lesson-toc { order: 1; } .lesson-main { order: 2; } }
 @media (max-width: 600px) { .catalog-controls { grid-template-columns: minmax(0,1fr); } .icon-btn { min-width: 44px; min-height: 44px; } }
 @media (max-width: 400px) { .nav-bar { gap: 6px; } .nav-brand { font-size: 1rem; } .nav-tools { gap: 4px; } .nav-tools .btn { padding-inline: 10px; } }
+
+/* Signature discrète : texte seul, sans liseré (D10). */
+.site-footer { padding: 16px 0 24px; font-size: var(--text-xs); color: var(--color-text-muted); text-align: center; }
+.site-footer p { margin: 0; }
+.site-footer a { color: var(--color-text); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

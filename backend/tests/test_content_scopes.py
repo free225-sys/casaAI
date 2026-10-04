@@ -542,3 +542,22 @@ def test_dependent_quiz_requires_write_coverage_including_unpublished(client, db
     before = _content_state(db_session)
     assert client.delete('/api/admin/courses/scope-c2', headers=headers(scoped[0]['admin'])).status_code == 409
     assert _content_state(db_session) == before
+
+
+def test_admin_pathway_reference_includes_assigned_drafts_without_school_inference(client, db_session, scoped):
+    auth = headers(scoped[0]['admin'])
+    assert grant(client, scoped, schools=['scope-a']).status_code == 200
+    assert client.get('/api/admin/pathways', headers=auth).json()['total'] == 0
+    grant(client, scoped, pathways=['scope-p1'])
+    result = client.get('/api/admin/pathways?limit=1', headers=auth).json()
+    assert result['total'] == 1 and result['items'] == [{'id': 'scope-p1', 'title': 'First', 'status': 'DRAFT'}]
+    assert client.get('/api/admin/pathways?limit=1&offset=1', headers=auth).json()['items'] == []
+    public = client.get('/api/pathways').json()
+    assert 'scope-p1' not in {item['id'] for item in public['items']}
+    global_auth = headers(scoped[0]['super'])
+    assert client.get('/api/admin/pathways', headers=global_auth).json()['total'] == 2
+    assert client.get('/api/admin/pathways', headers=headers(scoped[0]['learner'])).status_code == 403
+    assert client.get('/api/admin/pathways').status_code == 401
+    assert client.get('/api/admin/pathways?limit=101', headers=auth).status_code == 422
+    grant(client, scoped)
+    assert client.get('/api/admin/pathways', headers=auth).json()['items'] == []

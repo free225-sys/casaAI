@@ -112,7 +112,7 @@ propres demandes seulement, 404 si autre propriétaire.
 `POST /api/admin/certification-requests/{id}/decision` :
 `{decision: "APPROVED" | "REJECTED", reason: string}`.
 Réponses : HTTP 200 pour création ou répétition idempotente de demande.
-Une demande unique par couple user/certification ; payload différent : 409.
+Un dossier SUBMITTED ou APPROVED au maximum par couple user/certification ; les REJECTED restent historiques. Nouveau dossier corrigé après refus selon le protocole previous_request_id ci-dessous ; payload différent pour un retry : 409.
 États : SUBMITTED → APPROVED ou REJECTED, décision terminale ; même décision ET
 même motif répétés idempotents, changement de décision ou motif : 409.
 Pas de réouverture automatique après refus. Motif et statement non blancs, ≤10000
@@ -223,3 +223,39 @@ Une réaffectation de `Course.school_id` ou `Lesson.course_id` avec quiz dépend
 La sauvegarde d'un quiz remplace son assemblage courant, mais conserve inchangées les anciennes questions/options référencées par des réponses, même sans autre quiz courant. La purge protège aussi les références historiques passant seulement par `selected_option_id`. Verrous de lignes sur parents, quiz, questions et options concernés avant vérification/destruction ; insertion FK concurrente bloquée puis, si la cible a été supprimée, rejetée plutôt que validée avec référence perdue. Aucune réponse déjà validée n'est purgée par ces chemins.
 
 Portée de la preuve : opérations administratives cours/leçons/quiz de ce correctif, historique de progression/tentatives/réponses/certificats concernés et comptes promus. Ce n'est pas une garantie de conservation de toutes les données par toute opération de l'application : suppression d'utilisateur, autres opérations de catalogue et concurrence d'une décision CASA avec suspension/changement de rôle ne sont pas validées par ce correctif. Aucun mécanisme de versionnement intégral du quiz ni instantané de tous ses anciens métadonnées n'est ajouté.
+
+## Extension implémentée : nouveau dossier après refus, identité CASA et référentiel de parcours
+
+Décision utilisateur du 4 octobre : autoriser une nouvelle demande corrigée après refus, historique conservé. Une décision reste terminale pour son dossier ; ce n'est pas une réouverture. Aucun nouveau dossier après approbation.
+
+### Dépôt et retry réseau
+
+POST `/api/me/certification-requests` reste réservé à LEARNER actif. Champs inchangés `certification_id`, `statement`, `evidence_ids`, plus `previous_request_id: UUID | null` facultatif. Pour le premier dépôt, omettre ce champ ou envoyer null. Pour une correction, fournir l'identifiant du **dernier dossier refusé sans successeur** du même utilisateur et de la même certification.
+
+- Retry initial sans previous_request_id : même déclaration et mêmes IDs de preuves normalisés → même dossier initial, même s'il a depuis été décidé ; payload différent → 409. Une absence de lien ne crée jamais automatiquement un nouveau dossier après refus.
+- Correction explicite : précédent réel, possédé, même certification, REJECTED et sans successeur ; aucune autre demande SUBMITTED/APPROVED. Crée une nouvelle ligne SUBMITTED avec nouveau UUID, nouveau dépôt et nouvel instantané ; ne modifie aucune ancienne ligne, preuve ou décision.
+- Retry de correction : même previous_request_id et même payload → même successeur, même s'il a depuis été décidé ; payload différent → 409. Réutiliser un ancien refus ayant déjà un successeur ne crée jamais une branche.
+- Au moins déclaration, sélection de preuves ou contenu figé doit avoir été corrigé par rapport au refus. Même déclaration et mêmes preuves inchangées → 409 ; une preuve existante réellement mise à jour peut être recopiée avec les mêmes IDs sans toucher l'ancien instantané.
+- Précédent étranger/inexistant ou d'une autre certification → 404. Précédent SUBMITTED/APPROVED, absence de correction, autre dossier actif/approuvé, ou retry différent → 409. Certification non publiée/preuve étrangère → 404 ; corps invalide → 422. ADMIN/SUPER_ADMIN ne déposent pas de demandes personnelles.
+
+Toutes les réponses de demandes ajoutent previous_request_id, null pour les anciennes et premières demandes. GET `/me/certification-requests` reste un historique paginé, **toutes** les lignes, non une liste d'une ligne par certification. Tri date de dépôt décroissante puis UUID. Utiliser les liens previous_request_id pour déterminer le dernier dossier ; ne pas confondre le retry d'un ancien dossier avec une création. Le frontend doit proposer la correction seulement sur le refus courant, puis conserver les dossiers précédents en lecture seule.
+
+Soumission et décision partagent un verrou transactionnel sur utilisateur/certification. Le serveur revérifie rôle/statut actuels sous verrou de ligne pour déposer, et rôle/statut/publication avant approbation ; instantané de preuves possédées lu sous verrou. Une approbation crée toujours un seul reçu pour son dossier. Les décisions/motifs anciens ne sont jamais remplaçables et une décision idempotente ne réémet aucun reçu. La DB impose en plus une seule ligne non-REJECTED par paire et un seul successeur par précédent.
+
+### Migration 0014 et historique
+
+Migration additive 0014 : colonne previous_request_id nullable (anciens dossiers inchangés), référence self-FK différée sans suppression du précédent, unicité de successeur, index unique partiel sur SUBMITTED/APPROVED ; remplacement de l'ancienne unicité de paire. Aucune suppression/mise à jour des lignes historiques, aucune migration des anciens certificats. Appliquée uniquement à la base supplémentaire vérifiée. Downgrade refuse explicitement si plusieurs dossiers historiques existent pour une paire ; **ne jamais supprimer des refus pour forcer ce retour**. Aucun downgrade réellement exécuté dans cette tâche.
+
+### Nom lisible CASA
+
+Liste, détail et réponse de décision sous `/api/admin/certification-requests` utilisent AdminCertificationRequestOut et ajoutent `applicant_display_name: string | null`. Nom actuel composé de User.first_name/last_name, déjà autorisés au SUPER_ADMIN par les API utilisateurs ; aucun email/statut/rôle ajouté. Fallback user_id si null/vide. La liste charge les noms par jointure SQL, sans lookup frontend par demande et sans N+1 ; détail/décision ont lecture bornée. Réponses /me inchangées sur cette identité, aucune identité d'autrui exposée aux apprenants ou ADMIN. Un changement de nom peut changer ce libellé, pas l'instantané du dossier ni sa décision.
+
+### Référentiel administratif de parcours
+
+GET `/api/admin/pathways?limit=20&offset=0`, ADMIN/SUPER_ADMIN actifs. Réponse `{items:[{id,title,status}],total,limit,offset}` ; limit 1..100, offset >=0. SUPER_ADMIN : tous statuts. ADMIN : seulement les parcours **explicitement attribués**, tous statuts, sans inférence à partir d'une école ou d'un cours. Filtrage avant total/pagination ; ordre title/id. LEARNER 403, anonyme/inactif 401. Catalogue public inchangé : brouillons non exposés. Utiliser ce référentiel pour les attributions SUPER_ADMIN et les titres/cibles ADMIN, avec panne/retry explicites.
+
+Pour créer avec seul scope parcours : school_id est une école réelle choisie comme propriétaire du nouveau cours, pathway_id le parcours explicitement attribué ; create_course=true en PDF. Aucun champ school_id de Pathway n'existe et aucun scope école n'est ajouté. Les administrateurs de l'école propriétaire conservent leurs droits sur ses cours.
+
+### Validation de l'extension
+
+Suite complète de travail : 542 tests backend + 25 contrats sans SQL, tous réussis (567), cinq avertissements de dépendances. Dix-neuf nouveaux cas : redépôt/historique/retries/ownership, nom administratif et coût de requêtes constant, référentiel DRAFT borné, unicité DB native, double dépôt corrigé concurrent (identique et conflit), retry contre approbation, refus concurrents après approbation, approbation bloquée puis refusée après suspension/promotion concurrente du demandeur. Les tests précédents restent présents, seule l'attente du head migratoire passe de 0013 à 0014. Premières préparations corrigées : cache d'authentification différent dans la mesure SQL et date serveur now() identique au sein de la transaction de test ; dépôt daté explicitement au moment de sa création. Cible supplémentaire vide et QA inchangée après les suites. Publication finale exige vérification du commit propre et son SHA dans CLAUDE_SYNC.md.

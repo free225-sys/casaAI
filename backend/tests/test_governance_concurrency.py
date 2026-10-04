@@ -216,3 +216,137 @@ def test_question_cleanup_serializes_option_only_history_insert(committed_govern
             db.execute(delete(Quiz).where(Quiz.id == quiz_id))
             db.execute(delete(Question).where(Question.id.in_([old_q, other_q])))
             db.commit()
+
+
+@pytest.mark.parametrize('conflict', [False, True])
+def test_concurrent_corrected_submissions_create_one_successor(committed_governance, conflict):
+    from datetime import datetime, timezone
+    ids, _, _, certid = committed_governance
+    with Session(engine) as db:
+        previous = CertificationRequest(user_id=ids[0], certification_id=certid, statement='Original',
+                    evidence_ids=[], evidence_snapshot=[], status='REJECTED', reason='Correct the dossier',
+                    decided_by=ids[2], decided_at=datetime.now(timezone.utc))
+        db.add(previous)
+        db.commit()
+        previous_id = previous.id
+    payload = {'certification_id': certid, 'previous_request_id': str(previous_id), 'statement': 'Corrected dossier'}
+    responses = simultaneous([
+        ('POST', '/api/me/certification-requests', ids[0], UserRole.LEARNER, payload),
+        ('POST', '/api/me/certification-requests', ids[0], UserRole.LEARNER,
+         {**payload, 'statement': 'Different corrected dossier' if conflict else 'Corrected dossier'}),
+    ])
+    assert sorted(code for code, _ in responses) == ([200, 409] if conflict else [200, 200])
+    with Session(engine) as db:
+        old = db.get(CertificationRequest, previous_id)
+        assert old.status == 'REJECTED' and old.statement == 'Original' and old.reason == 'Correct the dossier'
+        rows = db.scalars(select(CertificationRequest).where(CertificationRequest.user_id == ids[0])).all()
+        assert len(rows) == 2
+        new = next(row for row in rows if row.id != previous_id)
+        assert new.previous_request_id == previous_id and new.status == 'SUBMITTED'
+        assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == 0
+    if not conflict:
+        assert responses[0][1]['id'] == responses[1][1]['id']
+
+
+def test_corrected_retry_racing_approval_never_creates_another_dossier(committed_governance):
+    from datetime import datetime, timezone
+    ids, _, _, certid = committed_governance
+    with Session(engine) as db:
+        old = CertificationRequest(user_id=ids[0], certification_id=certid, statement='Original',
+                    evidence_ids=[], evidence_snapshot=[], status='REJECTED', reason='Correct',
+                    decided_by=ids[2], decided_at=datetime.now(timezone.utc))
+        db.add(old)
+        db.flush()
+        current = CertificationRequest(user_id=ids[0], certification_id=certid, statement='Corrected dossier',
+                    evidence_ids=[], evidence_snapshot=[], previous_request_id=old.id)
+        db.add(current)
+        db.commit()
+        old_id, current_id = old.id, current.id
+    responses = simultaneous([
+        ('POST', '/api/me/certification-requests', ids[0], UserRole.LEARNER,
+         {'certification_id': certid, 'previous_request_id': str(old_id), 'statement': 'Corrected dossier'}),
+        ('POST', f'/api/admin/certification-requests/{current_id}/decision', ids[2], UserRole.SUPER_ADMIN,
+         {'decision': 'APPROVED', 'reason': 'CASA reviewed'}),
+    ])
+    assert [code for code, _ in responses] == [200, 200]
+    assert responses[0][1]['id'] == str(current_id)
+    with Session(engine) as db:
+        assert db.scalar(select(func.count()).select_from(CertificationRequest)) == 2
+        assert db.get(CertificationRequest, old_id).status == 'REJECTED'
+        assert db.get(CertificationRequest, current_id).status == 'APPROVED'
+        assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == 1
+
+
+def test_concurrent_new_dossiers_after_approval_are_both_refused(committed_governance):
+    from datetime import datetime, timezone
+    ids, _, _, certid = committed_governance
+    with Session(engine) as db:
+        approved = CertificationRequest(user_id=ids[0], certification_id=certid, statement='Approved',
+                    evidence_ids=[], evidence_snapshot=[], status='APPROVED', reason='CASA approved',
+                    decided_by=ids[2], decided_at=datetime.now(timezone.utc))
+        db.add(approved)
+        db.flush()
+        db.add(OfficialCertificate(request_id=approved.id))
+        db.commit()
+        approved_id = approved.id
+    payload = {'certification_id': certid, 'previous_request_id': str(approved_id), 'statement': 'Forbidden new dossier'}
+    responses = simultaneous([('POST', '/api/me/certification-requests', ids[0], UserRole.LEARNER, payload)] * 2)
+    assert [code for code, _ in responses] == [409, 409]
+    with Session(engine) as db:
+        assert db.scalar(select(func.count()).select_from(CertificationRequest)) == 1
+        assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == 1
+
+
+@pytest.mark.parametrize('change', ['suspend', 'promote'])
+def test_approval_waits_for_applicant_change_and_rechecks_committed_state(committed_governance, change):
+    from threading import Event
+    from time import monotonic
+    from sqlalchemy import update, text
+    ids, _, _, certid = committed_governance
+    with Session(engine) as db:
+        request = CertificationRequest(user_id=ids[0], certification_id=certid, statement='Synthetic',
+                                       evidence_ids=[], evidence_snapshot=[])
+        db.add(request)
+        db.commit()
+        request_id = request.id
+    authenticated = Event()
+    pids = {}
+    app = FastAPI()
+    app.include_router(certification_requests.router)
+    def caller(credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme), db: Session = Depends(get_db)):
+        user = get_current_user(credentials, db)
+        pids['approval'] = db.scalar(select(func.pg_backend_pid()))
+        authenticated.set()
+        return user
+    app.dependency_overrides[get_current_user] = caller
+    def approve():
+        with TestClient(app) as client:
+            return client.post(f'/api/admin/certification-requests/{request_id}/decision',
+                headers={'Authorization': 'Bearer ' + create_access_token(ids[2], UserRole.SUPER_ADMIN.value)},
+                json={'decision': 'APPROVED', 'reason': 'CASA review'})
+    with Session(engine) as changer:
+        pids['change'] = changer.scalar(select(func.pg_backend_pid()))
+        value = {'status': AccountStatus.SUSPENDED} if change == 'suspend' else {'role': UserRole.ADMIN}
+        changer.execute(update(User).where(User.id == ids[0]).values(**value))
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(approve)
+            try:
+                assert authenticated.wait(10)
+                blocked = False
+                deadline = monotonic() + 5
+                with engine.connect() as observer:
+                    while monotonic() < deadline and not future.done():
+                        blocked = observer.scalar(text('SELECT wait_event_type FROM pg_stat_activity WHERE pid=:pid'),
+                                                  {'pid': pids['approval']}) == 'Lock'
+                        observer.commit()
+                        if blocked:
+                            break
+                assert blocked, 'Approval did not serialize with applicant mutation'
+            finally:
+                changer.commit()
+            response = future.result(timeout=10)
+        assert response.status_code == 409, response.text
+    assert len(set(pids.values())) == 2
+    with Session(engine) as db:
+        assert db.get(CertificationRequest, request_id).status == 'SUBMITTED'
+        assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == 0

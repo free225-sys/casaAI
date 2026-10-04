@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "CASA roles governance contracts",
-    "version": "1"
+    "version": "2"
   },
   "paths": {
     "/api/admin/preview/lessons/{lesson_id}": {
@@ -490,7 +490,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RequestListOut"
+                  "$ref": "#/components/schemas/AdminRequestListOut"
                 }
               }
             }
@@ -538,7 +538,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CertificationRequestOut"
+                  "$ref": "#/components/schemas/AdminCertificationRequestOut"
                 }
               }
             }
@@ -596,7 +596,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CertificationRequestOut"
+                  "$ref": "#/components/schemas/AdminCertificationRequestOut"
                 }
               }
             }
@@ -936,6 +936,67 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/api/admin/pathways": {
+      "get": {
+        "tags": [
+          "admin-scopes"
+        ],
+        "summary": "Pathway References",
+        "operationId": "pathway_references_api_admin_pathways_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPathwayReferenceListOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -1602,6 +1663,18 @@
             "maxLength": 10000,
             "minLength": 1,
             "title": "Statement"
+          },
+          "previous_request_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Request Id"
           }
         },
         "type": "object",
@@ -1626,6 +1699,18 @@
           "certification_id": {
             "type": "string",
             "title": "Certification Id"
+          },
+          "previous_request_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Request Id"
           },
           "statement": {
             "type": "string",
@@ -2379,6 +2464,227 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "AdminCertificationRequestOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "certification_id": {
+            "type": "string",
+            "title": "Certification Id"
+          },
+          "previous_request_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Request Id"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SUBMITTED",
+              "APPROVED",
+              "REJECTED"
+            ],
+            "title": "Status"
+          },
+          "evidence_snapshot": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Evidence Snapshot"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Submitted At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "official_certificate_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Official Certificate Id"
+          },
+          "applicant_display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applicant Display Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "certification_id",
+          "statement",
+          "evidence_ids",
+          "status",
+          "evidence_snapshot",
+          "submitted_at",
+          "decided_by",
+          "decided_at",
+          "reason"
+        ],
+        "title": "AdminCertificationRequestOut"
+      },
+      "AdminPathwayReferenceListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminPathwayReferenceOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "AdminPathwayReferenceListOut"
+      },
+      "AdminPathwayReferenceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status"
+        ],
+        "title": "AdminPathwayReferenceOut"
+      },
+      "AdminRequestListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminCertificationRequestOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "AdminRequestListOut"
       }
     },
     "securitySchemes": {

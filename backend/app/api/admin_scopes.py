@@ -1,7 +1,7 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import delete, select
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_content_admin, require_super_admin
@@ -11,10 +11,22 @@ from app.models.content import Pathway
 from app.models.enums import UserRole
 from app.models.governance import AdminScope
 from app.models.user import User
-from app.schemas.governance import ScopeReplacement, ScopesOut
+from app.schemas.governance import ScopeReplacement, ScopesOut, AdminPathwayReferenceListOut
 from app.services.content_scope_service import ContentScopeService
 
 router = APIRouter(prefix="/api/admin", tags=["admin-scopes"])
+
+
+@router.get("/pathways", response_model=AdminPathwayReferenceListOut)
+def pathway_references(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0),
+                       db: Session = Depends(get_db), actor: User = Depends(require_content_admin)):
+    query = select(Pathway)
+    if actor.role != UserRole.SUPER_ADMIN:
+        query = query.where(Pathway.id.in_(select(AdminScope.pathway_id).where(
+            AdminScope.user_id == actor.id, AdminScope.pathway_id.is_not(None))))
+    total = db.scalar(select(func.count()).select_from(query.subquery()))
+    items = list(db.scalars(query.order_by(Pathway.title, Pathway.id).limit(limit).offset(offset)))
+    return AdminPathwayReferenceListOut(items=items, total=total, limit=limit, offset=offset)
 
 
 def output(db, target):

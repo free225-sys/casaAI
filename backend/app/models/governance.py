@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -29,6 +29,8 @@ class CertificationRequest(Base):
     id: Mapped[uuid.UUID] = uuid_pk()
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True)
     certification_id: Mapped[str] = mapped_column(String, ForeignKey("certifications.id", ondelete="RESTRICT"))
+    previous_request_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey(
+        "certification_requests.id", ondelete="NO ACTION", deferrable=True, initially="DEFERRED"))
     statement: Mapped[str] = mapped_column(String)
     evidence_ids: Mapped[list] = mapped_column(JSONB)
     evidence_snapshot: Mapped[list] = mapped_column(JSONB)
@@ -38,7 +40,9 @@ class CertificationRequest(Base):
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     reason: Mapped[str | None] = mapped_column(String)
     __table_args__ = (
-        UniqueConstraint("user_id", "certification_id", name="uq_certification_request_subject"),
+        UniqueConstraint("previous_request_id", name="uq_certification_request_previous"),
+        Index("uq_certification_request_open_subject", "user_id", "certification_id", unique=True,
+              postgresql_where=text("status <> 'REJECTED'")),
         CheckConstraint("status IN ('SUBMITTED','APPROVED','REJECTED')", name="ck_certification_request_status"),
         CheckConstraint("(status = 'SUBMITTED' AND decided_at IS NULL AND reason IS NULL) OR "
                         "(status <> 'SUBMITTED' AND decided_at IS NOT NULL AND length(trim(reason)) > 0)",

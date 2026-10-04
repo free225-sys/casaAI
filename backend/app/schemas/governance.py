@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from app.models.enums import ContentStatus
 
 
 class ScopeReplacement(BaseModel):
@@ -27,6 +28,7 @@ class CertificationRequestIn(BaseModel):
     certification_id: str = Field(min_length=1)
     evidence_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100)
     statement: str = Field(min_length=1, max_length=10000)
+    previous_request_id: uuid.UUID | None = None
 
     @field_validator("statement")
     @classmethod
@@ -53,6 +55,7 @@ class CertificationRequestOut(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
     certification_id: str
+    previous_request_id: uuid.UUID | None = None
     statement: str
     evidence_ids: list[uuid.UUID]
     status: Literal["SUBMITTED", "APPROVED", "REJECTED"]
@@ -66,6 +69,28 @@ class CertificationRequestOut(BaseModel):
 
 class RequestListOut(BaseModel):
     items: list[CertificationRequestOut]
+    total: int
+    limit: int
+    offset: int
+
+
+class AdminCertificationRequestOut(CertificationRequestOut):
+    applicant_display_name: str | None = None
+
+
+class AdminRequestListOut(RequestListOut):
+    items: list[AdminCertificationRequestOut]
+
+
+class AdminPathwayReferenceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    title: str
+    status: ContentStatus
+
+
+class AdminPathwayReferenceListOut(BaseModel):
+    items: list[AdminPathwayReferenceOut]
     total: int
     limit: int
     offset: int

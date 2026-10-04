@@ -75,7 +75,7 @@ function Content() {
       {done && <Notice kind="success">Décision enregistrée : demande {request.status === "APPROVED" ? "approuvée, certificat officiel émis" : "refusée"}.</Notice>}
       {error && <Notice>{error}</Notice>}
       <section className="panel request-section" style={{ marginTop: 0 }}>
-        <CertificationRequestView request={request} certificationTitle={title} showApplicant />
+        <CertificationRequestView request={request} certificationTitle={title} showApplicant previousHref={request.previous_request_id ? `/admin/certification-requests/${request.previous_request_id}` : undefined} />
       </section>
 
       {pending && (

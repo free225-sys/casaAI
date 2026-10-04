@@ -62,10 +62,10 @@ export function AdminCertificationRequestsPage() {
             <tbody>
               {items.map(item => (
                 <tr key={item.id}>
-                  <td><span className="admin-title">{titles[item.certification_id] ?? item.certification_id}</span><span className="admin-sub mono">Demandeur {item.user_id}</span></td>
+                  <td><span className="admin-title">{titles[item.certification_id] ?? item.certification_id}</span><span className="admin-sub">Demandeur : {item.applicant_display_name ? item.applicant_display_name : <span className="mono">{item.user_id}</span>}{item.previous_request_id ? " · dossier corrigé après refus" : ""}</span></td>
                   <td className="col-status" data-label="État"><Status value={item.status} /></td>
                   <td className="admin-sub" data-label="Déposée le">{formatDateTime(item.submitted_at)}</td>
-                  <td className="col-actions"><Link to={`/admin/certification-requests/${item.id}`} className="btn btn-secondary" aria-label={`Examiner la demande de ${titles[item.certification_id] ?? item.certification_id}`}>{item.status === "SUBMITTED" ? "Examiner" : "Consulter"}</Link></td>
+                  <td className="col-actions"><Link to={`/admin/certification-requests/${item.id}`} className="btn btn-secondary" aria-label={`${item.status === "SUBMITTED" ? "Examiner" : "Consulter"} la demande de ${item.applicant_display_name ?? item.user_id} pour ${titles[item.certification_id] ?? item.certification_id}`}>{item.status === "SUBMITTED" ? "Examiner" : "Consulter"}</Link></td>
                 </tr>
               ))}
             </tbody>

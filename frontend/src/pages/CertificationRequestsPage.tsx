@@ -5,6 +5,8 @@ import { EmptyState, PageHeader } from "../components/ui";
 import { ListSkeleton } from "../components/Skeleton";
 import { certificationService } from "../services/certificationService";
 import type { CertificationListItem, CertificationRequest } from "../types/api";
+import { successorOf } from "../utils/certificationRequests";
+import { formatDate } from "../utils/dates";
 import { allPages } from "../utils/pagination";
 
 /** Historique personnel des demandes de certification officielle, avec la décision de CASA le cas échéant. */
@@ -42,6 +44,8 @@ export function CertificationRequestsPage() {
       {!error && requests !== null && requests.map(request => (
         <section key={request.id} className="panel request-section" aria-label={`Demande ${titles[request.certification_id] ?? request.certification_id}`}>
           <h2>{titles[request.certification_id] ?? request.certification_id}</h2>
+          {request.previous_request_id && <p className="editor-hint">Dossier corrigé faisant suite au dossier refusé du {formatDate(requests.find(other => other.id === request.previous_request_id)?.submitted_at ?? request.submitted_at)}.</p>}
+          {successorOf(request, requests) && <p className="editor-hint">Ce dossier a été suivi d’un dossier corrigé déposé le {formatDate(successorOf(request, requests)!.submitted_at)}.</p>}
           <CertificationRequestView request={request} certificationTitle={titles[request.certification_id]} />
         </section>
       ))}

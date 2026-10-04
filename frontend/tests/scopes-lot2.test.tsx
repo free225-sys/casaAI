@@ -15,14 +15,15 @@ vi.mock("../src/stores/authStore", () => ({ useAuth: () => ({ user: { id: "me", 
 vi.mock("../src/layouts/AdminLayout", () => ({ AdminLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("../src/services/adminService", () => ({ adminService: {
   getMyScopes: vi.fn(), getUserScopes: vi.fn(), setUserScopes: vi.fn(), listUsers: vi.fn(), listCourses: vi.fn(), createCourse: vi.fn(),
-  previewPdf: vi.fn(), importPdf: vi.fn(),
+  previewPdf: vi.fn(), importPdf: vi.fn(), listPathways: vi.fn(),
 } }));
 vi.mock("../src/services/contentService", () => ({ contentService: { listSchools: vi.fn(), listPathways: vi.fn() } }));
 
 let host: HTMLDivElement;
 let root: Root;
 const schools = [{ id: "s1", name: "École un" }, { id: "s2", name: "École deux" }, { id: "s3", name: "École trois" }];
-const pathwayRows = [1, 2, 3].map(n => ({ id: `p${n}`, title: `Parcours ${n}`, profile_label: null, level: null, duration_label: null, color: null, description: null }));
+const pathwayRows = [1, 2, 3].map(n => ({ id: `p${n}`, title: `Parcours ${n}`, status: "PUBLISHED" }));
+const referential = (all: Array<{ id: string; title: string; status: string }>) => (async ({ limit, offset }: { limit: number; offset: number }) => ({ items: all.slice(offset, offset + limit), total: all.length, limit, offset })) as never;
 const grant = (school_id: string | null, pathway_id: string | null) => ({ school_id, pathway_id, assigned_by: "u0", assigned_at: "2026-10-02T10:00:00Z" });
 const scopes = (school_ids: string[], pathway_ids: string[], global_access = false) => ({ school_ids, pathway_ids, grants: [...school_ids.map(id => grant(id, null)), ...pathway_ids.map(id => grant(null, id))], global_access });
 const button = (text: string) => { const el = [...host.querySelectorAll("button")].find(b => b.textContent === text); if (!el) throw new Error(`Missing button: ${text}`); return el as HTMLButtonElement; };
@@ -36,7 +37,7 @@ beforeEach(() => {
   auth.role = "SUPER_ADMIN";
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   vi.mocked(contentService.listSchools).mockResolvedValue(schools as never);
-  vi.mocked(contentService.listPathways).mockImplementation((async ({ limit, offset }: { limit: number; offset: number }) => ({ items: pathwayRows.slice(offset, offset + limit), total: pathwayRows.length, limit, offset })) as never);
+  vi.mocked(adminService.listPathways).mockImplementation(referential(pathwayRows));
   vi.mocked(adminService.listCourses).mockResolvedValue({ items: [], total: 0, limit: 20, offset: 0 } as never);
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); });
@@ -94,12 +95,21 @@ describe("Lot 2 : attribution du périmètre par le SUPER_ADMIN", () => {
     expect(box("Parcours 1").checked).toBe(true);
     expect(host.textContent).not.toContain("Parcours 2");
   });
+  it("l'écran d'attribution liste tous les statuts de parcours du référentiel administratif et marque les brouillons", async () => {
+    vi.mocked(adminService.listPathways).mockImplementation(referential([{ id: "p1", title: "Parcours publié", status: "PUBLISHED" }, { id: "p2", title: "Parcours brouillon", status: "DRAFT" }, { id: "p3", title: "Parcours ancien", status: "ARCHIVED" }]));
+    vi.mocked(adminService.getUserScopes).mockResolvedValue(scopes([], ["p2"]) as never);
+    await mountScopes();
+    expect(box("Parcours publié")).toBeTruthy();
+    expect(box("Parcours brouillon (brouillon)").checked).toBe(true);
+    expect(box("Parcours ancien (archivé)").checked).toBe(false);
+  });
   it("charge tous les parcours jusqu'au total annoncé", async () => {
-    const many = Array.from({ length: 45 }, (_, i) => ({ ...pathwayRows[0], id: `m${i}`, title: `Parcours massif ${i}` }));
-    vi.mocked(contentService.listPathways).mockImplementation((async ({ limit, offset }: { limit: number; offset: number }) => ({ items: many.slice(offset, offset + limit), total: many.length, limit, offset })) as never);
+    const many = Array.from({ length: 245 }, (_, i) => ({ id: `m${i}`, title: `Parcours massif ${i}`, status: "PUBLISHED" }));
+    vi.mocked(adminService.listPathways).mockImplementation(referential(many));
     vi.mocked(adminService.getUserScopes).mockResolvedValue(scopes([], []) as never);
     await mountScopes();
-    expect(host.querySelectorAll('fieldset input[type="checkbox"]').length).toBe(3 + 45);
+    expect(host.querySelectorAll('fieldset input[type="checkbox"]').length).toBe(3 + 245);
+    expect(vi.mocked(adminService.listPathways).mock.calls.map(call => (call[0] as { offset: number }).offset)).toEqual([0, 100, 200]);
   });
   it("la liste des utilisateurs ne propose le périmètre qu'aux administrateurs de contenu", async () => {
     const user = (id: string, role: string) => ({ id, first_name: role, last_name: "TEST", email: `${id}@example.test`, role, status: "ACTIVE", created_at: "2026-10-01T10:00:00Z", last_login_at: null });
@@ -267,18 +277,20 @@ describe("Lot 2 : réserves R7 et R8 de la revue", () => {
     expect([...host.querySelectorAll("button")].some(b => b.textContent === "Valider et importer")).toBe(false);
     expect(host.textContent).toContain("La cible de l’import a changé");
   });
-  it("R7 : un parcours attribué non publié reste proposé sous une étiquette explicite et part dans l'aperçu", async () => {
-    vi.mocked(adminService.getMyScopes).mockResolvedValue(scopes([], ["p1", "p9"]) as never);
+  it("R7 : un parcours attribué en brouillon est proposé avec son statut, un identifiant introuvable avec une étiquette explicite, et part dans l'aperçu", async () => {
+    vi.mocked(adminService.listPathways).mockImplementation(referential([{ id: "p1", title: "Parcours 1", status: "PUBLISHED" }, { id: "p9", title: "Parcours en préparation", status: "DRAFT" }]));
+    vi.mocked(adminService.getMyScopes).mockResolvedValue(scopes([], ["p1", "p9", "p-disparu"]) as never);
     await mount(<AdminImportPdfPage />);
-    expect([...host.querySelectorAll<HTMLOptionElement>("#pathway option")].map(o => o.textContent)).toEqual(["Aucun parcours", "Parcours 1", "Parcours attribué non publié (p9)"]);
+    expect([...host.querySelectorAll<HTMLOptionElement>("#pathway option")].map(o => o.textContent)).toEqual(["Aucun parcours", "Parcours 1", "Parcours en préparation (brouillon)", "Parcours attribué introuvable (p-disparu)"]);
     await pickFile();
     await choose("pathway", "p9");
     await click(button("Analyser"));
     expect(adminService.previewPdf).toHaveBeenCalledWith(expect.any(File), { schoolId: "s1", pathwayId: "p9" });
+    expect(host.querySelector(".import-decision")?.textContent).toContain("Parcours en préparation (brouillon)");
   });
   it("R7 : une panne du référentiel des parcours est signalée avec retry, jamais une liste vide silencieuse", async () => {
     vi.mocked(adminService.getMyScopes).mockResolvedValue(scopes(["s2"], ["p1"]) as never);
-    vi.mocked(contentService.listPathways).mockRejectedValueOnce(new Error("Offline"));
+    vi.mocked(adminService.listPathways).mockRejectedValueOnce(new Error("Offline"));
     await mount(<AdminImportPdfPage />);
     expect(host.querySelector('[role="alert"]')?.textContent).toContain("Impossible de charger vos parcours");
     expect(host.querySelector("#pathway")).toBeNull();
@@ -287,11 +299,10 @@ describe("Lot 2 : réserves R7 et R8 de la revue", () => {
     expect([...host.querySelectorAll<HTMLOptionElement>("#pathway option")].map(o => o.textContent)).toEqual(["Aucun parcours", "Parcours 1"]);
   });
   it("R7 : même signalement dans la création de cours", async () => {
-    vi.mocked(contentService.listPathways).mockRejectedValueOnce(new Error("Offline"));
+    vi.mocked(adminService.listPathways).mockRejectedValueOnce(new Error("Offline"));
     await mount(<AdminCoursesPage />);
     expect(host.textContent).toContain("Impossible de charger vos parcours");
     await click(button("Réessayer les parcours"));
     expect(host.textContent).not.toContain("Impossible de charger vos parcours");
   });
 });
-

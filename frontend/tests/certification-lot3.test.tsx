@@ -55,14 +55,45 @@ describe("Lot 3 : demande de certification officielle (apprenant)", () => {
     expect(host.textContent).toContain("Preuve un");
     expect(host.querySelector("form")).toBeNull();
   });
-  it("une demande existante remplace le formulaire : pas de nouvelle demande, motif de refus visible, aucune réouverture", async () => {
+  it("après un refus, le dossier refusé reste affiché et un dossier corrigé peut être déposé avec previous_request_id", async () => {
     vi.mocked(certificationService.listMyRequests).mockResolvedValue(page([request({ status: "REJECTED", reason: "Preuves insuffisantes", decided_at: "2026-10-04T09:00:00Z" })]) as never);
+    vi.mocked(certificationService.submitRequest).mockResolvedValue(request({ id: "r2", previous_request_id: "r1", statement: "Déclaration corrigée" }) as never);
     await mount(<CertificationRequestSection certificationId="c1" certificationTitle="TEST certification" />);
-    expect(host.querySelector("form")).toBeNull();
     expect(host.textContent).toContain("Refusée par CASA");
     expect(host.textContent).toContain("Preuves insuffisantes");
-    expect(host.textContent).toContain("n’est pas rouverte automatiquement");
-    expect([...host.querySelectorAll("button")].some(b => /Envoyer|Redemander|Rouvrir/.test(b.textContent ?? ""))).toBe(false);
+    expect(host.textContent).toContain("n’est pas rouvert");
+    expect(host.querySelector("form")).not.toBeNull();
+    expect(host.querySelector<HTMLTextAreaElement>("#request-statement")!.value).toBe("Je remplis les critères.");
+    await type("#request-statement", "Déclaration corrigée");
+    await click(button("Envoyer mon dossier corrigé à CASA"));
+    expect(vi.mocked(certificationService.submitRequest)).toHaveBeenCalledWith({ certification_id: "c1", evidence_ids: ["e1"], statement: "Déclaration corrigée", previous_request_id: "r1" });
+    expect(host.textContent).toContain("Dossiers précédents (1)");
+    expect(host.querySelector("form")).toBeNull();
+  });
+  it("le dossier courant est celui sans successeur ; un premier dépôt n'envoie pas previous_request_id", async () => {
+    vi.mocked(certificationService.listMyRequests).mockResolvedValue(page([
+      request({ id: "r2", previous_request_id: "r1", status: "SUBMITTED", submitted_at: "2026-10-05T10:00:00Z" }),
+      request({ id: "r1", status: "REJECTED", reason: "Insuffisant", decided_at: "2026-10-04T09:00:00Z" }),
+    ]) as never);
+    await mount(<CertificationRequestSection certificationId="c1" certificationTitle="TEST certification" />);
+    expect(host.textContent).toContain("En attente de décision CASA");
+    expect(host.textContent).toContain("Dossiers précédents (1)");
+    expect(host.querySelector("form")).toBeNull();
+    vi.mocked(certificationService.listMyRequests).mockResolvedValue(page([]) as never);
+    vi.mocked(certificationService.submitRequest).mockResolvedValue(request() as never);
+    await mount(<CertificationRequestSection certificationId="c1" certificationTitle="TEST certification" />, "/premier");
+    await type("#request-statement", "Première");
+    await click(button("Envoyer ma demande à CASA"));
+    expect(vi.mocked(certificationService.submitRequest).mock.calls[0][0]).toEqual({ certification_id: "c1", evidence_ids: [], statement: "Première" });
+  });
+  it("les métriques d'une preuve sont affichées de façon structurée et échappée", async () => {
+    vi.mocked(certificationService.listMyRequests).mockResolvedValue(page([request({ evidence_snapshot: [{ id: "e1", title: "Preuve un", context: "c", result: "r", metrics: { reviewed_measure: 7319, detail: { note: "<b>gras</b>" } } }] })]) as never);
+    await mount(<CertificationRequestSection certificationId="c1" certificationTitle="TEST certification" />);
+    expect(host.textContent).toContain("Métriques");
+    expect(host.textContent).toContain("reviewed_measure");
+    expect(host.textContent).toContain("7319");
+    expect(host.textContent).toContain("<b>gras</b>");
+    expect(host.querySelector("dd b")).toBeNull();
   });
   it("une demande approuvée affiche l'identifiant du certificat officiel émis, sans lien de téléchargement inventé", async () => {
     vi.mocked(certificationService.listMyRequests).mockResolvedValue(page([request({ status: "APPROVED", reason: "Conforme", official_certificate_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", decided_at: "2026-10-04T09:00:00Z" })]) as never);
@@ -76,7 +107,7 @@ describe("Lot 3 : demande de certification officielle (apprenant)", () => {
     await type("#request-statement", "Ma déclaration");
     vi.mocked(certificationService.submitRequest).mockRejectedValueOnce(new ApiError(404, "preuve"));
     await click(button("Envoyer ma demande à CASA"));
-    expect(host.textContent).toContain("preuves sélectionnées est introuvable");
+    expect(host.textContent).toContain("est introuvable");
     vi.mocked(certificationService.submitRequest).mockRejectedValueOnce(new ApiError(422, "déclaration vide"));
     await click(button("Envoyer ma demande à CASA"));
     expect(host.textContent).toContain("déclaration vide");
@@ -86,7 +117,7 @@ describe("Lot 3 : demande de certification officielle (apprenant)", () => {
     expect(host.querySelector<HTMLTextAreaElement>("#request-statement")!.value).toBe("Ma déclaration");
     vi.mocked(certificationService.submitRequest).mockRejectedValueOnce(new ApiError(409, "payload différent"));
     await click(button("Envoyer ma demande à CASA"));
-    expect(host.textContent).toContain("ne peut pas être remplacée");
+    expect(host.textContent).toContain("Dépôt refusé par le serveur");
   });
   it("propose un retry sur une panne de chargement, jamais un formulaire vide", async () => {
     vi.mocked(certificationService.listMyRequests).mockRejectedValueOnce(new Error("Offline"));

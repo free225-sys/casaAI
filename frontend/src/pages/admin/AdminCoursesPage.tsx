@@ -11,7 +11,8 @@ import { useAuth } from "../../stores/authStore";
 import { adminRefusal } from "../../utils/adminErrors";
 import { hasScope, scopePathwayIds, scopeSchoolIds } from "../../utils/scopes";
 import { contentService } from "../../services/contentService";
-import type { AdminCourse, PathwayListItem, School } from "../../types/api";
+import { pathwayLabel } from "../../utils/pathways";
+import type { AdminCourse, AdminPathwayReference, School } from "../../types/api";
 
 type StatusFilter = "all" | "PUBLISHED" | "DRAFT";
 const STATUS_OPTIONS = [
@@ -231,7 +232,7 @@ export function AdminCoursesPage() {
   );
 }
 
-function CourseCreateForm({ schools, scoped, attributedSchoolIds, pathways, onCreated }: { schools: School[]; scoped: boolean; attributedSchoolIds: string[]; pathways: PathwayListItem[]; onCreated: () => void }) {
+function CourseCreateForm({ schools, scoped, attributedSchoolIds, pathways, onCreated }: { schools: School[]; scoped: boolean; attributedSchoolIds: string[]; pathways: AdminPathwayReference[]; onCreated: () => void }) {
   const [schoolId, setSchoolId] = useState(attributedSchoolIds.find(id => schools.some(school => school.id === id)) ?? schools[0]?.id ?? "");
   const [pathwayId, setPathwayId] = useState("");
   // Contrat du Lot 2 : un ADMIN crée dans une école attribuée ou en fournissant un parcours attribué ; le serveur reste l'autorité.
@@ -281,7 +282,7 @@ function CourseCreateForm({ schools, scoped, attributedSchoolIds, pathways, onCr
           <label htmlFor="pathway">Parcours (facultatif)</label>
           <select id="pathway" value={pathwayId} onChange={(e) => setPathwayId(e.target.value)}>
             <option value="">Aucun parcours</option>
-            {pathways.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+            {pathways.map((p) => <option key={p.id} value={p.id}>{pathwayLabel(p)}</option>)}
           </select>
           <p className="editor-hint">Le cours est rattaché à ce parcours dès sa création.</p>
         </div>

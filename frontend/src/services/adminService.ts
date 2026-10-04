@@ -9,6 +9,7 @@ import type {
   AdminLearnerProgressSummary,
   AdminLesson,
   AdminLessonListItem,
+  AdminPathwayReference,
   AdminQuiz,
   AdminQuizInput,
   AdminQuizListResponse,
@@ -50,6 +51,10 @@ export const adminService = {
   createCourse: (data: Partial<AdminCourse> & { pathway_id?: string | null }) => api.post<AdminCourse>("/api/admin/courses", data, true),
   updateCourse: (id: string, data: Partial<AdminCourse>) => api.put<AdminCourse>(`/api/admin/courses/${id}`, data),
   deleteCourse: (id: string) => api.delete<void>(`/api/admin/courses/${id}`),
+
+  // Référentiel administratif des parcours, tous statuts : ADMIN limité aux parcours explicitement attribués (le catalogue public ne liste que les publiés).
+  listPathways: (params: { limit?: number; offset?: number } = {}) =>
+    api.get<Page<AdminPathwayReference>>(`/api/admin/pathways?limit=${params.limit ?? 100}&offset=${params.offset ?? 0}`, true),
 
   // --- Périmètres (Lot 2) : attribution école/parcours, remplacement atomique par le SUPER_ADMIN -----
   getMyScopes: () => api.get<AdminScopes>("/api/admin/me/scopes", true),

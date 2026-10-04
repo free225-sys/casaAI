@@ -8,6 +8,7 @@ import { Notice, PageHeader, Stepper } from "../../components/ui";
 import { adminService } from "../../services/adminService";
 import { contentService } from "../../services/contentService";
 import { useAuth } from "../../stores/authStore";
+import { pathwayLabel } from "../../utils/pathways";
 import { hasScope, scopeSchoolIds } from "../../utils/scopes";
 import type {
   PdfImportResult,
@@ -120,7 +121,8 @@ export function AdminImportPdfPage() {
   // Contrat du Lot 2 : un ADMIN fournit une école attribuée OU un parcours attribué ; le serveur reste l'autorité.
   const targetMissing = scoped && !attributedSchoolIds.includes(schoolId) && !pathwayId;
   const targetStale = scoped && !!preview && (analyzedTarget?.schoolId !== schoolId || analyzedTarget?.pathwayId !== pathwayId);
-  const pathwayLabel = pathways.find(p => p.id === pathwayId)?.title;
+  const selectedPathway = pathways.find(p => p.id === pathwayId);
+  const selectedPathwayLabel = selectedPathway ? pathwayLabel(selectedPathway) : undefined;
 
   const [targetChanged, setTargetChanged] = useState(false);
   const changeTarget = (nextSchoolId: string, nextPathwayId: string) => {
@@ -242,7 +244,7 @@ export function AdminImportPdfPage() {
                 <label htmlFor="pathway">Parcours (facultatif)</label>
                 <select id="pathway" disabled={busy} value={pathwayId} onChange={(e) => changeTarget(schoolId, e.target.value)}>
                   <option value="">Aucun parcours</option>
-                  {pathways.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+                  {pathways.map((p) => <option key={p.id} value={p.id}>{pathwayLabel(p)}</option>)}
                 </select>
               </div>
             )}
@@ -334,7 +336,7 @@ export function AdminImportPdfPage() {
               <dl>
                 <dt>Fichier</dt><dd>{file?.name}</dd>
                 <dt>École</dt><dd>{schoolName}</dd>
-                {scoped && <><dt>Parcours</dt><dd>{pathwayId ? (pathwayLabel ?? pathwayId) : "Aucun"}</dd></>}
+                {scoped && <><dt>Parcours</dt><dd>{pathwayId ? (selectedPathwayLabel ?? pathwayId) : "Aucun"}</dd></>}
                 <dt>Mode</dt><dd>{createCourse ? "Créer un cours en brouillon" : "Document de référence uniquement"}</dd>
                 <dt>À vérifier</dt><dd>{report?.anomalies.length ?? 0} point(s)</dd>
               </dl>

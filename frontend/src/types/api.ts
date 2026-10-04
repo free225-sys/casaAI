@@ -368,6 +368,10 @@ export type CertificationRequestStatus = "SUBMITTED" | "APPROVED" | "REJECTED";
 export interface CertificationRequest {
   id: string;
   user_id: string;
+  /** Nom actuel du demandeur, fourni aux seules réponses administratives (SUPER_ADMIN) ; repli sur `user_id` s'il est vide. */
+  applicant_display_name?: string | null;
+  /** Dernier refus que ce dossier corrige (nouveau dossier après refus) ; null pour un premier dépôt. */
+  previous_request_id?: string | null;
   certification_id: string;
   statement: string;
   evidence_ids: string[];
@@ -382,6 +386,8 @@ export interface CertificationRequest {
 }
 
 export interface CertificationRequestInput {
+  /** Dernier dossier refusé et sans successeur, pour déposer un dossier corrigé ; absent pour un premier dépôt ou un retry initial. */
+  previous_request_id?: string | null;
   certification_id: string;
   evidence_ids: string[];
   statement: string;
@@ -403,6 +409,13 @@ export interface AdminUser {
   status: AccountStatus;
   created_at: string;
   last_login_at: string | null;
+}
+
+/** Référentiel administratif des parcours (tous statuts) : SUPER_ADMIN complet, ADMIN limité aux parcours attribués. */
+export interface AdminPathwayReference {
+  id: string;
+  title: string;
+  status: ContentStatus;
 }
 
 // --- Périmètres d'administration (Lot 2, contrat `ScopesOut` / `ScopeReplacement`) ----------------
@@ -510,6 +523,8 @@ export interface AdminLessonSectionInput {
   body: string;
   image_url?: string | null;
   image_alt?: string | null;
+  /** Schéma de la section (flux, hiérarchie, matrice) : conservé tel quel par l'éditeur, affiché en lecture seule dans l'aperçu. */
+  diagram?: MiniDiagramData | null;
 }
 
 export interface AdminLessonDepthLevelInput {

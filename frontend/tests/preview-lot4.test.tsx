@@ -107,4 +107,11 @@ describe("Lot 4 : un lab est un entraînement sans note déclarée", () => {
     expect(host.textContent).toContain("Votre entraînement est enregistré");
     expect(host.textContent).toContain("ne donne ni note ni certification");
   });
+  it("R9 : le schéma d'une section est affiché dans l'aperçu (flux à deux étapes)", async () => {
+    vi.mocked(adminService.previewLesson).mockResolvedValue({ ...lesson, sections: [{ ...lesson.sections[0], diagram: { type: "flow", title: "Processus", steps: ["Première étape", "Seconde étape"] } }] } as never);
+    vi.mocked(adminService.previewLessonDocument).mockRejectedValue(new ApiError(404, "absent"));
+    await lessonPage();
+    expect(host.textContent).toContain("Première étape");
+    expect(host.textContent).toContain("Seconde étape");
+  });
 });

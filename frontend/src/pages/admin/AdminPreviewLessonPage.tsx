@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Link } from "../../components/AppLink";
 import { LessonDocumentView } from "../../components/LessonDocumentView";
+import { MiniDiagram } from "../../components/MiniDiagram";
 import { Notice, PageHeader, Status } from "../../components/ui";
 import { ListSkeleton } from "../../components/Skeleton";
 import { AdminLayout } from "../../layouts/AdminLayout";
@@ -67,6 +68,7 @@ function Content() {
           <section key={index} className="panel editor-panel" aria-labelledby={`preview-section-${index}`}>
             <h2 id={`preview-section-${index}`}>{section.title || `Section ${index + 1}`}</h2>
             {section.body.split(/\n{2,}/).map((paragraph, i) => <p key={i} style={{ whiteSpace: "pre-wrap" }}>{paragraph}</p>)}
+            {section.diagram && <MiniDiagram data={section.diagram} />}
             {section.image_url && <img src={imageSrc(section.image_url)} alt={section.image_alt ?? ""} style={{ maxWidth: "100%", borderRadius: "var(--radius-sm)" }} />}
           </section>
         ))}

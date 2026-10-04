@@ -7,10 +7,11 @@ import { AdminLayout } from "../../layouts/AdminLayout";
 import { ApiError } from "../../services/apiClient";
 import { adminService } from "../../services/adminService";
 import { contentService } from "../../services/contentService";
-import type { AdminScopes, PathwayListItem, School } from "../../types/api";
+import type { AdminPathwayReference, AdminScopes, School } from "../../types/api";
+import { pathwayLabel } from "../../utils/pathways";
 import { allPages } from "../../utils/pagination";
 
-interface Catalogue { schools: School[]; pathways: PathwayListItem[]; scopes: AdminScopes }
+interface Catalogue { schools: School[]; pathways: AdminPathwayReference[]; scopes: AdminScopes }
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
@@ -48,7 +49,7 @@ function AdminUserScopesContent() {
     setLoadError(false); setData(null);
     Promise.all([
       contentService.listSchools(),
-      allPages(contentService.listPathways, 20),
+      allPages(adminService.listPathways, 100),
       adminService.getUserScopes(userId),
     ]).then(([schools, pathways, scopes]) => {
       if (!active) return;
@@ -67,10 +68,10 @@ function AdminUserScopesContent() {
     return [...(data?.schools ?? []).map(school => ({ id: school.id, label: school.name })), ...[...new Set(unknown)].map(id => ({ id, label: `École inconnue (${id})` }))];
   }, [data, schoolIds, saved]);
   const pathwayRows = useMemo(() => {
-    const known = new Map((data?.pathways ?? []).map(pathway => [pathway.id, pathway.title]));
+    const known = new Map((data?.pathways ?? []).map(pathway => [pathway.id, pathwayLabel(pathway)]));
     const unknown = [...new Set([...pathwayIds, ...saved.pathways].filter(id => !known.has(id)))];
     const q = filter.trim().toLowerCase();
-    return [...(data?.pathways ?? []).map(pathway => ({ id: pathway.id, label: pathway.title })), ...unknown.map(id => ({ id, label: `Parcours inconnu (${id})` }))]
+    return [...(data?.pathways ?? []).map(pathway => ({ id: pathway.id, label: pathwayLabel(pathway) })), ...unknown.map(id => ({ id, label: `Parcours inconnu (${id})` }))]
       .filter(row => !q || row.label.toLowerCase().includes(q) || pathwayIds.has(row.id));
   }, [data, pathwayIds, saved, filter]);
 

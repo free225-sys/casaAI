@@ -1,23 +1,7 @@
-"""
-Accès en écriture aux quiz (§15 cahier fonctionnel). Réservé ADMIN/SUPER_ADMIN
-(cf. require_content_admin, câblé dans api/admin_quiz.py).
-
-Simplification assumée pour cette première version de la gestion des quiz :
-chaque Question est considérée comme la propriété exclusive du quiz qui la
-contient (`bank_id` toujours NULL ici), et on la remplace intégralement à
-chaque sauvegarde — même principe que `_replace_nested` pour les sections de
-leçon (cf. admin_content_repository.py) : simple, idempotent, cohérent avec
-le reste du code admin. Le modèle de données prévoit un véritable référentiel
-de questions partagé (QuestionBank, association many-to-many quiz_questions)
-pour une évolution future (réutiliser une question dans plusieurs quiz) ;
-ce n'est pas câblé côté admin pour l'instant — un remplacement intégral
-supprimerait alors aussi les questions d'un autre quiz qui les partagerait.
-
-Toutes les suppressions de Question s'appuient sur les contraintes
-ON DELETE CASCADE déjà en place en base (question_options.question_id,
-quiz_questions.question_id/quiz_id — cf. migrations/versions/0001_initial_
-schema.py) : supprimer une Question purge automatiquement ses options et son
-association à un quiz, sans requête supplémentaire.
+"""Quiz writes preserve shared questions and historical answer references.
+Detached historical questions/options are retained unchanged; only unused,
+unanswered records can be physically deleted. API deletion also refuses quizzes
+with attempts, independently of the learner's current role.
 """
 from __future__ import annotations
 
@@ -25,10 +9,11 @@ import re
 import unicodedata
 import uuid
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, exists, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.quiz import Question, QuestionOption, Quiz, quiz_questions
+from app.models.progress import QuizAttemptAnswer
 from app.schemas.admin import AdminQuizIn
 
 
@@ -130,11 +115,9 @@ class AdminQuizRepository:
             ).scalars()
         )
         if old_question_ids:
-            # Cascade DB vers question_options et quiz_questions — voir
-            # docstring de module.
+            # Historical questions/options remain immutable and detached.
             self.db.execute(delete(quiz_questions).where(quiz_questions.c.quiz_id == quiz.id))
-            still_used = select(quiz_questions.c.question_id)
-            self.db.execute(delete(Question).where(Question.id.in_(old_question_ids), Question.id.not_in(still_used)))
+            self._delete_unused_questions(old_question_ids)
             self.db.flush()
 
         for pos, q in enumerate(data.questions):
@@ -156,6 +139,22 @@ class AdminQuizRepository:
             i += 1
         return candidate
 
+    def _delete_unused_questions(self, question_ids):
+        # Block concurrent FK inserts while deciding whether physical deletion
+        # is safe. A selected option can reference a different question in old
+        # records, so protect both question and option references.
+        list(self.db.scalars(select(Question).where(Question.id.in_(question_ids)).with_for_update()))
+        list(self.db.scalars(select(QuestionOption.id).where(
+            QuestionOption.question_id.in_(question_ids)).with_for_update()))
+        still_used = select(quiz_questions.c.question_id)
+        history = exists(select(QuizAttemptAnswer.id).where(or_(
+            QuizAttemptAnswer.question_id == Question.id,
+            QuizAttemptAnswer.selected_option_id.in_(select(QuestionOption.id).where(
+                QuestionOption.question_id == Question.id).correlate(Question)),
+        )))
+        self.db.execute(delete(Question).where(Question.id.in_(question_ids),
+                                             Question.id.not_in(still_used), ~history))
+
     def delete_quiz(self, quiz: Quiz) -> None:
         old_question_ids = list(
             self.db.execute(
@@ -167,6 +166,5 @@ class AdminQuizRepository:
         if old_question_ids:
             # Questions désormais orphelines (propres à ce quiz — voir
             # docstring de module) : purgées pour ne pas laisser de résidu.
-            still_used = select(quiz_questions.c.question_id)
-            self.db.execute(delete(Question).where(Question.id.in_(old_question_ids), Question.id.not_in(still_used)))
+            self._delete_unused_questions(old_question_ids)
         self.db.flush()

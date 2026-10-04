@@ -327,3 +327,218 @@ def test_pdf_import_can_attach_atomically_to_an_assigned_pathway(client, db_sess
     target["pathway_id"] = "scope-p2"
     assert client.post("/api/admin/courses/import-pdf", headers=auth, files=upload, data=target).status_code == 404
     assert db_session.scalar(select(func.count()).select_from(Course)) == before + 1
+
+# Regression: parent cascades must not bypass scopes or erase learning history.
+@pytest.mark.parametrize('path,school', [
+    ('/api/admin/lessons/scope-other-lesson', 'scope-b'),
+    ('/api/admin/courses/scope-other', 'scope-b'),
+])
+def test_parent_delete_refuses_outside_quiz_cascade(client, db_session, scoped, path, school):
+    grant(client, scoped, schools=[school])
+    mixed = scoped[1]['mixed']
+    attempt = QuizAttempt(user_id=scoped[0]['learner'].id, quiz_id=mixed.id, score=80, passed=True)
+    db_session.add(attempt)
+    db_session.commit()
+    mixed_id, attempt_id = mixed.id, attempt.id
+    response = client.delete(path, headers=headers(scoped[0]['admin']))
+    db_session.expire_all()
+    observed = (response.status_code, db_session.get(Quiz, mixed_id) is not None, db_session.get(QuizAttempt, attempt_id) is not None)
+    assert observed == (409, True, True)
+    assert db_session.get(Lesson, 'scope-other-lesson') is not None
+    assert db_session.get(Course, 'scope-other') is not None
+
+
+@pytest.mark.parametrize('role', ['admin', 'super'])
+def test_course_delete_keeps_promoted_user_historical_certificate(client, db_session, scoped, role):
+    from app.models.certification import CourseCertificate
+    course = Course(id='scope-history', school_id='scope-a', title='History')
+    db_session.add(course)
+    db_session.flush()
+    learner = scoped[0]['learner']
+    learner.role = UserRole.ADMIN
+    cert = CourseCertificate(user_id=learner.id, course_id=course.id, average_score=90)
+    db_session.add(cert)
+    db_session.commit()
+    grant(client, scoped, schools=['scope-a'])
+    cert_id = cert.id
+    response = client.delete('/api/admin/courses/scope-history', headers=headers(scoped[0][role]))
+    db_session.expire_all()
+    assert (response.status_code, db_session.get(CourseCertificate, cert_id) is not None) == (409, True)
+    assert db_session.get(CourseCertificate, cert_id).average_score == 90
+    assert db_session.get(Course, course.id) is not None
+
+
+@pytest.mark.parametrize('role', ['admin', 'super'])
+def test_lesson_delete_keeps_promoted_user_progress(client, db_session, scoped, role):
+    grant(client, scoped, schools=['scope-a'])
+    learner = scoped[0]['learner']
+    learner.role = UserRole.ADMIN
+    progress = UserLessonProgress(user_id=learner.id, lesson_id='scope-c2-lesson', progress_pct=70)
+    db_session.add(progress)
+    db_session.commit()
+    learner_id = learner.id
+    response = client.delete('/api/admin/lessons/scope-c2-lesson', headers=headers(scoped[0][role]))
+    db_session.expire_all()
+    assert (response.status_code, db_session.get(UserLessonProgress, (learner_id, 'scope-c2-lesson')) is not None) == (409, True)
+    assert db_session.get(UserLessonProgress, (learner_id, 'scope-c2-lesson')).progress_pct == 70
+    assert db_session.get(Lesson, 'scope-c2-lesson') is not None
+
+
+def _historical_answer(db_session, scoped, quiz):
+    from app.models.progress import QuizAttemptAnswer
+    question = Question(id='historical-answer', question_text='Original question')
+    db_session.add(question)
+    db_session.flush()
+    option = QuestionOption(question_id=question.id, position=0, option_text='Original answer', is_correct=True)
+    db_session.add(option)
+    db_session.flush()
+    db_session.execute(quiz_questions.insert().values(quiz_id=quiz.id, question_id=question.id, position=0))
+    attempt = QuizAttempt(user_id=scoped[0]['learner'].id, quiz_id=quiz.id, score=100, passed=True)
+    db_session.add(attempt)
+    db_session.flush()
+    answer = QuizAttemptAnswer(attempt_id=attempt.id, question_id=question.id, selected_option_id=option.id, is_correct=True)
+    db_session.add(answer)
+    db_session.commit()
+    return question.id, option.id, attempt.id, answer.id
+
+
+def test_quiz_save_keeps_historical_questions_answers_and_options(client, db_session, scoped):
+    from app.models.progress import QuizAttemptAnswer
+    grant(client, scoped, schools=['scope-a'])
+    quiz = scoped[1]['course']
+    qid, oid, aid, answer_id = _historical_answer(db_session, scoped, quiz)
+    response = client.put(f'/api/admin/quizzes/{quiz.id}', headers=headers(scoped[0]['admin']), json={
+        'title': 'New version', 'course_id': 'scope-c1', 'kind': 'FINAL', 'questions': [
+            {'question_text': 'New question', 'options': [
+                {'option_text': 'Yes', 'is_correct': True}, {'option_text': 'No', 'is_correct': False}]}]})
+    assert response.status_code == 200, response.text
+    db_session.expire_all()
+    assert db_session.get(QuizAttemptAnswer, answer_id) is not None
+    assert db_session.get(QuizAttemptAnswer, answer_id).selected_option_id == oid
+    assert db_session.get(Question, qid).question_text == 'Original question'
+    assert db_session.get(QuestionOption, oid).option_text == 'Original answer'
+    assert db_session.get(QuizAttempt, aid).score == 100
+    current = db_session.scalars(select(quiz_questions.c.question_id).where(quiz_questions.c.quiz_id == quiz.id)).all()
+    assert qid not in current and len(current) == 1
+
+
+@pytest.mark.parametrize('role', ['admin', 'super'])
+def test_quiz_delete_refuses_attempt_history(client, db_session, scoped, role):
+    from app.models.progress import QuizAttemptAnswer
+    grant(client, scoped, schools=['scope-a'])
+    quiz = scoped[1]['course']
+    qid, oid, aid, answer_id = _historical_answer(db_session, scoped, quiz)
+    assert client.delete(f'/api/admin/quizzes/{quiz.id}', headers=headers(scoped[0][role])).status_code == 409
+    db_session.expire_all()
+    assert db_session.get(QuizAttempt, aid) is not None
+    assert db_session.get(QuizAttemptAnswer, answer_id).selected_option_id == oid
+    assert db_session.get(Question, qid) is not None
+
+
+def _content_state(db):
+    from app.models.base import Base
+    names = ['courses', 'lessons', 'quizzes', 'quiz_questions', 'questions', 'question_options',
+             'quiz_attempts', 'quiz_attempt_answers', 'user_lesson_progress', 'course_certificates']
+    return {name: sorted(repr(tuple(row)) for row in db.execute(select(Base.metadata.tables[name]))) for name in names}
+
+
+@pytest.mark.parametrize('path,school,quiz_parent', [
+    ('/api/admin/lessons/scope-other-lesson', 'scope-b', None),
+    ('/api/admin/courses/scope-other', 'scope-b', None),
+    ('/api/admin/courses/scope-c2', 'scope-a', 'scope-c2-lesson'),
+])
+def test_outside_dependency_refused_without_any_attempt(client, db_session, scoped, path, school, quiz_parent):
+    grant(client, scoped, schools=[school])
+    if quiz_parent:
+        # No direct course FK: the indirect lesson cascade must also be checked.
+        db_session.add(Quiz(title='indirect outside', lesson_id=quiz_parent, course_id='scope-other'))
+        db_session.commit()
+    before = _content_state(db_session)
+    assert client.delete(path, headers=headers(scoped[0]['admin'])).status_code == 409
+    assert _content_state(db_session) == before
+
+
+@pytest.mark.parametrize('path,payload', [
+    ('/api/admin/courses/scope-other', {'school_id': 'scope-a', 'title': 'Moved'}),
+    ('/api/admin/lessons/scope-other-lesson', {'course_id': 'scope-c2', 'title': 'Moved'}),
+])
+def test_mixed_parent_moves_refused_even_with_both_school_grants(client, db_session, scoped, path, payload):
+    grant(client, scoped, schools=['scope-a', 'scope-b'])
+    before = _content_state(db_session)
+    assert client.put(path, json=payload, headers=headers(scoped[0]['admin'])).status_code == 409
+    assert _content_state(db_session) == before
+
+
+@pytest.mark.parametrize('parent', ['course', 'lesson'])
+def test_empty_deletion_remains_available(client, db_session, scoped, parent):
+    grant(client, scoped, schools=['scope-a'])
+    course = Course(id='scope-empty', school_id='scope-a', title='Empty')
+    db_session.add(course)
+    db_session.flush()
+    lesson = Lesson(id='scope-empty-lesson', course_id=course.id, title='Empty')
+    db_session.add(lesson)
+    db_session.commit()
+    path = '/api/admin/courses/scope-empty' if parent == 'course' else '/api/admin/lessons/scope-empty-lesson'
+    assert client.delete(path, headers=headers(scoped[0]['admin'])).status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Lesson, 'scope-empty-lesson') is None
+    assert (db_session.get(Course, 'scope-empty') is None) == (parent == 'course')
+
+
+def test_same_parent_edits_and_empty_parent_move_remain_available(client, db_session, scoped):
+    grant(client, scoped, schools=['scope-a', 'scope-b'])
+    auth = headers(scoped[0]['admin'])
+    assert client.put('/api/admin/courses/scope-other', headers=auth,
+                      json={'school_id': 'scope-b', 'title': 'Same parent'}).status_code == 200
+    assert client.put('/api/admin/lessons/scope-other-lesson', headers=auth,
+                      json={'course_id': 'scope-other', 'title': 'Same parent'}).status_code == 200
+    # c2 has no quiz or reference dependent: an ordinary authorized move remains valid.
+    assert client.put('/api/admin/lessons/scope-c2-lesson', headers=auth,
+                      json={'course_id': 'scope-other', 'title': 'Authorized move'}).status_code == 200
+
+
+def test_orphan_cleanup_keeps_option_referenced_by_other_quiz_answer(client, db_session, scoped):
+    from app.models.progress import QuizAttemptAnswer
+    grant(client, scoped, schools=['scope-a'])
+    own = scoped[1]['course']
+    qid, oid, aid, answer_id = _historical_answer(db_session, scoped, own)
+    # Historical imperfect record: answer's question belongs elsewhere, selected
+    # option still points to own old question. Preserve both reference forms.
+    other_q = Question(id='outside-historical-question', question_text='Outside')
+    db_session.add(other_q)
+    other_attempt = QuizAttempt(user_id=scoped[0]['learner'].id, quiz_id=scoped[1]['other'].id, score=0, passed=False)
+    db_session.add(other_attempt)
+    db_session.flush()
+    answer = db_session.get(QuizAttemptAnswer, answer_id)
+    answer.question_id = other_q.id
+    answer.attempt_id = other_attempt.id
+    db_session.delete(db_session.get(QuizAttempt, aid))
+    db_session.commit()
+    assert client.delete(f'/api/admin/quizzes/{own.id}', headers=headers(scoped[0]['admin'])).status_code == 204
+    db_session.expire_all()
+    assert db_session.get(Question, qid) is not None
+    assert db_session.get(QuestionOption, oid).option_text == 'Original answer'
+    assert db_session.get(QuizAttemptAnswer, answer_id).selected_option_id == oid
+
+
+@pytest.mark.parametrize('parent,role', [('lesson', 'admin'), ('course', 'admin'), ('lesson', 'super'), ('course', 'super')])
+def test_authorized_parent_delete_refuses_attempt_history(client, db_session, scoped, parent, role):
+    grant(client, scoped, schools=['scope-a', 'scope-b'])
+    quiz = Quiz(title='Own history', course_id='scope-c2', lesson_id='scope-c2-lesson')
+    db_session.add(quiz)
+    db_session.commit()
+    _historical_answer(db_session, scoped, quiz)
+    before = _content_state(db_session)
+    path = '/api/admin/lessons/scope-c2-lesson' if parent == 'lesson' else '/api/admin/courses/scope-c2'
+    assert client.delete(path, headers=headers(scoped[0][role])).status_code == 409
+    assert _content_state(db_session) == before
+
+
+def test_dependent_quiz_requires_write_coverage_including_unpublished(client, db_session, scoped):
+    grant(client, scoped, schools=['scope-a'], pathways=['scope-p1'])
+    db_session.add(Quiz(title='Partially granted unpublished', lesson_id='scope-c2-lesson',
+                        course_id='scope-shared', status=ContentStatus.DRAFT))
+    db_session.commit()
+    before = _content_state(db_session)
+    assert client.delete('/api/admin/courses/scope-c2', headers=headers(scoped[0]['admin'])).status_code == 409
+    assert _content_state(db_session) == before

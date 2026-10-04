@@ -211,3 +211,15 @@ déploiement, nouvelle PR ou certificat réel délivré par ce chantier.
 Schémas OpenAPI exacts (références transitives) : [ROLES_API_CONTRACTS.openapi.json](ROLES_API_CONTRACTS.openapi.json).
 Downgrade généré et vérifié hors ligne 0013→0010 : seules les nouvelles structures
 sont supprimées ; aucune connexion ni exécution DDL de downgrade sur la base.
+
+## Correctif de suppressions et conservation ciblée (après 22d8eef)
+
+Une suppression administrative n'est pas une opération d'archivage. Avant de supprimer physiquement un cours ou une leçon, le serveur contrôle tous les quiz dépendants (y compris brouillons, parents mixtes et dépendance indirecte par la leçon) avec les droits d'écriture effectifs. Une dépendance non modifiable entraîne **409**, sans divulguer son identité. Les droits ne sont pas élargis.
+
+Les suppressions de cours avec certificat historique, critère de certification, rattachement parcours/prérequis ou média rattaché sont refusées par **409**. Les suppressions de leçons avec progression, lab ou document rattaché sont également refusées, ainsi que celles de leurs cours parents. Les suppressions de quiz avec tentatives sont refusées, pour ADMIN comme SUPER_ADMIN, même si l'ancien apprenant est devenu administrateur. Préférer la dépublication ; aucun nettoyage historique automatique ni migration destructive.
+
+Une réaffectation de `Course.school_id` ou `Lesson.course_id` avec quiz dépendants est refusée (**409**) : elle pourrait modifier leur périmètre ou leur couverture implicite de compétence. Les modifications avec parent inchangé restent possibles, ainsi que les déplacements autorisés sans quiz dépendant. La réaffectation complexe de dépendances nécessite un workflow distinct, non inventé ici.
+
+La sauvegarde d'un quiz remplace son assemblage courant, mais conserve inchangées les anciennes questions/options référencées par des réponses, même sans autre quiz courant. La purge protège aussi les références historiques passant seulement par `selected_option_id`. Verrous de lignes sur parents, quiz, questions et options concernés avant vérification/destruction ; insertion FK concurrente bloquée puis, si la cible a été supprimée, rejetée plutôt que validée avec référence perdue. Aucune réponse déjà validée n'est purgée par ces chemins.
+
+Portée de la preuve : opérations administratives cours/leçons/quiz de ce correctif, historique de progression/tentatives/réponses/certificats concernés et comptes promus. Ce n'est pas une garantie de conservation de toutes les données par toute opération de l'application : suppression d'utilisateur, autres opérations de catalogue et concurrence d'une décision CASA avec suspension/changement de rôle ne sont pas validées par ce correctif. Aucun mécanisme de versionnement intégral du quiz ni instantané de tous ses anciens métadonnées n'est ajouté.

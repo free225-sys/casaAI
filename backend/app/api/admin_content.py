@@ -112,6 +112,7 @@ def admin_update_course(
     original = scope.course(course_id, write=True)
     if original.school_id != payload.school_id:
         scope.school(payload.school_id)
+        scope.check_parent_move(course_id=course_id)
     try:
         course = AdminContentService(db).update_course(course_id, payload)
     except CourseNotFoundError as e:
@@ -127,6 +128,7 @@ def admin_delete_course(
 ) -> None:
     scope = ContentScopeService(db, _admin)
     scope.course(course_id, write=True)
+    scope.check_course_delete(course_id)
     try:
         AdminContentService(db).delete_course(course_id)
     except CourseNotFoundError as e:
@@ -187,8 +189,10 @@ def admin_update_lesson(
     lesson_id: str, payload: AdminLessonIn, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminLessonOut:
     scope = ContentScopeService(db, _admin)
-    scope.lesson(lesson_id, write=True)
+    original = scope.lesson(lesson_id, write=True)
     scope.course(payload.course_id, write=True)
+    if original.course_id != payload.course_id:
+        scope.check_parent_move(lesson_id=lesson_id)
     try:
         lesson = AdminContentService(db).update_lesson(lesson_id, payload)
     except LessonNotFoundError as e:
@@ -204,6 +208,7 @@ def admin_delete_lesson(
 ) -> None:
     scope = ContentScopeService(db, _admin)
     scope.lesson(lesson_id, write=True)
+    scope.check_lesson_delete(lesson_id)
     try:
         AdminContentService(db).delete_lesson(lesson_id)
     except LessonNotFoundError as e:

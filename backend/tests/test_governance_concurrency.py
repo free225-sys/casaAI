@@ -128,3 +128,91 @@ def test_scope_revocation_serializes_with_content_mutation(committed_governance)
         assert db.scalar(select(func.count()).select_from(AdminScope).where(AdminScope.user_id == ids[1])) == 0
         course = db.get(Course, cid)
         assert course.title == ("Synthetic edit" if responses[1][0] == 200 else "Original")
+
+
+def test_question_cleanup_serializes_option_only_history_insert(committed_governance):
+    """Independent connections: option-only FK writes cannot cross cleanup's check."""
+    from threading import Event
+    from time import monotonic
+    from sqlalchemy import event, text
+    from sqlalchemy.exc import IntegrityError
+    from app.models.quiz import Question, QuestionOption, Quiz
+    from app.models.progress import QuizAttempt, QuizAttemptAnswer
+    from app.repositories.admin_quiz_repository import AdminQuizRepository
+    ids, _, cid, _ = committed_governance
+    tag = uuid.uuid4().hex
+    old_q, other_q = 'cleanup-old-'+tag, 'cleanup-other-'+tag
+    with Session(engine) as db:
+        db.add_all([Question(id=old_q, question_text='Old'), Question(id=other_q, question_text='Other')])
+        quiz = Quiz(title='Synthetic concurrent history', course_id=cid)
+        db.add(quiz)
+        db.flush()
+        option = QuestionOption(question_id=old_q, position=0, option_text='Historical selection', is_correct=False)
+        attempt = QuizAttempt(user_id=ids[0], quiz_id=quiz.id, score=0, passed=False)
+        db.add_all([option, attempt])
+        db.commit()
+        option_id, attempt_id, quiz_id = option.id, attempt.id, quiz.id
+    ready, release, insert_started = Event(), Event(), Event()
+    pids = {}
+    answer_id = uuid.uuid4()
+
+    def cleanup():
+        with Session(engine) as db:
+            connection = db.connection()
+            pids['cleanup'] = db.scalar(select(func.pg_backend_pid()))
+            def pause_before_delete(conn, cursor, statement, parameters, context, executemany):
+                if statement.lstrip().startswith('DELETE FROM questions'):
+                    ready.set()
+                    assert release.wait(10)
+            event.listen(connection, 'before_cursor_execute', pause_before_delete)
+            try:
+                AdminQuizRepository(db)._delete_unused_questions([old_q])
+                db.commit()
+            finally:
+                event.remove(connection, 'before_cursor_execute', pause_before_delete)
+
+    def insert_answer():
+        with Session(engine) as db:
+            pids['answer'] = db.scalar(select(func.pg_backend_pid()))
+            insert_started.set()
+            db.add(QuizAttemptAnswer(id=answer_id, attempt_id=attempt_id, question_id=other_q,
+                                     selected_option_id=option_id, is_correct=False))
+            try:
+                db.commit()
+                return 'committed'
+            except IntegrityError:
+                db.rollback()
+                return 'rejected'
+
+    try:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            first = pool.submit(cleanup)
+            try:
+                assert ready.wait(10)
+                second = pool.submit(insert_answer)
+                assert insert_started.wait(10)
+                blocked = False
+                deadline = monotonic() + 5
+                with engine.connect() as observer:
+                    while monotonic() < deadline:
+                        blocked = observer.scalar(text('SELECT wait_event_type FROM pg_stat_activity WHERE pid=:pid'),
+                                                  {'pid': pids['answer']}) == 'Lock'
+                        observer.commit()  # fresh pg_stat_activity snapshot
+                        if blocked:
+                            break
+                assert blocked, 'Option-only history insertion did not wait for cleanup row locks'
+            finally:
+                release.set()
+            first.result(timeout=10)
+            assert second.result(timeout=10) == 'rejected'
+        assert len(set(pids.values())) == 2
+        with Session(engine) as db:
+            assert db.get(QuizAttemptAnswer, answer_id) is None
+            assert db.get(Question, old_q) is None
+            assert db.get(QuestionOption, option_id) is None
+    finally:
+        release.set()
+        with Session(engine) as db:
+            db.execute(delete(Quiz).where(Quiz.id == quiz_id))
+            db.execute(delete(Question).where(Question.id.in_([old_q, other_q])))
+            db.commit()

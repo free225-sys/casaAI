@@ -105,6 +105,7 @@ def admin_delete_quiz(
 ) -> None:
     scope = ContentScopeService(db, _admin)
     scope.quiz(quiz_id, write=True)
+    scope.check_quiz_delete(quiz_id)
     try:
         AdminQuizService(db).delete_quiz(quiz_id)
     except QuizNotFoundError as e:

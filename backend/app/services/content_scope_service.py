@@ -4,7 +4,12 @@ from sqlalchemy import and_, exists, or_, select, true
 
 from app.db.locks import transaction_lock
 from app.models.catalog import Skill
-from app.models.content import Course, Lesson, Pathway, pathway_courses
+from app.models.content import Course, Lesson, Pathway, pathway_courses, course_prerequisites
+from app.models.certification import CourseCertificate, CertificationRequirement
+from app.models.document import ImportedDocument
+from app.models.lab import Lab
+from app.models.progress import UserLessonProgress, QuizAttempt
+from app.models.governance import ScopedMedia
 from app.models.enums import UserRole
 from app.models.governance import AdminScope
 from app.models.quiz import Quiz
@@ -111,3 +116,68 @@ class ContentScopeService:
             raise HTTPException(404, "Quiz introuvable.")
         self.quiz_target(quiz, write=write)
         return quiz
+
+    def _dependent_quizzes(self, *, course_id=None, lesson_id=None):
+        """All cascaded quizzes, including unpublished and mixed-parent records."""
+        if course_id is not None:
+            lessons = select(Lesson.id).where(Lesson.course_id == course_id)
+            predicate = or_(Quiz.course_id == course_id, Quiz.lesson_id.in_(lessons))
+        else:
+            predicate = Quiz.lesson_id == lesson_id
+        return list(self.db.scalars(select(Quiz).where(predicate).with_for_update()))
+
+    def _check_dependent_quizzes(self, quizzes):
+        for quiz in quizzes:
+            try:
+                self.quiz_target(quiz, write=True)
+            except HTTPException as exc:
+                # Do not disclose the inaccessible dependency or cascade into it.
+                raise HTTPException(409, "Contenu dépendant non modifiable : suppression ou déplacement refusé.") from exc
+
+    def _has(self, model, predicate):
+        return self.db.scalar(select(exists(select(model).where(predicate))))
+
+    def _check_lesson_history(self, lesson_ids):
+        if (self._has(UserLessonProgress, UserLessonProgress.lesson_id.in_(lesson_ids))
+                or self._has(Lab, Lab.lesson_id.in_(lesson_ids))
+                or self._has(ImportedDocument, ImportedDocument.lesson_id.in_(lesson_ids))):
+            raise HTTPException(409, "Leçon référencée ou progression historique : dépublier plutôt que supprimer.")
+
+    def check_quiz_delete(self, quiz_id):
+        self.lock_mutation()
+        # FOR UPDATE prevents a concurrent FK insert after the history check.
+        self.db.scalar(select(Quiz).where(Quiz.id == quiz_id).with_for_update())
+        if self._has(QuizAttempt, QuizAttempt.quiz_id == quiz_id):
+            raise HTTPException(409, "Tentatives historiques : dépublier plutôt que supprimer le quiz.")
+
+    def check_lesson_delete(self, lesson_id):
+        self.db.scalar(select(Lesson).where(Lesson.id == lesson_id).with_for_update())
+        quizzes = self._dependent_quizzes(lesson_id=lesson_id)
+        self._check_dependent_quizzes(quizzes)
+        self._check_lesson_history([lesson_id])
+        for quiz in quizzes:
+            self.check_quiz_delete(quiz.id)
+
+    def check_course_delete(self, course_id):
+        self.db.scalar(select(Course).where(Course.id == course_id).with_for_update())
+        lesson_ids = list(self.db.scalars(select(Lesson.id).where(Lesson.course_id == course_id).with_for_update()))
+        quizzes = self._dependent_quizzes(course_id=course_id)
+        self._check_dependent_quizzes(quizzes)
+        self._check_lesson_history(lesson_ids)
+        referenced = (self._has(CourseCertificate, CourseCertificate.course_id == course_id)
+                      or self._has(CertificationRequirement, CertificationRequirement.course_id == course_id)
+                      or self._has(ScopedMedia, ScopedMedia.course_id == course_id)
+                      or self.db.scalar(select(exists(select(pathway_courses).where(pathway_courses.c.course_id == course_id))))
+                      or self.db.scalar(select(exists(select(course_prerequisites).where(or_(
+                          course_prerequisites.c.course_id == course_id,
+                          course_prerequisites.c.prerequisite_course_id == course_id))))))
+        if referenced:
+            raise HTTPException(409, "Cours référencé ou certificat historique : dépublier plutôt que supprimer.")
+        for quiz in quizzes:
+            self.check_quiz_delete(quiz.id)
+
+    def check_parent_move(self, *, course_id=None, lesson_id=None):
+        # A move also changes implicit skill coverage: refuse mixed dependencies
+        # until a separate, explicit reassignment workflow can preserve them.
+        if self._dependent_quizzes(course_id=course_id, lesson_id=lesson_id):
+            raise HTTPException(409, "Quiz dépendants : changement de rattachement refusé.")

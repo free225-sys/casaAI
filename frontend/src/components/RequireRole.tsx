@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { Link } from "./AppLink";
 import { useAuth } from "../stores/authStore";
 import type { UserRole } from "../types/api";
@@ -17,6 +17,7 @@ import type { UserRole } from "../types/api";
  */
 export function RequireRole({ roles, children }: { roles: UserRole[]; children: ReactNode }) {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -27,7 +28,8 @@ export function RequireRole({ roles, children }: { roles: UserRole[]; children: 
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    // Conserve la destination demandée pour la connexion (le retour reste filtré par `postLoginPath`).
+    return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
   }
 
   if (!user || !roles.includes(user.role)) {

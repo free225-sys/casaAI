@@ -14,7 +14,10 @@ import { contentService } from "../src/services/contentService";
 import { portfolioService } from "../src/services/portfolioService";
 import { profileService } from "../src/services/profileService";
 import { progressService } from "../src/services/progressService";
-import { homePathFor, isLearnerOnlyPath, postLoginPath } from "../src/utils/roles";
+import { RequireRole } from "../src/components/RequireRole";
+import { AUTH_ROUTES, KNOWN_ROUTES, homePathFor, isLearnerOnlyPath, postLoginPath } from "../src/utils/roles";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const auth = vi.hoisted(() => ({ user: null as null | { id: string; role: string; first_name: string; last_name: string; email: string; created_at: string; last_login_at: null }, login: vi.fn() }));
 vi.mock("../src/stores/authStore", () => ({
@@ -87,6 +90,64 @@ describe("Lot 1 : accueil et redirections par rôle", () => {
     await act(async () => { set("email", "u@example.test"); set("password", "synthetic-password"); });
     await act(async () => { host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
     expect(host.textContent).toContain("ACCUEIL SUPER ADMIN");
+  });
+});
+
+describe("Lot 1 : retour de connexion limité aux routes connues et permises (R5, R6)", () => {
+  it("refuse les chemins inconnus, les faux préfixes de profil, la casse différente et les paramètres invalides", () => {
+    for (const role of ["LEARNER", "ADMIN", "SUPER_ADMIN"] as const) {
+      const home = homePathFor(role);
+      for (const from of ["/inexistant", "/app/profile-inexistant", "/app/profile/x", "/APP/dashboard", "/Admin/courses", "/app/lessons/", "/app/lessons/a/b", "/courses/a b", "/courses/a%00b?x=<", "/catalog?q=a;b", "/catalog#a b", "/login", "/register", "/forgot-password", "/reset-password"]) {
+        expect(postLoginPath(role, from), `${role} ${from}`).toBe(home);
+      }
+    }
+  });
+  it("accepte les routes connues avec paramètres valides, à la barre finale près, selon le rôle", () => {
+    expect(postLoginPath("LEARNER", "/app/lessons/abc-123")).toBe("/app/lessons/abc-123");
+    expect(postLoginPath("LEARNER", "/app/profile")).toBe("/app/profile");
+    expect(postLoginPath("LEARNER", "/catalog/")).toBe("/catalog/");
+    expect(postLoginPath("ADMIN", "/admin/quizzes/new?kind=VALIDATION&lesson_id=l1&back=%2Fadmin%2Fcourses")).toBe("/admin/quizzes/new?kind=VALIDATION&lesson_id=l1&back=%2Fadmin%2Fcourses");
+    expect(postLoginPath("ADMIN", "/admin/courses/c1/lessons/new")).toBe("/admin/courses/c1/lessons/new");
+    expect(postLoginPath("SUPER_ADMIN", "/admin/progress/u1")).toBe("/admin/progress/u1");
+    expect(postLoginPath("ADMIN", "/admin/progress/u1")).toBe("/admin/courses");
+    expect(postLoginPath("ADMIN", "/app/skills/s/practice")).toBe("/admin/courses");
+    expect(postLoginPath("LEARNER", "/admin/import-pdf")).toBe("/app/dashboard");
+  });
+  it("la table des routes connues correspond exactement aux routes de App.tsx", () => {
+    const source = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");
+    const declared = [...source.matchAll(/path="([^"]+)"/g)].map(match => match[1].replace(/:[A-Za-z]+/g, ":id")).sort();
+    const known = [...KNOWN_ROUTES.map(([pattern]) => pattern), ...AUTH_ROUTES].sort();
+    expect(declared).toEqual(known);
+    expect(isLearnerOnlyPath("/app/profile")).toBe(false);
+    expect(isLearnerOnlyPath("/app/profile-inexistant")).toBe(false);
+  });
+  it("conserve la destination administrative demandée avant connexion, puis revient si le rôle y a droit", async () => {
+    const run = async (role: string, path: string) => {
+      auth.user = null;
+      auth.login.mockImplementation(async () => { auth.user = account(role) as never; return auth.user; });
+      await act(async () => root.render(
+        <MemoryRouter key={`${role}${path}`} initialEntries={[path]}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin/import-pdf" element={<RequireRole roles={["ADMIN", "SUPER_ADMIN"]}><p>ADMIN IMPORT PDF</p></RequireRole>} />
+            <Route path="/admin/certifications" element={<RequireRole roles={["SUPER_ADMIN"]}><p>ADMIN CERTIFICATIONS</p></RequireRole>} />
+            <Route path="/admin/courses" element={<p>ACCUEIL ADMIN</p>} />
+            <Route path="/admin/users" element={<p>ACCUEIL SUPER ADMIN</p>} />
+          </Routes>
+        </MemoryRouter>));
+      expect(host.querySelector("form")).not.toBeNull();
+      const set = (id: string, value: string) => { const input = host.querySelector<HTMLInputElement>(`#${id}`)!; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value); input.dispatchEvent(new Event("input", { bubbles: true })); };
+      await act(async () => { set("email", "u@example.test"); set("password", "synthetic-password"); });
+      await act(async () => { host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+    };
+    // Destinations différentes de l'accueil du rôle : sans `state.from`, la connexion retomberait sur l'accueil.
+    await run("SUPER_ADMIN", "/admin/certifications");
+    expect(host.textContent).toContain("ADMIN CERTIFICATIONS");
+    await run("ADMIN", "/admin/import-pdf");
+    expect(host.textContent).toContain("ADMIN IMPORT PDF");
+    // Destination interdite au rôle : accueil du rôle, pas la page interdite.
+    await run("ADMIN", "/admin/certifications");
+    expect(host.textContent).toContain("ACCUEIL ADMIN");
   });
 });
 

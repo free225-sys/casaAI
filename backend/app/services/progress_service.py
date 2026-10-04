@@ -104,7 +104,7 @@ class ProgressService:
         if not self.repo.lab_exists_published(lab_id):
             return None
         result = self.repo.create_lab_result(
-            user_id=user_id, lab_id=lab_id, mode=mode, submission=submission, score=score,
+            user_id=user_id, lab_id=lab_id, mode=mode, submission=submission, score=None,
         )
         self.db.commit()
         self.db.refresh(result)

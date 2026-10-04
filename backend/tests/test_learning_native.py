@@ -2,6 +2,7 @@
 
 Never seeds a live project. Run only with an explicitly selected disposable DB.
 """
+import os
 import pytest
 from sqlalchemy import func, select, text
 
@@ -21,7 +22,7 @@ from app.services.admin_user_service import AdminUserService, LastSuperAdminErro
 @pytest.fixture(autouse=True)
 def require_disposable_database():
     url = engine.url
-    if not (url.host == "127.0.0.1" and url.port == 55432 and url.database == "casa_pr1_test" and url.username == "casa_test"):
+    if not (url.host == "127.0.0.1" and url.port == 55432 and url.database == os.environ.get("CASA_TEST_DATABASE", "casa_pr1_test") and url.username == "casa_test"):
         pytest.skip("Native learning tests require the explicitly selected disposable CASA PR1 database")
 
 
@@ -60,7 +61,7 @@ def count(db, model, user):
 
 
 def test_native_migration_head_and_required_schema(db_session):
-    assert db_session.scalar(text("SELECT version_num FROM alembic_version")) == "0010"
+    assert db_session.scalar(text("SELECT version_num FROM alembic_version")) == "0013"
     assert db_session.scalar(text("SELECT extversion FROM pg_extension WHERE extname='vector'"))
     assert db_session.scalar(text("SELECT count(*) FROM pg_enum JOIN pg_type ON pg_type.oid=pg_enum.enumtypid WHERE typname='user_role' AND enumlabel='SUPER_ADMIN'")) == 1
     assert db_session.scalar(text("SELECT count(*) FROM information_schema.columns WHERE table_name='user_profiles' AND column_name='notify_badges'")) == 1

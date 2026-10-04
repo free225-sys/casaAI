@@ -1,10 +1,6 @@
-"""
-Certificat de module (par cours), basé uniquement sur les scores de quiz —
-demande produit : « lister tous les quiz et, si la moyenne de l'apprenant
-dépasse 80%, délivrer un certificat sur le module ». Volontairement séparé
-du catalogue `Certification` (parcours multi-cours à critères définis par un
-administrateur, cf. certification_service.py) : ici l'éligibilité est
-entièrement automatique, dérivée des tentatives de quiz d'un seul cours.
+"""Legacy module certificates are preserved, but new automatic issuance is disabled.
+Quiz eligibility remains indicative. Official CASA awards require the separate
+explicit decision workflow in api/certification_requests.py.
 """
 from __future__ import annotations
 
@@ -67,23 +63,4 @@ class CourseCertificateService:
         if existing is not None:
             return existing
 
-        eligibility = self.get_eligibility(user_id, course_id)
-        if not eligibility.eligible:
-            if not eligibility.quizzes:
-                raise NotEligibleError("Aucun quiz n'est encore rattaché à ce cours.")
-            if not eligibility.all_attempted:
-                remaining = [q.quiz_title for q in eligibility.quizzes if not q.attempted]
-                raise NotEligibleError(
-                    f"Tous les quiz du cours doivent être tentés au moins une fois "
-                    f"(reste : {', '.join(remaining)})."
-                )
-            raise NotEligibleError(
-                f"Moyenne actuelle : {eligibility.average_score} (seuil requis : {COURSE_CERTIFICATE_THRESHOLD})."
-            )
-
-        cert = self.repo.create_course_certificate(
-            user_id, course_id, average_score=round(eligibility.average_score)
-        )
-        self.db.commit()
-        self.db.refresh(cert)
-        return cert
+        raise NotEligibleError("Délivrance automatique désactivée : une décision explicite CASA est requise.")

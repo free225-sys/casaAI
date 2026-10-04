@@ -42,6 +42,7 @@ class RequirementEligibilityOut(BaseModel):
 
 
 class CertificationEligibilityOut(BaseModel):
+    official_decision_required: bool = True
     certification_id: str
     eligible: bool
     """True seulement si TOUS les critères sont automatiquement vérifiés et
@@ -63,6 +64,7 @@ class CourseQuizScoreOut(BaseModel):
 
 
 class CourseCertificateEligibilityOut(BaseModel):
+    official_decision_required: bool = True
     course_id: str
     threshold: int
     quizzes: list[CourseQuizScoreOut]
@@ -78,6 +80,8 @@ class CourseCertificateEligibilityOut(BaseModel):
 
 
 class CourseCertificateOut(BaseModel):
+    # Existing rows are preserved; no silent reclassification as CASA approvals.
+    provenance: str = "LEGACY_AUTOMATIC"
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID

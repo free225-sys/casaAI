@@ -47,6 +47,8 @@ class AdminUserUpdateRequest(BaseModel):
 # --- Cours -----------------------------------------------------------
 
 class AdminCourseIn(BaseModel):
+    # Creation only: attach a new course to an explicitly authorized pathway.
+    pathway_id: str | None = None
     school_id: str
     title: str = Field(min_length=1, max_length=200)
     level: str | None = None

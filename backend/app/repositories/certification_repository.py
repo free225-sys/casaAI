@@ -11,6 +11,7 @@ from app.models.content import Course, Lesson
 from app.models.enums import ContentStatus, LessonProgressStatus, QuizKind
 from app.models.progress import LabResult, QuizAttempt, UserLessonProgress, UserSkill
 from app.models.quiz import Quiz
+from app.repositories.publication import published_quiz
 
 
 class CertificationRepository:
@@ -97,7 +98,7 @@ class CertificationRepository:
             self.db.execute(
                 select(Quiz)
                 .where(
-                    Quiz.status == ContentStatus.PUBLISHED,
+                    published_quiz(),
                     (Quiz.course_id == course_id)
                     | (Quiz.lesson_id.in_(lesson_ids))
                     | ((Quiz.kind == QuizKind.PRACTICE) & Quiz.skill_id.in_(lesson_skill_ids)),

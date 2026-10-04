@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import require_content_admin
 from app.db.session import get_db
+from app.services.content_scope_service import ContentScopeService
 from app.models.user import User
 from app.repositories.admin_quiz_repository import AdminQuizRepository
 from app.schemas.admin import AdminQuestionOut, AdminQuizIn, AdminQuizListResponse, AdminQuizOut
@@ -39,7 +40,8 @@ def admin_list_quizzes(
     _admin: User = Depends(require_content_admin),
 ) -> AdminQuizListResponse:
     rows, total = AdminQuizRepository(db).list_quizzes(
-        course_id=course_id, lesson_id=lesson_id, skill_id=skill_id, limit=limit, offset=offset
+        course_id=course_id, lesson_id=lesson_id, skill_id=skill_id, limit=limit, offset=offset,
+        scope_predicate=ContentScopeService(db, _admin).quiz_predicate()
     )
     return AdminQuizListResponse(
         items=[
@@ -58,6 +60,8 @@ def admin_list_quizzes(
 def admin_get_quiz(
     quiz_id: uuid.UUID, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminQuizOut:
+    scope = ContentScopeService(db, _admin)
+    scope.quiz(quiz_id)
     repo = AdminQuizRepository(db)
     quiz = repo.get_quiz_any_status(quiz_id)
     if quiz is None:
@@ -69,6 +73,8 @@ def admin_get_quiz(
 def admin_create_quiz(
     payload: AdminQuizIn, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminQuizOut:
+    scope = ContentScopeService(db, _admin)
+    scope.quiz_target(payload, write=True)
     try:
         quiz = AdminQuizService(db).create_quiz(payload)
     except ValidationError as e:
@@ -81,6 +87,9 @@ def admin_update_quiz(
     quiz_id: uuid.UUID, payload: AdminQuizIn, db: Session = Depends(get_db),
     _admin: User = Depends(require_content_admin),
 ) -> AdminQuizOut:
+    scope = ContentScopeService(db, _admin)
+    scope.quiz(quiz_id, write=True)
+    scope.quiz_target(payload, write=True)
     try:
         quiz = AdminQuizService(db).update_quiz(quiz_id, payload)
     except QuizNotFoundError as e:
@@ -94,6 +103,8 @@ def admin_update_quiz(
 def admin_delete_quiz(
     quiz_id: uuid.UUID, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> None:
+    scope = ContentScopeService(db, _admin)
+    scope.quiz(quiz_id, write=True)
     try:
         AdminQuizService(db).delete_quiz(quiz_id)
     except QuizNotFoundError as e:

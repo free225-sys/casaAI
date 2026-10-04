@@ -8,6 +8,7 @@ from app.models.content import Course, Lesson
 from app.models.document import DocumentSection
 from app.models.enums import ContentStatus, UserRole
 from app.models.user import User
+from app.models.governance import AdminScope
 from tests.pdf_fixtures import ALL_FIXTURES
 from tests.test_learning_native import require_disposable_database  # noqa: F401
 
@@ -18,12 +19,19 @@ def test_synthetic_preview_import_and_learner_read(client, db_session, fixture_n
                 password_hash="unused-synthetic-hash", role=UserRole.ADMIN)
     db_session.add(user)
     db_session.add(School(id="pdf-roundtrip-school", name="Synthetic", short_name="PDF", color="#000000"))
+    db_session.flush()
+    approver = User(first_name="CASA", last_name="Synthetic", email=f"grant-{fixture_name}@example.com",
+                    password_hash="unused-synthetic-hash", role=UserRole.SUPER_ADMIN)
+    db_session.add(approver)
+    db_session.flush()
+    db_session.add(AdminScope(user_id=user.id, school_id="pdf-roundtrip-school", assigned_by=approver.id))
     db_session.commit()
     auth = {"Authorization": f"Bearer {create_access_token(user.id, user.role.value)}"}
     data = ALL_FIXTURES[fixture_name]()
     upload = {"file": (f"{fixture_name}.pdf", data, "application/pdf")}
     before = db_session.scalar(select(func.count()).select_from(Course))
-    preview = client.post("/api/admin/courses/preview-pdf", headers=auth, files=upload)
+    preview = client.post("/api/admin/courses/preview-pdf", headers=auth, files=upload,
+                          data={"school_id": "pdf-roundtrip-school"})
     assert preview.status_code == 200
     assert db_session.scalar(select(func.count()).select_from(Course)) == before
     imported = client.post("/api/admin/courses/import-pdf", headers=auth, files=upload,

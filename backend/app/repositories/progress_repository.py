@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.locks import transaction_lock
 
 from app.models.catalog import Skill
-from app.models.content import Lesson
+from app.models.content import Course, Lesson
+from app.repositories.publication import published_quiz, published_lab
 from app.models.enums import ContentStatus, LessonProgressStatus, QuizKind
 from app.models.lab import Lab
 from app.models.progress import LabResult, UserLessonProgress, UserSkill, QuizAttempt, QuizAttemptAnswer
@@ -24,13 +25,13 @@ class ProgressRepository:
 
     def get_lesson_detail(self, lesson_id: str) -> Lesson | None:
         return self.db.execute(
-            select(Lesson)
+            select(Lesson).join(Course, Course.id == Lesson.course_id)
             .options(
                 selectinload(Lesson.objectives),
                 selectinload(Lesson.sections),
                 selectinload(Lesson.depth_levels),
             )
-            .where(Lesson.id == lesson_id, Lesson.status == ContentStatus.PUBLISHED)
+            .where(Lesson.id == lesson_id, Lesson.status == ContentStatus.PUBLISHED, Course.status == ContentStatus.PUBLISHED)
         ).scalar_one_or_none()
 
     def next_lesson_id(self, lesson_id: str) -> str | None:
@@ -146,13 +147,13 @@ class ProgressRepository:
         compétence, la leçon ou le cours auquel chacun est rattaché."""
         return list(
             self.db.execute(
-                select(Quiz).where(Quiz.status == ContentStatus.PUBLISHED).order_by(Quiz.title)
+                select(Quiz).where(published_quiz()).order_by(Quiz.title)
             ).scalars()
         )
 
     def get_quiz_with_questions(self, quiz_id: uuid.UUID) -> tuple[Quiz, list[tuple[Question, list[QuestionOption]]]] | None:
         quiz = self.db.execute(
-            select(Quiz).where(Quiz.id == quiz_id, Quiz.status == ContentStatus.PUBLISHED)
+            select(Quiz).where(Quiz.id == quiz_id, published_quiz())
         ).scalar_one_or_none()
         if quiz is None:
             return None
@@ -165,7 +166,7 @@ class ProgressRepository:
         compétence du dashboard)."""
         quiz = self.db.execute(
             select(Quiz).where(
-                Quiz.skill_id == skill_id, Quiz.kind == QuizKind.PRACTICE, Quiz.status == ContentStatus.PUBLISHED
+                Quiz.skill_id == skill_id, Quiz.kind == QuizKind.PRACTICE, published_quiz()
             )
         ).scalar_one_or_none()
         if quiz is None:
@@ -239,7 +240,7 @@ class ProgressRepository:
 
     def lab_exists_published(self, lab_id: str) -> bool:
         return self.db.execute(
-            select(Lab.id).where(Lab.id == lab_id, Lab.status == ContentStatus.PUBLISHED)
+            select(Lab.id).where(Lab.id == lab_id, published_lab())
         ).scalar_one_or_none() is not None
 
     def create_lab_result(

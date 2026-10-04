@@ -52,11 +52,13 @@ class AdminQuizRepository:
 
     def list_quizzes(
         self, *, course_id: str | None = None, lesson_id: str | None = None,
-        skill_id: str | None = None, limit: int = 20, offset: int = 0,
+        skill_id: str | None = None, limit: int = 20, offset: int = 0, scope_predicate=None,
     ) -> tuple[list[tuple[Quiz, int]], int]:
         """Renvoie (quiz, nombre de questions) — le nombre de questions
         évite à l'admin d'ouvrir chaque quiz juste pour voir s'il est vide."""
         stmt = select(Quiz)
+        if scope_predicate is not None:
+            stmt = stmt.where(scope_predicate)
         if course_id:
             stmt = stmt.where(Quiz.course_id == course_id)
         if lesson_id:
@@ -130,7 +132,9 @@ class AdminQuizRepository:
         if old_question_ids:
             # Cascade DB vers question_options et quiz_questions — voir
             # docstring de module.
-            self.db.execute(delete(Question).where(Question.id.in_(old_question_ids)))
+            self.db.execute(delete(quiz_questions).where(quiz_questions.c.quiz_id == quiz.id))
+            still_used = select(quiz_questions.c.question_id)
+            self.db.execute(delete(Question).where(Question.id.in_(old_question_ids), Question.id.not_in(still_used)))
             self.db.flush()
 
         for pos, q in enumerate(data.questions):
@@ -163,5 +167,6 @@ class AdminQuizRepository:
         if old_question_ids:
             # Questions désormais orphelines (propres à ce quiz — voir
             # docstring de module) : purgées pour ne pas laisser de résidu.
-            self.db.execute(delete(Question).where(Question.id.in_(old_question_ids)))
+            still_used = select(quiz_questions.c.question_id)
+            self.db.execute(delete(Question).where(Question.id.in_(old_question_ids), Question.id.not_in(still_used)))
         self.db.flush()

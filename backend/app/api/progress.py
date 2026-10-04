@@ -167,7 +167,7 @@ def get_my_progress(
     return [
         UserLessonProgressOut(
             lesson_id=lesson.id, lesson_title=lesson.title, course_id=lesson.course_id,
-            is_available=lesson.status == ContentStatus.PUBLISHED,
+            is_available=lesson.status == ContentStatus.PUBLISHED and lesson.course.status == ContentStatus.PUBLISHED,
             status=progress.status, progress_pct=progress.progress_pct,
             started_at=progress.started_at, completed_at=progress.completed_at,
         )

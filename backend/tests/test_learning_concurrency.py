@@ -6,6 +6,7 @@ import uuid
 from fastapi import Depends, FastAPI
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.testclient import TestClient
+import os
 import pytest
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -26,7 +27,7 @@ from app.models.user import User
 @pytest.fixture(autouse=True)
 def disposable_only():
     url = engine.url
-    if not (url.host == "127.0.0.1" and url.port == 55432 and url.database == "casa_pr1_test" and url.username == "casa_test"):
+    if not (url.host == "127.0.0.1" and url.port == 55432 and url.database == os.environ.get("CASA_TEST_DATABASE", "casa_pr1_test") and url.username == "casa_test"):
         pytest.skip("Concurrency tests require the explicit disposable CASA PR1 database")
 
 

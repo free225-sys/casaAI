@@ -23,6 +23,7 @@ from app.models import (  # noqa: F401
     badge,
     notification,
     ai,
+    governance,
 )
 
 __all__ = ["Base"]

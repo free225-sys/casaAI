@@ -110,6 +110,15 @@ def _admin_headers(client, db_session) -> dict:
     })
     user = UserRepository(db_session).get_by_email("preview-admin@example.com")
     user.role = UserRole.ADMIN
+    from app.models.catalog import School
+    from app.models.governance import AdminScope
+    from app.models.user import User
+    db_session.add(School(id="preview-scope-school", name="Synthetic", short_name="PRE", color="#000000"))
+    approver = User(first_name="CASA", last_name="Synthetic", email="preview-grant@example.com",
+                    password_hash="unused-fixture", role=UserRole.SUPER_ADMIN)
+    db_session.add(approver)
+    db_session.flush()
+    db_session.add(AdminScope(user_id=user.id, school_id="preview-scope-school", assigned_by=approver.id))
     db_session.commit()
     return {"Authorization": f"Bearer {create_access_token(user.id, user.role.value)}"}
 
@@ -119,6 +128,7 @@ def test_l_endpoint_rend_l_arbre_et_le_rapport(client, db_session):
     resp = client.post(
         "/api/admin/courses/preview-pdf",
         headers=headers,
+        data={"school_id": "preview-scope-school"},
         files={"file": ("cours-de-donnees.pdf", ALL_FIXTURES["nested_headings"](), "application/pdf")},
     )
     assert resp.status_code == 200
@@ -140,6 +150,7 @@ def test_l_endpoint_refuse_un_fichier_qui_n_est_pas_un_pdf(client, db_session):
     resp = client.post(
         "/api/admin/courses/preview-pdf",
         headers=headers,
+        data={"school_id": "preview-scope-school"},
         files={"file": ("notes.txt", b"du texte", "text/plain")},
     )
     assert resp.status_code == 422

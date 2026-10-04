@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.catalog import School, Skill
 from app.models.content import Course, Lesson, Pathway
 from app.models.enums import ContentStatus, QuizKind
+from app.repositories.publication import published_lab
 from app.models.lab import Lab, lab_modes, lab_skills
 from app.models.quiz import Quiz
 from app.models.resource import Resource, resource_courses
@@ -140,7 +141,7 @@ class ContentRepository:
         self, *, school_id: str | None = None, level: str | None = None,
         limit: int = 20, offset: int = 0,
     ) -> tuple[list[Lab], int]:
-        base = select(Lab).where(Lab.status == ContentStatus.PUBLISHED)
+        base = select(Lab).where(published_lab())
         if school_id:
             base = base.where(Lab.school_id == school_id)
         if level:
@@ -158,7 +159,7 @@ class ContentRepository:
         requêtes directes plutôt qu'une relation à ajouter aux modèles pour
         un besoin d'affichage aussi simple."""
         lab = self.db.execute(
-            select(Lab).where(Lab.id == lab_id, Lab.status == ContentStatus.PUBLISHED)
+            select(Lab).where(Lab.id == lab_id, published_lab())
         ).scalar_one_or_none()
         if lab is None:
             return None

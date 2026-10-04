@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.catalog import School, Skill
 from app.models.content import (
+    pathway_courses,
     Course,
     Demo,
     Lesson,
@@ -45,11 +46,13 @@ class AdminContentRepository:
         return self.db.get(Course, course_id)
 
     def list_courses_any_status(
-        self, *, school_id: str | None = None, status_filter=None, limit: int = 20, offset: int = 0,
+        self, *, school_id: str | None = None, status_filter=None, limit: int = 20, offset: int = 0, scope_predicate=None,
     ) -> tuple[list[Course], int]:
         from sqlalchemy import func
 
         stmt = select(Course)
+        if scope_predicate is not None:
+            stmt = stmt.where(scope_predicate)
         if school_id:
             stmt = stmt.where(Course.school_id == school_id)
         if status_filter:
@@ -77,6 +80,9 @@ class AdminContentRepository:
         )
         self.db.add(course)
         self.db.flush()
+        if data.pathway_id is not None:
+            position = self.db.scalar(select(func.coalesce(func.max(pathway_courses.c.position), 0)).where(pathway_courses.c.pathway_id == data.pathway_id)) + 1
+            self.db.execute(pathway_courses.insert().values(pathway_id=data.pathway_id, course_id=course.id, position=position))
         return course
 
     def update_course(self, course: Course, data: AdminCourseIn) -> Course:
@@ -106,11 +112,13 @@ class AdminContentRepository:
         ).scalar_one_or_none()
 
     def list_lessons_any_status(
-        self, *, course_id: str | None = None, status_filter=None, limit: int = 20, offset: int = 0,
+        self, *, course_id: str | None = None, status_filter=None, limit: int = 20, offset: int = 0, scope_predicate=None,
     ) -> tuple[list[Lesson], int]:
         from sqlalchemy import func
 
         stmt = select(Lesson)
+        if scope_predicate is not None:
+            stmt = stmt.where(scope_predicate)
         if course_id:
             stmt = stmt.where(Lesson.course_id == course_id)
         if status_filter:

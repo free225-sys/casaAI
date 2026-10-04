@@ -504,7 +504,7 @@ class PdfImportService:
         self.repo = AdminContentRepository(db)
 
     def import_pdf(
-        self, *, file_bytes: bytes, filename: str, school_id: str, create_course: bool = True
+        self, *, file_bytes: bytes, filename: str, school_id: str, create_course: bool = True, pathway_id: str | None = None
     ) -> ImportResult:
         """Importe un PDF, avec ou sans création de cours.
 
@@ -546,7 +546,7 @@ class PdfImportService:
                 warning = f"{empty_pages} page(s) sur {page_count} sans texte extractible, ignorée(s)."
 
             course = self.repo.create_course(AdminCourseIn(
-                school_id=school_id, title=title, status=ContentStatus.DRAFT,
+                school_id=school_id, title=title, status=ContentStatus.DRAFT, pathway_id=pathway_id,
                 description=f"Importé automatiquement depuis {filename}.",
             ))
 

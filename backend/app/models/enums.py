@@ -10,16 +10,13 @@ import enum
 
 
 class UserRole(str, enum.Enum):
-    # ADMIN : gestion du contenu pédagogique uniquement (cours, leçons,
+    # ADMIN : gestion du contenu pédagogique attribué (cours, leçons,
     # import PDF). Pas d'accès aux utilisateurs, à la progression globale,
     # ni aux certifications.
     ADMIN = "ADMIN"
-    # SUPER_ADMIN : sur-ensemble d'ADMIN. Accès en plus à la gestion des
-    # utilisateurs (dont suppression), à la progression globale des
-    # apprenants, et à la gestion des certifications. Ne participe pas aux
-    # cours en tant qu'apprenant (convention d'usage : compte LEARNER
-    # séparé si besoin — voir app/api/deps.py pour le détail des
-    # dépendances d'autorisation associées à chaque rôle).
+    # SUPER_ADMIN : gestion globale du contenu, utilisateurs, attributions,
+    # progression globale et décisions officielles CASA. Les activités
+    # pédagogiques personnelles sont interdites par require_learner.
     SUPER_ADMIN = "SUPER_ADMIN"
     LEARNER = "LEARNER"
 

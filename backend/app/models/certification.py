@@ -76,12 +76,11 @@ class UserCertification(Base):
 
 
 class CourseCertificate(Base):
-    """Certificat de module : délivré automatiquement à un apprenant quand la
-    moyenne de ses meilleurs scores sur tous les quiz d'un cours atteint le
-    seuil (cf. COURSE_CERTIFICATE_THRESHOLD, services/course_certificate_service.py).
-    Distinct du catalogue `Certification` (parcours multi-cours, critères
-    définis à la main par un administrateur) : ici l'éligibilité est
-    entièrement dérivée des tentatives de quiz, un cours à la fois."""
+    """Historical automatically issued module certificate.
+
+    Existing rows retain their original meaning. New official CASA receipts are
+    separate records and cannot be inferred from a quiz average.
+    """
     __tablename__ = "course_certificates"
 
     id: Mapped[uuid.UUID] = uuid_pk()

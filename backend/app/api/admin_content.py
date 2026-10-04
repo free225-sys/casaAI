@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import require_content_admin
 from app.db.session import get_db
+from app.services.content_scope_service import ContentScopeService
 from app.models.enums import ContentStatus
 from app.models.user import User
 from app.repositories.admin_content_repository import AdminContentRepository
@@ -64,7 +65,8 @@ def admin_list_courses(
     _admin: User = Depends(require_content_admin),
 ) -> AdminCourseListResponse:
     items, total = AdminContentRepository(db).list_courses_any_status(
-        school_id=school_id, status_filter=status_filter, limit=limit, offset=offset
+        school_id=school_id, status_filter=status_filter, limit=limit, offset=offset,
+        scope_predicate=ContentScopeService(db, _admin).course_predicate()
     )
     return AdminCourseListResponse(
         items=[AdminCourseOut.model_validate(c) for c in items], total=total, limit=limit, offset=offset
@@ -75,6 +77,8 @@ def admin_list_courses(
 def admin_get_course(
     course_id: str, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminCourseOut:
+    scope = ContentScopeService(db, _admin)
+    scope.course(course_id)
     course = AdminContentRepository(db).get_course_any_status(course_id)
     if course is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cours introuvable.")
@@ -85,6 +89,12 @@ def admin_get_course(
 def admin_create_course(
     payload: AdminCourseIn, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminCourseOut:
+    scope = ContentScopeService(db, _admin)
+    scope.lock_mutation()
+    if payload.pathway_id is not None:
+        scope.pathway(payload.pathway_id)
+    else:
+        scope.school(payload.school_id)
     try:
         course = AdminContentService(db).create_course(payload)
     except ValidationError as e:
@@ -96,6 +106,12 @@ def admin_create_course(
 def admin_update_course(
     course_id: str, payload: AdminCourseIn, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminCourseOut:
+    if payload.pathway_id is not None:
+        raise HTTPException(422, "Le rattachement parcours est réservé à la création.")
+    scope = ContentScopeService(db, _admin)
+    original = scope.course(course_id, write=True)
+    if original.school_id != payload.school_id:
+        scope.school(payload.school_id)
     try:
         course = AdminContentService(db).update_course(course_id, payload)
     except CourseNotFoundError as e:
@@ -109,6 +125,8 @@ def admin_update_course(
 def admin_delete_course(
     course_id: str, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> None:
+    scope = ContentScopeService(db, _admin)
+    scope.course(course_id, write=True)
     try:
         AdminContentService(db).delete_course(course_id)
     except CourseNotFoundError as e:
@@ -127,7 +145,8 @@ def admin_list_lessons(
     _admin: User = Depends(require_content_admin),
 ) -> AdminLessonListResponse:
     items, total = AdminContentRepository(db).list_lessons_any_status(
-        course_id=course_id, status_filter=status_filter, limit=limit, offset=offset
+        course_id=course_id, status_filter=status_filter, limit=limit, offset=offset,
+        scope_predicate=ContentScopeService(db, _admin).lesson_predicate()
     )
     return AdminLessonListResponse(
         items=[{
@@ -142,6 +161,8 @@ def admin_list_lessons(
 def admin_get_lesson(
     lesson_id: str, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminLessonOut:
+    scope = ContentScopeService(db, _admin)
+    scope.lesson(lesson_id)
     lesson = AdminContentRepository(db).get_lesson_any_status(lesson_id)
     if lesson is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable.")
@@ -152,6 +173,8 @@ def admin_get_lesson(
 def admin_create_lesson(
     payload: AdminLessonIn, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminLessonOut:
+    scope = ContentScopeService(db, _admin)
+    scope.course(payload.course_id, write=True)
     try:
         lesson = AdminContentService(db).create_lesson(payload)
     except ValidationError as e:
@@ -163,6 +186,9 @@ def admin_create_lesson(
 def admin_update_lesson(
     lesson_id: str, payload: AdminLessonIn, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> AdminLessonOut:
+    scope = ContentScopeService(db, _admin)
+    scope.lesson(lesson_id, write=True)
+    scope.course(payload.course_id, write=True)
     try:
         lesson = AdminContentService(db).update_lesson(lesson_id, payload)
     except LessonNotFoundError as e:
@@ -176,6 +202,8 @@ def admin_update_lesson(
 def admin_delete_lesson(
     lesson_id: str, db: Session = Depends(get_db), _admin: User = Depends(require_content_admin)
 ) -> None:
+    scope = ContentScopeService(db, _admin)
+    scope.lesson(lesson_id, write=True)
     try:
         AdminContentService(db).delete_lesson(lesson_id)
     except LessonNotFoundError as e:
@@ -215,6 +243,9 @@ def _preview_section(section) -> PdfPreviewSectionOut:
 @router.post("/courses/preview-pdf", response_model=PdfPreviewResponse)
 async def admin_preview_pdf(
     file: UploadFile = File(...),
+    school_id: str | None = Form(default=None),
+    pathway_id: str | None = Form(default=None),
+    db: Session = Depends(get_db),
     _admin: User = Depends(require_content_admin),
 ) -> PdfPreviewResponse:
     """Analyse un PDF et renvoie ce que l'import produirait, sans rien créer.
@@ -222,6 +253,13 @@ async def admin_preview_pdf(
     Pas de `school_id` ni de session : la prévisualisation ne touche à rien
     en base, et n'a donc besoin ni de l'une ni de l'autre.
     """
+    scope = ContentScopeService(db, _admin)
+    if pathway_id is not None:
+        scope.pathway(pathway_id)
+    elif not scope.global_access:
+        if school_id is None:
+            raise HTTPException(422, "Une école attribuée est requise pour l’aperçu PDF.")
+        scope.school(school_id)
     if file.content_type not in _PDF_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -245,6 +283,7 @@ async def admin_preview_pdf(
 @router.post("/courses/import-pdf", response_model=PdfImportResponse, status_code=status.HTTP_201_CREATED)
 async def admin_import_pdf(
     school_id: str = Form(...),
+    pathway_id: str | None = Form(default=None),
     file: UploadFile = File(...),
     create_course: bool = Form(default=True),
     db: Session = Depends(get_db),
@@ -255,6 +294,16 @@ async def admin_import_pdf(
     `create_course=false` verse le document au corpus documentaire sans créer
     de cours : la réponse ne porte alors ni `course_id` ni `lesson_id`.
     """
+    scope = ContentScopeService(db, _admin)
+    scope.lock_mutation()
+    if pathway_id is not None:
+        if not create_course:
+            raise HTTPException(422, "Un parcours cible nécessite la création d’un cours.")
+        scope.pathway(pathway_id)
+    else:
+        scope.school(school_id)
+    if not create_course and not scope.global_access:
+        raise HTTPException(403, "Import corpus réservé à CASA.")
     if file.content_type not in _PDF_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -265,7 +314,7 @@ async def admin_import_pdf(
     try:
         result = PdfImportService(db).import_pdf(
             file_bytes=file_bytes, filename=file.filename or "import.pdf",
-            school_id=school_id, create_course=create_course,
+            school_id=school_id, create_course=create_course, pathway_id=pathway_id,
         )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e))

@@ -144,8 +144,20 @@ def decide(request_id: uuid.UUID, payload: DecisionIn, db: Session = Depends(get
     item = find_request(db, request_id)
     transaction_lock(db, f"casa:certification-request:{item.user_id}:{item.certification_id}")
     transaction_lock(db, f"casa:certification-decision:{request_id}")
+    reviewer_id = user.id
+    # Authentication preceded the advisory-lock wait. Hold current user rows
+    # through commit; stable ordering avoids reciprocal reviewer/applicant locks.
+    user_ids = {reviewer_id, item.user_id} if payload.decision == "APPROVED" else {reviewer_id}
+    current_users = {current.id: current for current in db.scalars(
+        select(User).where(User.id.in_(user_ids)).order_by(User.id).with_for_update()
+        .execution_options(populate_existing=True))}
+    reviewer = current_users.get(reviewer_id)
+    if reviewer is None or reviewer.status != AccountStatus.ACTIVE:
+        raise HTTPException(401, "Identifiants invalides ou expirés.", headers={"WWW-Authenticate": "Bearer"})
+    if reviewer.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(403, "Accès refusé : rôle insuffisant.")
     item = find_request(db, request_id)
-    if item.user_id == user.id:
+    if item.user_id == reviewer_id:
         raise HTTPException(403, "Vous ne pouvez pas examiner votre propre demande.")
     if item.status != "SUBMITTED":
         if item.status != payload.decision or item.reason != payload.reason:
@@ -153,16 +165,16 @@ def decide(request_id: uuid.UUID, payload: DecisionIn, db: Session = Depends(get
         return request_out(db, item, admin=True)
     if payload.decision == "APPROVED":
         # Role changes/suspensions apply at the moment of official issuance too.
-        applicant = db.scalar(select(User).where(User.id == item.user_id).with_for_update().execution_options(populate_existing=True))
+        applicant = current_users.get(item.user_id)
         cert = db.scalar(select(Certification).where(Certification.id == item.certification_id).with_for_update().execution_options(populate_existing=True))
-        if applicant.role != UserRole.LEARNER or applicant.status != AccountStatus.ACTIVE:
+        if applicant is None or applicant.role != UserRole.LEARNER or applicant.status != AccountStatus.ACTIVE:
             raise HTTPException(409, "Le demandeur doit être un apprenant actif.")
         if cert.status != ContentStatus.PUBLISHED:
             raise HTTPException(409, "La certification doit être publiée.")
         db.add(OfficialCertificate(request_id=item.id))
     item.status = payload.decision
     item.reason = payload.reason
-    item.decided_by = user.id
+    item.decided_by = reviewer_id
     item.decided_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(item)

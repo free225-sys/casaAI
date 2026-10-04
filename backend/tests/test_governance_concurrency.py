@@ -350,3 +350,180 @@ def test_approval_waits_for_applicant_change_and_rechecks_committed_state(commit
     with Session(engine) as db:
         assert db.get(CertificationRequest, request_id).status == 'SUBMITTED'
         assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == 0
+
+
+@pytest.mark.parametrize('change', ['suspend', 'demote', 'delete'])
+@pytest.mark.parametrize('decision', ['APPROVED', 'REJECTED'])
+@pytest.mark.parametrize('terminal', [False, True])
+@pytest.mark.parametrize('wait_lock', ['subject', 'reviewer_row'])
+def test_reviewer_revocation_while_decision_waits_rejects_stale_authorization(committed_governance, change, decision, terminal, wait_lock):
+    from datetime import datetime, timezone
+    from threading import Event
+    from time import monotonic
+    from sqlalchemy import text, update
+    from app.db.locks import transaction_lock
+    from app.schemas.admin import AdminUserUpdateRequest
+    from app.services.admin_user_service import AdminUserService
+    ids, _, _, certid = committed_governance
+    with Session(engine) as db:
+        item = CertificationRequest(user_id=ids[0], certification_id=certid, statement='Synthetic',
+                                    evidence_ids=[], evidence_snapshot=[])
+        if terminal:
+            item.status, item.reason = decision, 'Synthetic CASA review'
+            item.decided_by, item.decided_at = ids[3], datetime.now(timezone.utc)
+        db.add(item)
+        db.flush()
+        if terminal and decision == 'APPROVED':
+            db.add(OfficialCertificate(request_id=item.id))
+        db.commit()
+        request_id = item.id
+    authenticated = Event()
+    pids = {}
+    app = FastAPI()
+    app.include_router(certification_requests.router)
+    def caller(credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme), db: Session = Depends(get_db)):
+        user = get_current_user(credentials, db)
+        pids['decision'] = db.scalar(select(func.pg_backend_pid()))
+        authenticated.set()
+        return user
+    app.dependency_overrides[get_current_user] = caller
+    def decide():
+        with TestClient(app) as client:
+            return client.post(f'/api/admin/certification-requests/{request_id}/decision',
+                headers={'Authorization': 'Bearer ' + create_access_token(ids[2], UserRole.SUPER_ADMIN.value)},
+                json={'decision': decision, 'reason': 'Synthetic CASA review'})
+    with Session(engine) as changer:
+        pids['change'] = changer.scalar(select(func.pg_backend_pid()))
+        value = {'status': AccountStatus.SUSPENDED} if change == 'suspend' else {'role': UserRole.ADMIN}
+        if wait_lock == 'subject':
+            transaction_lock(changer, f'casa:certification-request:{ids[0]}:{certid}')
+        elif change == 'delete':
+            changer.execute(delete(User).where(User.id == ids[2]))
+        else:
+            changer.execute(update(User).where(User.id == ids[2]).values(**value))
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(decide)
+            try:
+                assert authenticated.wait(10)
+                blocked = False
+                deadline = monotonic() + 5
+                with engine.connect() as observer:
+                    while monotonic() < deadline and not future.done():
+                        blocked = observer.scalar(text('SELECT wait_event_type FROM pg_stat_activity WHERE pid=:pid'),
+                                                  {'pid': pids['decision']}) == 'Lock'
+                        observer.commit()
+                        if blocked:
+                            break
+                assert blocked, 'Decision did not wait after authenticating the reviewer'
+                if wait_lock == 'reviewer_row':
+                    changer.commit()
+                else:
+                    service = AdminUserService(changer)
+                    actor = changer.get(User, ids[3])
+                    if change == 'delete':
+                        service.delete_user(actor=actor, target_id=ids[2])
+                    else:
+                        service.update_user(actor=actor, target_id=ids[2], payload=AdminUserUpdateRequest(**value))
+            finally:
+                changer.rollback()  # release the wait even if a setup assertion fails
+            response = future.result(timeout=10)
+        assert response.status_code == (403 if change == 'demote' else 401), response.text
+    assert len(set(pids.values())) == 2
+    with Session(engine) as db:
+        item = db.get(CertificationRequest, request_id)
+        assert item.status == (decision if terminal else 'SUBMITTED')
+        assert item.decided_by == (ids[3] if terminal else None)
+        assert (item.decided_at is not None) == terminal
+        assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == int(terminal and decision == 'APPROVED')
+
+
+def test_reciprocal_reviewers_on_promoted_applicant_dossiers_do_not_deadlock(committed_governance):
+    ids, _, _, certid = committed_governance
+    with Session(engine) as db:
+        requests = [CertificationRequest(user_id=uid, certification_id=certid, statement='Before promotion',
+                                         evidence_ids=[], evidence_snapshot=[]) for uid in ids[2:]]
+        db.add_all(requests)
+        db.commit()
+        request_ids = [item.id for item in requests]
+    responses = simultaneous([
+        ('POST', f'/api/admin/certification-requests/{request_ids[0]}/decision', ids[3], UserRole.SUPER_ADMIN,
+         {'decision': 'APPROVED', 'reason': 'Synthetic review'}),
+        ('POST', f'/api/admin/certification-requests/{request_ids[1]}/decision', ids[2], UserRole.SUPER_ADMIN,
+         {'decision': 'APPROVED', 'reason': 'Synthetic review'}),
+    ])
+    assert [code for code, _ in responses] == [409, 409]
+    with Session(engine) as db:
+        assert all(db.get(CertificationRequest, rid).status == 'SUBMITTED' for rid in request_ids)
+        assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == 0
+
+
+@pytest.mark.parametrize('change', ['suspend', 'demote', 'delete'])
+def test_reviewer_revocation_waits_until_in_flight_approval_commits(committed_governance, change):
+    from threading import Event
+    from time import monotonic
+    from sqlalchemy import event, text
+    from app.schemas.admin import AdminUserUpdateRequest
+    from app.schemas.governance import DecisionIn
+    from app.services.admin_user_service import AdminUserService
+    ids, _, _, certid = committed_governance
+    with Session(engine) as db:
+        item = CertificationRequest(user_id=ids[0], certification_id=certid, statement='Synthetic',
+                                    evidence_ids=[], evidence_snapshot=[])
+        db.add(item)
+        db.commit()
+        request_id = item.id
+    ready, release, mutation_started = Event(), Event(), Event()
+    pids = {}
+    def approve():
+        with Session(engine) as db:
+            connection = db.connection()
+            pids['approval'] = db.scalar(select(func.pg_backend_pid()))
+            def pause(conn, cursor, statement, parameters, context, executemany):
+                if statement.lstrip().startswith('INSERT INTO official_certificates'):
+                    ready.set()
+                    assert release.wait(10)
+            event.listen(connection, 'before_cursor_execute', pause)
+            try:
+                result = certification_requests.decide(request_id,
+                    DecisionIn(decision='APPROVED', reason='Synthetic CASA review'), db, db.get(User, ids[2]))
+                return result.status
+            finally:
+                event.remove(connection, 'before_cursor_execute', pause)
+    def revoke():
+        with Session(engine) as db:
+            pids['mutation'] = db.scalar(select(func.pg_backend_pid()))
+            mutation_started.set()
+            service, actor = AdminUserService(db), db.get(User, ids[3])
+            if change == 'delete':
+                service.delete_user(actor=actor, target_id=ids[2])
+            else:
+                value = {'status': AccountStatus.SUSPENDED} if change == 'suspend' else {'role': UserRole.ADMIN}
+                service.update_user(actor=actor, target_id=ids[2], payload=AdminUserUpdateRequest(**value))
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first = pool.submit(approve)
+        try:
+            assert ready.wait(10)
+            second = pool.submit(revoke)
+            assert mutation_started.wait(10)
+            blocked = False
+            deadline = monotonic() + 5
+            with engine.connect() as observer:
+                while monotonic() < deadline and not second.done():
+                    blocked = observer.scalar(text('SELECT wait_event_type FROM pg_stat_activity WHERE pid=:pid'),
+                                              {'pid': pids['mutation']}) == 'Lock'
+                    observer.commit()
+                    if blocked:
+                        break
+            assert blocked, 'Revocation crossed the reviewer lock before approval committed'
+        finally:
+            release.set()
+        assert first.result(timeout=10) == 'APPROVED'
+        second.result(timeout=10)
+    assert len(set(pids.values())) == 2
+    with Session(engine) as db:
+        item = db.get(CertificationRequest, request_id)
+        assert item.status == 'APPROVED' and item.decided_by == (None if change == 'delete' else ids[2])
+        assert db.scalar(select(func.count()).select_from(OfficialCertificate)) == 1
+        reviewer = db.get(User, ids[2])
+        assert reviewer is None if change == 'delete' else (
+            reviewer.status == AccountStatus.SUSPENDED if change == 'suspend' else reviewer.role == UserRole.ADMIN)

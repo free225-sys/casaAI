@@ -8,6 +8,7 @@ import { useMyScopes } from "../../hooks/useMyScopes";
 import { useScopedPathways } from "../../hooks/useScopedPathways";
 import { adminService } from "../../services/adminService";
 import { useAuth } from "../../stores/authStore";
+import { adminRefusal } from "../../utils/adminErrors";
 import { hasScope, scopePathwayIds, scopeSchoolIds } from "../../utils/scopes";
 import { contentService } from "../../services/contentService";
 import type { AdminCourse, PathwayListItem, School } from "../../types/api";
@@ -83,7 +84,7 @@ export function AdminCoursesPage() {
       });
       refresh();
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : "La modification du statut a échoué.");
+      setActionError(adminRefusal(e, "save", "La modification du statut a échoué."));
     } finally {
       setPendingId(null);
     }
@@ -99,7 +100,7 @@ export function AdminCoursesPage() {
       refresh();
     } catch (e) {
       setToDelete(null);
-      setActionError(e instanceof Error ? e.message : "La suppression a échoué.");
+      setActionError(adminRefusal(e, "delete", "La suppression a échoué."));
     } finally {
       setPendingId(null);
     }

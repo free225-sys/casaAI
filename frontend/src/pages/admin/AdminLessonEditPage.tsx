@@ -6,6 +6,7 @@ import { Notice, PageHeader } from "../../components/ui";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
+import { adminRefusal } from "../../utils/adminErrors";
 import type { AdminLessonDepthLevelInput, AdminLessonSectionInput } from "../../types/api";
 
 const DEPTH_KEYS = ["ESSENTIAL", "TECHNICAL", "MATHEMATICS", "IMPLEMENTATION", "ARCHITECTURE", "GOVERNANCE"] as const;
@@ -91,7 +92,7 @@ function AdminLessonEditPageContent() {
       }
       navigate(`/admin/courses/${courseId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "L’enregistrement a échoué.");
+      setError(adminRefusal(e, "save", "L’enregistrement a échoué."));
     } finally {
       setSaving(false);
     }

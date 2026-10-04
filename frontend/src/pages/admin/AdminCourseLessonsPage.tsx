@@ -5,6 +5,7 @@ import { AdminLayout } from "../../layouts/AdminLayout";
 import { ConfirmDialog, EmptyState, Notice, PageHeader, Status } from "../../components/ui";
 import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
+import { adminRefusal } from "../../utils/adminErrors";
 import type { AdminCourse, AdminLessonListItem } from "../../types/api";
 
 export function AdminCourseLessonsPage() {
@@ -39,7 +40,7 @@ export function AdminCourseLessonsPage() {
       refresh();
     } catch (e) {
       setToDelete(null);
-      setError(e instanceof Error ? e.message : "La suppression a échoué.");
+      setError(adminRefusal(e, "delete", "La suppression a échoué."));
     } finally {
       setDeleting(false);
     }

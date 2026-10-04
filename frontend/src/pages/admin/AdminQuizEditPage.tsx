@@ -5,6 +5,7 @@ import { ConfirmDialog, Notice, PageHeader } from "../../components/ui";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { ListSkeleton } from "../../components/Skeleton";
 import { adminService } from "../../services/adminService";
+import { adminRefusal } from "../../utils/adminErrors";
 import type { AdminQuestionInput, ContentStatus, QuizKind } from "../../types/api";
 
 const KIND_LABELS: Record<QuizKind, string> = {
@@ -93,7 +94,7 @@ function AdminQuizEditPageContent() {
       }
       navigate(backTo);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "L’enregistrement a échoué.");
+      setError(adminRefusal(e, "save", "L’enregistrement a échoué."));
     } finally {
       setSaving(false);
     }
@@ -107,7 +108,7 @@ function AdminQuizEditPageContent() {
       navigate(backTo);
     } catch (e) {
       setConfirmDelete(false);
-      setError(e instanceof Error ? e.message : "La suppression a échoué.");
+      setError(adminRefusal(e, "delete", "La suppression a échoué."));
       setSaving(false);
     }
   };

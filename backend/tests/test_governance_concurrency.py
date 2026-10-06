@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 import uuid
+import os
 
 from fastapi import Depends, FastAPI
 from fastapi.security import HTTPAuthorizationCredentials
@@ -26,7 +27,8 @@ from app.models.user import User
 def committed_governance():
     url = engine.url
     if not (url.host == "127.0.0.1" and url.port == 55432 and
-            url.database == "casa_recipe_20261003_a51b626_tests" and url.username == "casa_test"):
+            url.database == os.environ.get("CASA_TEST_DATABASE") and
+            url.database in ("casa_recipe_20261003_a51b626_tests", "casa_discovery_v1_tests") and url.username == "casa_test"):
         pytest.skip("Requires the explicitly isolated additional governance test database")
     tag = uuid.uuid4().hex
     ids = [uuid.uuid4() for _ in range(4)]

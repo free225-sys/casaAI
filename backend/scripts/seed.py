@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.db.session import SessionLocal
 from app.models.catalog import School, Skill
@@ -44,7 +45,6 @@ from app.models.knowledge import (
     knowledge_node_demos,
     knowledge_node_dependencies,
     knowledge_node_labs,
-    knowledge_node_used_in_lessons,
 )
 from app.models.lab import Lab, lab_modes, lab_skills
 from app.models.quiz import Question, QuestionBank, QuestionOption, Quiz, quiz_questions
@@ -1790,22 +1790,27 @@ def seed_governance(db: Session, data: dict) -> None:
 
 
 def seed_knowledge_graph(db: Session, data: dict) -> None:
+    # Reference bootstrap is insert-only. Existing editorial status, text and
+    # metadata must survive subsequent calls; lesson links belong to the admin
+    # editor and must never be restored from historical usedIn data.
+    created = set()
     for k in data["knowledgeGraph"]:
-        node = _get_or_create(
-            db, KnowledgeNode, k["id"],
-            title=k["title"], stage=k.get("stage"), formula=k.get("formula"),
+        inserted = db.scalar(pg_insert(KnowledgeNode).values(
+            id=k["id"], title=k["title"], stage=k.get("stage"), formula=k.get("formula"),
             guiding_question=k.get("question"), status=ContentStatus.PUBLISHED,
-        )
-        db.flush()
-
-        db.query(KnowledgeNodeApplication).filter(KnowledgeNodeApplication.node_id == node.id).delete()
+        ).on_conflict_do_nothing(index_elements=[KnowledgeNode.id]).returning(KnowledgeNode.id))
+        if inserted is None:
+            continue
+        created.add(inserted)
         for label in k.get("applications", []):
-            db.add(KnowledgeNodeApplication(node_id=node.id, label=label))
+            db.add(KnowledgeNodeApplication(node_id=inserted, label=label))
 
     db.flush()
 
     # associations (nécessitent que tous les nœuds existent déjà)
     for k in data["knowledgeGraph"]:
+        if k["id"] not in created:
+            continue
         for dep_id in k.get("dependsOn", []):
             exists = db.execute(
                 knowledge_node_dependencies.select().where(
@@ -1816,21 +1821,7 @@ def seed_knowledge_graph(db: Session, data: dict) -> None:
             if not exists:
                 db.execute(knowledge_node_dependencies.insert().values(node_id=k["id"], depends_on_node_id=dep_id))
 
-        # "usedIn" pointe vers des leçons, pas d'autres nœuds (vérifié sur les données réelles).
-        # Une leçon du prototype peut avoir été fusionnée/supprimée depuis (cf.
-        # _MERGED_AWAY_LESSON_IDS) : on l'ignore silencieusement plutôt que de
-        # planter sur une clé étrangère vers une leçon qui n'existe plus.
-        for lesson_id in k.get("usedIn", []):
-            if db.get(Lesson, lesson_id) is None:
-                continue
-            exists = db.execute(
-                knowledge_node_used_in_lessons.select().where(
-                    knowledge_node_used_in_lessons.c.node_id == k["id"],
-                    knowledge_node_used_in_lessons.c.lesson_id == lesson_id,
-                )
-            ).first()
-            if not exists:
-                db.execute(knowledge_node_used_in_lessons.insert().values(node_id=k["id"], lesson_id=lesson_id))
+        # No usedIn imports, including on fresh reference bootstrap.
 
         for demo_id in k.get("demos", []):
             exists = db.execute(

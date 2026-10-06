@@ -61,7 +61,7 @@ def count(db, model, user):
 
 
 def test_native_migration_head_and_required_schema(db_session):
-    assert db_session.scalar(text("SELECT version_num FROM alembic_version")) == "0014"
+    assert db_session.scalar(text("SELECT version_num FROM alembic_version")) == "0015"
     assert db_session.scalar(text("SELECT extversion FROM pg_extension WHERE extname='vector'"))
     assert db_session.scalar(text("SELECT count(*) FROM pg_enum JOIN pg_type ON pg_type.oid=pg_enum.enumtypid WHERE typname='user_role' AND enumlabel='SUPER_ADMIN'")) == 1
     assert db_session.scalar(text("SELECT count(*) FROM information_schema.columns WHERE table_name='user_profiles' AND column_name='notify_badges'")) == 1

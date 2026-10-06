@@ -132,6 +132,38 @@ describe("sélecteur de notions d'une leçon", () => {
     expect(calls.length).toBe(4);
     expect(calls[3][1]).toEqual(calls[2][1]); // même corps, même révision
   });
+  it("pendant l'enregistrement, les cases sont verrouillées : une modification faite pendant la latence ne peut pas être effacée par la réponse", async () => {
+    let finish: (value: ReturnType<typeof state>) => void = () => {};
+    vi.mocked(adminService.replaceLessonKnowledgeNodes).mockReturnValueOnce(new Promise(resolve => { finish = resolve; }) as never);
+    await mountSection();
+    await click(box("c")!);
+    await click(button("Enregistrer les notions"));
+    expect(box("d")!.disabled).toBe(true);
+    expect(box("c")!.disabled).toBe(true);
+    await click(box("d")!); // sans effet : la case est verrouillée
+    expect(box("d")!.checked).toBe(false);
+    await act(async () => finish(state(["b", "c"], rev("b"))));
+    await flush();
+    expect(box("d")!.disabled).toBe(false);
+    expect(box("c")!.checked).toBe(true);
+    expect(host.textContent).toContain("Notions enregistrées.");
+    expect(host.textContent).toContain("À jour");
+    await click(box("d")!); // de nouveau modifiable après la réponse, et signalé comme non enregistré
+    expect(box("d")!.checked).toBe(true);
+    expect(host.textContent).toContain("Modifications non enregistrées");
+  });
+  it("une sélection modifiée pendant un conflit en attente de relecture n'est pas écrasée", async () => {
+    let release: (value: ReturnType<typeof state>) => void = () => {};
+    vi.mocked(adminService.replaceLessonKnowledgeNodes).mockRejectedValueOnce(new ApiError(409, "Les notions de cette leçon ont changé. Rechargez puis réessayez."));
+    await mountSection();
+    await click(box("c")!);
+    vi.mocked(adminService.getLessonKnowledgeNodes).mockReturnValueOnce(new Promise(resolve => { release = resolve; }) as never);
+    await click(button("Enregistrer les notions"));
+    expect(box("d")!.disabled).toBe(true);
+    await act(async () => release(state(["b", "d"], rev("z"))));
+    await flush();
+    expect(box("c")!.checked).toBe(true);
+  });
   it("chargement : pannes indépendantes avec retry, sans effacer la sélection", async () => {
     vi.mocked(adminService.listKnowledgeNodes).mockRejectedValueOnce(new Error("Offline"));
     await mountSection();
@@ -210,6 +242,20 @@ describe("éditeur de leçon : création puis notions", () => {
     expect(host.textContent).not.toContain("PAGE DU COURS");
     expect(host.textContent).toContain("Les notions ne sont pas encore enregistrées");
     expect(box("c")!.checked).toBe(true);
+  });
+  it("une notion cochée pendant la latence de l'enregistrement du texte est conservée : on ne quitte pas la page", async () => {
+    let finish: (value: unknown) => void = () => {};
+    vi.mocked(adminService.getLesson).mockResolvedValue({ id: "l1", course_id: "c1", title: "Leçon un", level: null, duration_min: null, summary: null, example: null, position: 1, status: "DRAFT", objectives: [], sections: [], depth_levels: [] } as never);
+    vi.mocked(adminService.listQuizzes).mockResolvedValue({ items: [], total: 0 } as never);
+    vi.mocked(adminService.updateLesson).mockReturnValueOnce(new Promise(resolve => { finish = resolve; }) as never);
+    await mountEditor("/admin/courses/c1/lessons/l1");
+    await click(button("Enregistrer la leçon")); // aucune notion modifiée à cet instant
+    await click(box("c")!); // modifiée pendant la latence du PUT du texte
+    await act(async () => finish({}));
+    await flush();
+    expect(host.textContent).not.toContain("PAGE DU COURS");
+    expect(box("c")!.checked).toBe(true);
+    expect(host.textContent).toContain("Les notions ne sont pas encore enregistrées");
   });
   it("sans modification de notions, l'enregistrement de la leçon retourne au cours comme avant", async () => {
     vi.mocked(adminService.getLesson).mockResolvedValue({ id: "l1", course_id: "c1", title: "Leçon un", level: null, duration_min: null, summary: null, example: null, position: 1, status: "DRAFT", objectives: [], sections: [], depth_levels: [] } as never);

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "../components/AppLink";
 import { useAuth } from "../stores/authStore";
@@ -14,6 +14,9 @@ export function LoginPage() {
   const from = (location.state as { from?: string } | null)?.from;
   const returnCourseId = readReturnCourseId(location.state);
 
+  // Page quittée pendant la vérification du cours : la réponse tardive ne doit plus imposer sa destination.
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +30,7 @@ export function LoginPage() {
       const me = await login(email, password);
       if (from === undefined && returnCourseId) {
         const outcome = await resolveReturnDestination(me.role, returnCourseId);
+        if (!mounted.current) return;
         navigate(outcome.path, { replace: true, state: outcome.notice ? { returnNotice: outcome.notice } : undefined });
       } else {
         navigate(postLoginPath(me.role, from), { replace: true });

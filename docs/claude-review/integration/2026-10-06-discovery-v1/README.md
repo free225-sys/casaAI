@@ -43,3 +43,16 @@ Chromium sur la build de prévisualisation (`VITE_API_URL=http://api.test`, API 
 - La durée n'est pas annoncée (à mesurer sur des essais réels). Page complémentaire non faite (hors minimum V1).
 - Les liens de cours dépendent entièrement des associations éditées et publiées côté serveur : aucun identifiant de cours n'est connu du frontend.
 - Le message de destination (« cours plus disponible ») n'est affiché que sur le tableau de bord apprenant ; un compte non apprenant qui se connecte avec un cours choisi retombe sur son accueil sans message.
+
+## Révision après la revue indépendante (MSG-20261006-012 et 013)
+
+Quatre réserves P2 reçues, **lues dans le code par le lead, non reproduites par lui** : je les ai d'abord reproduites par des tests à promesses différées (7 échecs avant correction sur les cas de latence et d'abandon, 9 sur les autres), puis corrigées.
+
+| Réserve | Cause confirmée | Correction |
+| --- | --- | --- |
+| `CourseDetailPage` : toute erreur devenait « introuvable » | Un seul état d'erreur ; l'ancien cours ou l'ancienne erreur survivaient à un changement d'identifiant | Trois états : **404 → « Ce cours n'est plus disponible »** avec issues catalogue et accueil (ou espace du rôle), **réseau/5xx → panne réessayable** (« Ce n'est pas un retrait »), lecture invalidée à chaque changement d'identifiant |
+| Sélection de notions perdue pendant la latence | La réponse du `PUT` remplace la sélection alors que les cases restaient actives ; le texte de la leçon décidait de naviguer sur un état « notions modifiées » capturé avant l'attente | Cases **verrouillées** pendant l'enregistrement ; l'état « notions non enregistrées » est lu **après** l'enregistrement du texte (référence mutable) : une notion cochée pendant la latence garde la page ouverte |
+| Navigation tardive après abandon | `resolveReturnDestination` se terminait après le démontage de la page et imposait sa destination | Garde de montage sur `RegisterPage` et `LoginPage` : plus de navigation si la page a été quittée, résolution ou rejet tardifs ; aucune recréation de compte |
+| Registre : orphelins acceptés | La validation n'allait que de la scène vers les métadonnées | Contrôle **inverse** : toute notion ou tout cours de métadonnées doit être référencé par une scène, sinon la réponse est incompatible (« Liens momentanément incompatibles… ») |
+
+Tests : **209/209** (191 + 18), `npx tsc -b` sans erreur, lint 0 erreur (1 avertissement existant), build réussi. Navigateur (API simulée) : les états « plus disponible » et « panne » de la fiche de cours à 1440 et 390 px, sans débordement horizontal et sans violation axe-core ; ce sont les seules vérifications navigateur refaites pour cette révision. Mêmes limites que ci-dessus : aucun serveur réel, zoom natif non testé, CI non consultée.

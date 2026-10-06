@@ -43,6 +43,8 @@ export function validateDiscoveryLinks(data: unknown): DiscoveryLinks | null {
   }
   if (!isUnique(notionIds) || !isUnique(courseIds)) return null;
 
+  const referencedNotions = new Set<string>();
+  const referencedCourses = new Set<string>();
   for (let index = 0; index < SCENE_REGISTRY.length; index += 1) {
     const scene = scenes[index];
     const expected = SCENE_REGISTRY[index];
@@ -56,6 +58,10 @@ export function validateDiscoveryLinks(data: unknown): DiscoveryLinks | null {
       cursor = position + 1;
     }
     if (!scene.course_ids.every(id => courseIds.includes(id))) return null;
+    scene.notion_ids.forEach(id => referencedNotions.add(id));
+    scene.course_ids.forEach(id => referencedCourses.add(id));
   }
+  // Sens inverse : une notion ou un cours de métadonnées que aucune scène ne référence est une réponse incohérente, pas une source de liens.
+  if (!notionIds.every(id => referencedNotions.has(id)) || !courseIds.every(id => referencedCourses.has(id))) return null;
   return data as unknown as DiscoveryLinks;
 }

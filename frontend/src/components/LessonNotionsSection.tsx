@@ -59,6 +59,7 @@ export function LessonNotionsSection({ lessonId, onDirtyChange }: { lessonId?: s
   const unknown = useMemo(() => [...selected].filter(id => nodes && !nodes.some(node => node.id === id)), [nodes, selected]);
   const nonPublic = useMemo(() => (nodes ?? []).filter(node => selected.has(node.id) && node.status !== "PUBLISHED"), [nodes, selected]);
 
+  // Les cases sont verrouillées pendant un enregistrement : la réponse remplace la sélection par l'état committé, une modification faite pendant la latence serait perdue en silence.
   const toggle = (id: string) => setSelected(current => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
   const handleConflict = async (original: ApiError) => {
@@ -134,14 +135,14 @@ export function LessonNotionsSection({ lessonId, onDirtyChange }: { lessonId?: s
           </div>
           {nonPublic.length > 0 && <p className="editor-hint">Non publiées parmi votre sélection : {nonPublic.map(node => `${node.title} (${STATUS_LABEL[node.status]})`).join(", ")}. Elles restent associées mais n’apparaissent pas publiquement.</p>}
           {unknown.map(id => (
-            <label key={id} className="choice"><input type="checkbox" checked onChange={() => toggle(id)} /><span><strong>Notion absente du référentiel chargé</strong> <span className="mono">{id}</span></span></label>
+            <label key={id} className="choice"><input type="checkbox" checked disabled={saving} onChange={() => toggle(id)} /><span><strong>Notion absente du référentiel chargé</strong> <span className="mono">{id}</span></span></label>
           ))}
           <fieldset className="choice-group">
             <legend>{selected.size} notion(s) sélectionnée(s) sur {nodes.length}</legend>
             {visible.length === 0 && <p className="editor-hint">Aucune notion ne correspond à la recherche.</p>}
             {visible.map(node => (
               <label key={node.id} className="choice">
-                <input type="checkbox" checked={selected.has(node.id)} onChange={() => toggle(node.id)} />
+                <input type="checkbox" checked={selected.has(node.id)} disabled={saving} onChange={() => toggle(node.id)} />
                 <span><strong>{node.title}</strong> <span className="admin-sub">({STATUS_LABEL[node.status]}) <span className="mono">{node.id}</span></span></span>
               </label>
             ))}

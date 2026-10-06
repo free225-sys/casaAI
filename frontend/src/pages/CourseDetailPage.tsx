@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { ApiError } from "../services/apiClient";
+import { homePathFor } from "../utils/roles";
 import { Link } from "../components/AppLink";
 import { RevealSection } from "../components/RevealSection";
 import { SchoolIcon } from "../components/ModuleIcon";
@@ -14,17 +16,23 @@ export function CourseDetailPage() {
   const { isAuthenticated, user } = useAuth();
   // Lot 1 : certificats et progression personnels réservés aux apprenants ; un administrateur n'a ni lien « Ouvrir » ni quiz (l'aperçu viendra avec le Lot 4).
   const isLearner = user?.role === "LEARNER";
+  // Trois états distincts : le cours (ou son identifiant) a changé de statut, il n'est plus disponible (404), ou la lecture a échoué (réseau, 5xx), ce qui n'est jamais un retrait.
   const [course, setCourse] = useState<CourseDetail | null>(null);
-  const [notFound, setNotFound] = useState(false);
+  const [loadState, setLoadState] = useState<"loading" | "unavailable" | "error">("loading");
+  const [reload, setReload] = useState(0);
   const [eligibility, setEligibility] = useState<CourseCertificateEligibility | null>(null);
 
   useEffect(() => {
     if (!courseId) return;
+    let active = true;
+    setCourse(null);
+    setLoadState("loading");
     contentService
       .getCourse(courseId)
-      .then(setCourse)
-      .catch(() => setNotFound(true));
-  }, [courseId]);
+      .then(value => { if (active) setCourse(value); })
+      .catch(error => { if (active) setLoadState(error instanceof ApiError && error.status === 404 ? "unavailable" : "error"); });
+    return () => { active = false; };
+  }, [courseId, reload]);
 
   useEffect(() => {
     if (!courseId || !isLearner) return;
@@ -34,7 +42,26 @@ export function CourseDetailPage() {
       .catch(() => setEligibility(null));
   }, [courseId, isLearner]);
 
-  if (notFound) return <p className="error-text">Ce cours est introuvable.</p>;
+  if (loadState === "unavailable") {
+    return (
+      <div className="section-error" role="status">
+        <h1 style={{ fontSize: "1.4rem" }}>Ce cours n’est plus disponible</h1>
+        <p>Il a pu être retiré ou dépublié. Vous pouvez en trouver d’autres dans le catalogue.</p>
+        <p className="ui-row">
+          <Link to="/catalog" className="btn btn-primary">Voir le catalogue</Link>
+          <Link to={user ? homePathFor(user.role) : "/"} className="btn btn-secondary">{user ? "Mon espace" : "Accueil"}</Link>
+        </p>
+      </div>
+    );
+  }
+  if (loadState === "error") {
+    return (
+      <div className="section-error" role="alert">
+        <p>Impossible de charger ce cours pour le moment. Ce n’est pas un retrait : réessayez dans un instant.</p>
+        <button type="button" className="btn btn-secondary" onClick={() => setReload(value => value + 1)}>Réessayer : ce cours</button>
+      </div>
+    );
+  }
   if (!course) return <CourseSkeleton />;
 
   const accent = course.color ?? "var(--color-accent-gold)";

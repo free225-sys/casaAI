@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Link } from "../../components/AppLink";
 import { LessonNotionsSection } from "../../components/LessonNotionsSection";
@@ -27,7 +27,9 @@ function AdminLessonEditPageContent() {
   const location = useLocation();
   const justCreated = (location.state as { lessonCreated?: boolean } | null)?.lessonCreated === true;
   const isNew = lessonId === "new";
-  const [notionsDirty, setNotionsDirty] = useState(false);
+  // Lu **après** l'enregistrement du texte : une notion cochée pendant la latence ne doit pas être perdue par une navigation décidée sur un état périmé.
+  const notionsDirty = useRef(false);
+  const trackNotionsDirty = useCallback((dirty: boolean) => { notionsDirty.current = dirty; }, []);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
@@ -98,7 +100,7 @@ function AdminLessonEditPageContent() {
         return;
       } else if (lessonId) {
         await adminService.updateLesson(lessonId, payload);
-        if (notionsDirty) {
+        if (notionsDirty.current) {
           // Les notions ne sont pas encore enregistrées : on reste sur la page pour ne pas perdre la sélection.
           setSavedNotice("Leçon enregistrée. Les notions ne sont pas encore enregistrées : utilisez « Enregistrer les notions ».");
           return;
@@ -267,7 +269,7 @@ function AdminLessonEditPageContent() {
           </section>
         )}
 
-        <LessonNotionsSection lessonId={isNew ? undefined : lessonId} onDirtyChange={setNotionsDirty} />
+        <LessonNotionsSection lessonId={isNew ? undefined : lessonId} onDirtyChange={trackNotionsDirty} />
 
         <div className="editor-actions">
           <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || !title}>

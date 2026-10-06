@@ -1,6 +1,6 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginPage } from "../src/pages/LoginPage";
 import { RegisterPage } from "../src/pages/RegisterPage";
@@ -19,6 +19,7 @@ const learner = { id: "u1", email: "test@example.test", first_name: "TEST", last
 const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
 const click = (el: Element) => act(async () => { (el as HTMLElement).click(); });
 const type = (selector: string, value: string) => act(async () => { const el = host.querySelector<HTMLInputElement>(selector)!; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value); el.dispatchEvent(new Event("input", { bubbles: true })); });
+const Leave = () => { const navigate = useNavigate(); return <button type="button" onClick={() => navigate("/catalog")}>Quitter</button>; };
 const Where = ({ name }: { name: string }) => { const location = useLocation(); return <p data-testid="where">{name} {JSON.stringify(location.state ?? null)}</p>; };
 const where = () => host.querySelector('[data-testid="where"]')?.textContent ?? "";
 
@@ -27,8 +28,9 @@ const mount = async (path: string, state?: unknown) => {
     <MemoryRouter initialEntries={[{ pathname: path, state }]}>
       <AuthProvider>
         <Routes>
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<><Leave /><RegisterPage /></>} />
+          <Route path="/catalog" element={<Where name="CATALOGUE" />} />
+          <Route path="/login" element={<><Leave /><LoginPage /></>} />
           <Route path="/courses/:courseId" element={<Where name="FICHE" />} />
           <Route path="/app/dashboard" element={<Where name="DASHBOARD" />} />
           <Route path="/app/quizzes" element={<Where name="QUIZ" />} />
@@ -176,6 +178,39 @@ describe("inscription avec retour au cours", () => {
     expect(host.textContent).toContain("Compte créé : connectez-vous.");
     expect(localStorage.getItem("casa_access_token")).toBeNull();
     expect(where()).toBe("");
+  });
+});
+
+describe("flux abandonné pendant la revalidation du cours", () => {
+  const abandon = async (path: string, settle: "resolve" | "reject") => {
+    let finish: () => void = () => {};
+    vi.mocked(contentService.getCourse).mockImplementation(() => new Promise((resolve, reject) => { finish = () => (settle === "resolve" ? resolve({ id: "cours-test" } as never) : reject(new ApiError(404, "Cours introuvable."))); }));
+    await mount(path, withReturn);
+    if (path === "/register") await fillAndSubmit();
+    else { await type("#email", "test@example.test"); await type("#password", "motdepasse-test"); await act(async () => { host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); }); await flush(); await flush(); }
+    expect(contentService.getCourse).toHaveBeenCalledTimes(1); // la vérification est en cours
+    await click([...host.querySelectorAll("button")].find(b => b.textContent === "Quitter")!);
+    await flush();
+    expect(where()).toContain("CATALOGUE");
+    await act(async () => finish());
+    await flush(); await flush();
+    return where();
+  };
+  it.each([["register", "resolve"], ["register", "reject"], ["login", "resolve"], ["login", "reject"]] as const)("%s, résolution %s tardive : la page quittée ne force plus sa destination", async (page, settle) => {
+    const final = await abandon(page === "register" ? "/register" : "/login", settle);
+    expect(final).toContain("CATALOGUE");
+    expect(final).not.toContain("FICHE");
+    expect(final).not.toContain("DASHBOARD");
+    expect(authService.register).toHaveBeenCalledTimes(page === "register" ? 1 : 0); // jamais de recréation du compte
+  });
+  it("une résolution tardive reste sans effet quand la personne est restée : la destination vérifiée est suivie", async () => {
+    let finish: () => void = () => {};
+    vi.mocked(contentService.getCourse).mockImplementation(() => new Promise(resolve => { finish = () => resolve({ id: "cours-test" } as never); }));
+    await mount("/register", withReturn);
+    await fillAndSubmit();
+    await act(async () => finish());
+    await flush();
+    expect(where()).toContain("FICHE");
   });
 });
 

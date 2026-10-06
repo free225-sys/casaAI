@@ -52,6 +52,9 @@ beforeEach(() => {
 afterEach(() => { act(() => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
 
 describe("registre : validation de la réponse des liens", () => {
+  it("accepte une réponse cohérente avec cours et notions référencés par une scène", () => {
+    expect(validateDiscoveryLinks(withCourse())).not.toBeNull();
+  });
   it("accepte la version 1 et un sous-ensemble ordonné de notions (une notion non publiée est absente)", () => {
     expect(validateDiscoveryLinks(links())).not.toBeNull();
     const partial = links({ notions: [{ id: "embeddings", title: "Embeddings" }] });
@@ -70,6 +73,9 @@ describe("registre : validation de la réponse des liens", () => {
     ["cours référencé sans métadonnées", () => { const d = links(); d.scenes[0] = { scene_key: "message", notion_ids: [], course_ids: ["x"] }; return d; }],
     ["cours dupliqué", () => links({ courses: [{ id: "a", title: "A", school_id: "s", level: null, duration_min: null }, { id: "a", title: "A", school_id: "s", level: null, duration_min: null }] })],
     ["niveau de type invalide", () => links({ courses: [{ id: "a", title: "A", school_id: "s", level: 3, duration_min: null }] })],
+    ["cours orphelin (métadonnées jamais référencées par une scène)", () => links({ courses: [{ id: "orphelin", title: "Cours orphelin", school_id: "s", level: null, duration_min: null }] })],
+    ["notion orpheline (métadonnées jamais référencées par une scène)", () => links({ notions: [{ id: "llm", title: "Modèle de langage" }] })],
+    ["un cours référencé et un autre orphelin", () => { const d = withCourse(); d.courses.push({ id: "orphelin", title: "Orphelin", school_id: "s", level: null, duration_min: null } as never); return d; }],
     ["pas un objet", () => "texte" as never],
     ["tableau vide fabriqué", () => [] as never],
   ])("refuse : %s", (_name, build) => { expect(validateDiscoveryLinks(build())).toBeNull(); });
@@ -193,6 +199,13 @@ describe("liens publiés : états distincts", () => {
     await flush();
     expect(host.textContent).toContain("Pour aller plus loin");
     expect(discoveryService.getLinks).toHaveBeenCalledTimes(2);
+  });
+  it("une réponse avec un cours orphelin n'affiche aucun lien : incompatible, jamais une source de liens", async () => {
+    vi.mocked(discoveryService.getLinks).mockResolvedValue(links({ courses: [{ id: "orphelin", title: "Cours orphelin", school_id: "s", level: null, duration_min: null }] }));
+    await mount();
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("Liens momentanément incompatibles");
+    expect(host.textContent).not.toContain("Cours orphelin");
+    expect(host.querySelector('a[href="/courses/orphelin"]')).toBeNull();
   });
   it("un registre d'une autre version affiche l'incompatibilité, sans liens ni faux état vide, scènes toujours utilisables", async () => {
     vi.mocked(discoveryService.getLinks).mockResolvedValue({ ...withCourse(), registry_version: 2 });

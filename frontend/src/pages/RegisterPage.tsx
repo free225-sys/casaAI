@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "../components/AppLink";
 import { useAuth } from "../stores/authStore";
@@ -14,6 +14,9 @@ export function RegisterPage() {
   // Seul l'identifiant du cours choisi est porté ; la destination est reconstruite et revalidée après l'inscription.
   const returnCourseId = readReturnCourseId(location.state);
   const loginState = returnCourseId ? { return_course_id: returnCourseId } : undefined;
+  // Page quittée pendant la vérification du cours : la réponse tardive ne doit plus imposer sa destination.
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [accountCreated, setAccountCreated] = useState(false);
   const [unconfirmed, setUnconfirmed] = useState(false);
 
@@ -39,6 +42,7 @@ export function RegisterPage() {
       const me = await register({ first_name: firstName, last_name: lastName, email, password });
       if (returnCourseId) {
         const outcome = await resolveReturnDestination(me.role, returnCourseId);
+        if (!mounted.current) return;
         navigate(outcome.path, { replace: true, state: outcome.notice ? { returnNotice: outcome.notice } : undefined });
       } else {
         navigate("/app/dashboard", { replace: true });

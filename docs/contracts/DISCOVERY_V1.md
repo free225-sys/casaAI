@@ -1,0 +1,177 @@
+# Accueil pédagogique CASA — contrat documentaire V1
+
+Statut : contrat technique proposé par le lead, prêt à aligner avec Claude et à valider avant développement. **Aucune route, migration ou implémentation ci-dessous n'est livrée par ce document.** Base backend 72261b84e2c0a457ef20aa290a89fcdf1c5bc2d6, frontend 9eb451495a4bebb38d644eb3a868301d3f8a4754. Proposition Claude revue : 2768fb512f4478a0854935c572abd1bd0903bfb8, README de docs/claude-review/proposals/2026-10-06-accueil-pedagogique/. Tâche TASK-20261006-001.
+
+## 1. Validation propriétaire et limite d'autorisation
+
+Le 6 octobre à 10:49 UTC, « oui je valide » valide le scénario présenté : six scènes dans l'accueil, deux premières visibles puis quatre scènes dépliables sur place ; trois exemples guidés locaux ; aucune saisie libre ni API d'inférence en V1 ; associations de notions dans l'éditeur de leçon, avec les permissions/publications actuelles ; retour au cours choisi après inscription, dashboard si indisponible.
+
+Cette décision autorise la **finalisation documentaire du contrat avant développement**, pas le code. Une page complémentaire reste facultative. Aurore, catalogue complet, signature, guards, rôles et progression restent la référence. Durée annoncée et formulations exactes sont à affiner sans rouvrir les principes validés.
+
+## 2. Réemploi et registre de scènes
+
+Réutiliser KnowledgeNode et knowledge_node_used_in_lessons, puis Lesson.course_id et Course. Les jointures existantes portent déjà les associations notion→leçon ; pas de nouvelle table discovery_scene_nodes, pas de mapping de cours dans le frontend, pas de nouvel éditeur global.
+
+Un registre de référence versionné, commun au contrat backend/frontend, définit la découverte llm-answer, registry_version=1, et les scènes suivantes dans cet ordre. Il contient **uniquement des identifiants de notions**, jamais des IDs/titres de cours ou leçons. Le frontend connaît les clés de scènes mais reçoit leurs associations publiées du serveur.
+
+| scene_key stable | Scène | KnowledgeNode.id, dans l'ordre |
+| --- | --- | --- |
+| message | Message et contexte | llm |
+| tokens | Tokenisation | tokenization |
+| representations | Représentations numériques | data-representation, embeddings |
+| model | Traitement du modèle | attention, transformer |
+| generation | Génération et mémoire de calcul | generation, kv-cache |
+| response | Réponse lisible et limites | llm, generation |
+
+Ce registre fait partie du contrat documentaire à confirmer avec Claude avant GO. Une scène n'est pas un token de progression pédagogique. Les scènes restent visibles même si aucune association n'est publiée. Les cours sont obtenus exclusivement via les associations éditées sur les leçons ; leur regroupement ne dépend pas d'une recherche de titres, d'un ancien seed ni de leur appartenance à un parcours particulier.
+
+## 3. Lecture publique groupée
+
+**GET /api/discoveries/{discovery_key}/links** — sans authentification, seule clé V1 : llm-answer. Préfixe /api cohérent avec content.py ; pas de nouveau préfixe /api/public.
+
+Schéma DiscoveryLinksOut :
+
+- discovery_key : string, llm-answer ; registry_version : entier, 1.
+- scenes : exactement six éléments ordonnés {scene_key: string, notion_ids: string[], course_ids: string[]}.
+- notions : objets uniques {id: string, title: string}, dans l'ordre de première apparition dans le registre.
+- courses : objets uniques {id: string, title: string, school_id: string, level: string|null, duration_min: integer|null}, ordonnés par Course.title puis Course.id, même ordre pour les course_ids de chaque scène.
+
+Exemple **illustratif**, qui ne désigne aucun cours réel :
+
+~~~json
+{
+  "discovery_key": "llm-answer",
+  "registry_version": 1,
+  "scenes": [
+    {"scene_key":"message","notion_ids":["llm"],"course_ids":["cours-exemple"]},
+    {"scene_key":"tokens","notion_ids":[],"course_ids":[]},
+    {"scene_key":"representations","notion_ids":[],"course_ids":[]},
+    {"scene_key":"model","notion_ids":[],"course_ids":[]},
+    {"scene_key":"generation","notion_ids":[],"course_ids":[]},
+    {"scene_key":"response","notion_ids":["llm"],"course_ids":["cours-exemple"]}
+  ],
+  "notions": [{"id":"llm","title":"Modèle de langage"}],
+  "courses": [{"id":"cours-exemple","title":"Cours illustratif","school_id":"ecole-exemple","level":null,"duration_min":null}]
+}
+~~~
+
+Règles normatives :
+
+1. Une notion n'est servie que si son KnowledgeNode.status vaut PUBLISHED et son ID figure dans le registre. Une notion publiée sans association reste une notion sans cours.
+2. Un cours est proposé pour une scène si **au moins une** liaison du nœud de cette scène mène à une Lesson PUBLISHED dont Course est PUBLISHED. Les trois filtres sont serveur ; une autre leçon publiée sans cette liaison ne suffit pas.
+3. Dédupliquer notions/cours globalement dans les métadonnées et course_ids par scène ; un même ID de cours peut être référencé dans plusieurs scènes. Aucun contenu, ID de leçon, statut non public, compteur de brouillons, compte ou acquis n'est exposé.
+4. Lecture cohérente sur un même snapshot SQL, de préférence une requête groupée, pas six requêtes par scène ni une requête par cours. Coût proportionnel au nombre de liens de cette découverte ; pas de téléchargement de tout le catalogue.
+5. Découverte connue sans données : 200, six scènes, listes vides appropriées. Clé inconnue : 404 {"detail":"Découverte introuvable."}. Panne : statut 5xx normal, jamais [] fabriqué pour masquer une panne.
+6. Cache-Control: no-store pour ce nouveau endpoint ; aucun cache persistant frontend. Un GET à l'affichage du module, retry explicite sur erreur, nouvelle lecture au retour de l'édition et contrôle de fiche au clic/retour d'inscription. Ce choix réduit l'obsolescence, il ne garantit pas qu'un lien restera disponible après la réponse.
+
+## 4. Référentiel et associations dans l'administration
+
+Tous les endpoints ci-dessous utilisent require_content_admin : ADMIN et SUPER_ADMIN actifs. Réutiliser get_current_user ; les droits viennent de la base, pas d'un rôle seulement affiché côté client.
+
+**GET /api/admin/knowledge-nodes?limit=20&offset=0**
+
+Référentiel de notions, pas une liste de leçons hors scope. Réponse paginée {items:[{id,title,status}], total, limit, offset}, ordre title puis id, limit 1..100 et offset>=0. Les trois statuts sont lisibles afin de comprendre une association devenue non publique. Aucun lien vers les leçons d'autres administrateurs. Lecture du référentiel commun autorisée aux deux rôles ; aucune création, édition de notion ni écriture globale par cette route.
+
+**GET /api/admin/lessons/{lesson_id}/knowledge-nodes**
+
+Autorisation ContentScopeService.lesson(lesson_id), y compris les leçons DRAFT/ARCHIVED accessibles. Réponse LessonKnowledgeNodesOut : {lesson_id:string, node_ids:string[], revision:string}. IDs uniques triés lexicographiquement, toutes publications, ensemble vide possible. Pas d'association d'autres leçons.
+
+revision est un jeton opaque de 64 caractères hexadécimaux minuscules : SHA256 du JSON canonique UTF-8 {lesson_id, course_id, node_ids}, clés triées, listes triées, sans espaces, ensure_ascii=False. Le client le recopie, ne le calcule pas. Aucun champ ni table supplémentaire de révision.
+
+**PUT /api/admin/lessons/{lesson_id}/knowledge-nodes**
+
+Corps LessonKnowledgeNodesReplacement : {node_ids:string[], expected_revision:string}. Deux champs **requis**, champs supplémentaires refusés. Maximum 100 IDs, chaque ID non vide, maximum 200 caractères, sans espace périphérique ni caractère de contrôle ; doublons refusés. expected_revision doit avoir le format du jeton. [] explicite retire les associations ; absence de node_ids ne signifie jamais [].
+
+Les nœuds DRAFT/ARCHIVED existants restent sélectionnables : une association n'en publie ni la notion ni la leçon/cours. Un bandeau de l'éditeur explique pourquoi elle n'est pas visible sur l'accueil.
+
+Réponse 200 : LessonKnowledgeNodesOut avec l'état réellement committé. L'ordre du corps n'est pas un ordre éditorial ; il est normalisé. Pour une nouvelle leçon, obtenir d'abord son ID via l'API de création existante, puis lire/enregistrer les notions. Aucun élargissement d'AdminLessonIn/Out requis en V1.
+
+## 5. Atomicité, idempotence, concurrence et droits
+
+Une seule transaction pour le PUT dédié :
+
+1. Valider le schéma et les dépendances auth/rôle. Prendre d'abord le verrou transactionnel casa:content-scope-mutations (scope.lock_mutation), puis verrouiller/recharger la ligne de l'acteur User FOR UPDATE, en rafraîchissant réellement l'identité ORM. Revérifier statut actif et rôle courant : suspension/suppression →401, démotion hors ADMIN/SUPER_ADMIN →403. Construire le scope avec cet acteur frais, puis appeler **ContentScopeService.lesson(lesson_id, write=True)** ; ne pas mémoriser les grants frontend. Garder le verrou acteur jusqu'au commit : une révocation concurrente est ordonnée avant ou après cette transaction.
+2. Respecter l'ordre de verrous commun → acteur → leçon → références triées. Verrouiller la ligne Lesson FOR UPDATE et relire son parent/les liaisons actuelles dans la transaction ; vérifier le périmètre courant et la règle des cours partagés après acquisition des verrous.
+3. Valider l'existence de tous les node_ids avant suppression ; protéger les références contre une suppression concurrente (verrou de référence dans l'ordre des IDs ou mécanisme équivalent). Aucun remplacement partiel en cas d'erreur.
+4. Si l'ensemble demandé est déjà l'ensemble courant, retourner 200 avec la révision courante, même si expected_revision est ancien : retry identique sans écriture.
+5. Sinon, comparer expected_revision à la révision courante : divergence→409, sans changement. Puis appliquer uniquement la différence aux liaisons de **cette leçon**, commit unique et réponse canonique.
+
+Deux éditeurs divergents depuis une même révision : le premier commit gagne, le second reçoit 409 et recharge ; aucune fusion ni écrasement silencieux. Deux PUT identiques donnent le même état/jeton. Une séquence A→B→A rend le même fingerprint : la condition porte sur l'état actuel, pas sur un numéro historique, ce qui n'écrase aucun état différent. Aucun effet progression, badge, certificat, publication ou texte du cours.
+
+ADMIN peut lire dans son périmètre et écrire si son école est attribuée ou si tous les parcours partageant le cours sont couverts, conformément à ContentScopeService.course(write=True). SUPER_ADMIN bénéficie du périmètre global existant, pas d'un nouvel éditeur global. Les changements de grants et mutations parents utilisant le verrou commun sont sérialisés ; la nouvelle route ne doit pas contourner ces contrôles.
+
+**Compatibilité :** les anciens POST/PUT de leçon et _replace_nested conservent les liaisons KnowledgeNode inchangées. Ne pas ajouter node_ids=[] par défaut à AdminLessonIn ni lancer une synchronisation implicite lors d'un ancien PUT. En V1, texte de leçon et notions ont deux enregistrements explicites : afficher chacun succès/erreur et garder la sélection non enregistrée si la seconde opération échoue.
+
+## 6. Erreurs précises
+
+| Route / situation | Statut et detail |
+| --- | --- |
+| Admin : absent/invalide/expiré/inactif | 401, mécanisme get_current_user/HTTPBearer existant ; token invalide/inactif : "Identifiants invalides ou expirés." |
+| Admin : LEARNER ou rôle insuffisant | 403, "Accès refusé : rôle insuffisant." |
+| Public : discovery_key inconnu | 404, "Découverte introuvable." |
+| Admin : leçon inexistante | 404, "Leçon introuvable." |
+| Admin : parent de leçon hors scope | 404, "Cours introuvable." (comportement ContentScopeService actuel) |
+| PUT : cours partagé non entièrement couvert | 409, "Cours partagé : tous les parcours ou l’école doivent être attribués." |
+| PUT : révision divergente et changement demandé | 409, "Les notions de cette leçon ont changé. Rechargez puis réessayez." |
+| PUT : au moins un node_id inexistant | 422, "Notion introuvable." ; aucune écriture |
+| Query/corps absent, malformé, doublon, trop long, revision invalide | 422, validation Pydantic/FastAPI standard (detail liste), pas 409 |
+| Panne DB/transport | 5xx/erreur réseau ; ne pas transformer en succès, données vides ou cours définitivement retiré |
+
+Les libellés de permissions existants doivent rester ceux du service à l'implémentation. Aucune existence hors périmètre n'est révélée par une route nouvelle.
+
+## 7. Retrait, publication, cours partagé et amorçage ciblé
+
+Retirer une liaison sur une leçon ne retire aucune liaison des autres leçons. Si une autre liaison publiée du même cours justifie encore ce cours pour la scène, il reste proposé. Dépublier/archiver la notion, la leçon ou son cours retire le chemin concerné de la prochaine réponse publique ; les associations restent éditables et conservées en administration. Une suppression autorisée réutilise les gardes actuelles et les FK existantes ; aucun DELETE global ajouté ici. Publication d'un parcours n'est pas un filtre supplémentaire du cours public : respecter la règle actuelle de content_repository, qui expose un cours PUBLISHED indépendamment du statut de ses parcours.
+
+Une future migration de données **ciblée et ponctuelle**, non exécutée ici, provisionne les seuls nœuds manquants du registre : tokenization ("Tokenisation"), generation ("Génération de texte"), kv-cache ("Cache clé-valeur"). Les autres IDs doivent être constatés, pas restaurés aveuglément depuis le seed.
+
+Proposition technique : insérer les trois nouveaux référentiels en PUBLISHED seulement s'ils n'existent pas, sans liaison ; ils n'exposent aucun cours à eux seuls. ON CONFLICT(id) DO NOTHING préserve tous les champs/statuts d'un nœud existant, y compris DRAFT/ARCHIVED. Le statut initial des nouvelles références fait partie du contrat à confirmer avant code ; il ne republie aucun choix existant.
+
+**Ne jamais** rejouer seed_knowledge_graph/seed global, ajouter des liens depuis usedIn historique, republier un cours/leçon/nœud existant, restaurer une liaison retirée, renommer/fusionner des IDs ou faire une réconciliation au démarrage. Les futures associations sont éditées explicitement par un administrateur dans la leçon. La migration forward n'est exécutée qu'une fois ; un downgrade éventuel ne doit pas supprimer un nœud désormais référencé par du contenu éditorial. Aucun index/table/migration exécutable fourni par cette livraison documentaire.
+
+## 8. Accueil, inscription et indisponibilité
+
+Claude ajoute le sélecteur **Notions** à l'éditeur de leçon, pas un écran global "Liens de la découverte". Il charge le référentiel et l'état de la leçon, conserve les associations non visibles/anciennes, signale les statuts et conflits, n'efface rien pendant un chargement/panne. Les contrôles frontend assistent l'utilisateur ; le serveur décide des droits.
+
+La simulation est locale sur trois exemples, sans saisie libre, envoi de prompt, stockage persistant des entrées ou API d'inférence. Les GET de métadonnées et le trafic normal auth/assets restent permis ; les choix d'exemple/scène ne déclenchent pas de télémétrie par défaut. Les listes de liens peuvent charger/échouer indépendamment des scènes ; état vide et erreur ont des textes distincts.
+
+Après inscription/session établie et identité/rôle à jour (attendre le rafraîchissement auth, ne pas lire un ancien user capturé) : porter seulement un return_course_id en état du routeur, pas une URL libre. Construire une route interne à segment encodé, la faire passer par postLoginPath/les rôles actuels, puis **revalider GET /api/courses/{id}** et l'ID retourné. Cours publié et destination permise→fiche cours ; absent/retiré, ID invalide ou disponibilité non vérifiable→/app/dashboard avec message distinct selon le cas. Ne pas relancer l'inscription après un échec de ce GET. Pour une connexion d'un compte existant, conserver homePathFor si son rôle ne permet pas la destination ; jamais envoyer un ADMIN vers une activité apprenante.
+
+Un cours peut disparaître **après** cette vérification ou après le GET groupé. Un GET 404 de fiche est donc normal : afficher un état « Cours indisponible » avec issue catalogue/dashboard, pas une page cassée ni promesse "jamais404". Une erreur réseau/5xx est un état réessayable, pas une preuve de dépublication.
+
+Repli du module : texte disponible dans le bundle React principal, indépendant du chargement/exécution du module de simulation ; frontière d'erreur et mouvement réduit. Ce n'est pas une garantie sans JavaScript pour la SPA. La page complémentaire éventuelle réemploie le même composant ; aucun chantier SSR/prérendu inclus.
+
+## 9. Douze choix Claude : statut sans rouvrir les décisions
+
+| Choix README révision2 | Statut pour la suite documentaire |
+| --- | --- |
+| O1 six scènes | Validé 10:49 ; clés stables du §2 à aligner |
+| O2 deux scènes puis suite | Validé : 1–2 visibles, 3–6 dépliables **dans l'accueil**, pas seulement ailleurs |
+| O3 page complémentaire | Facultative, hors minimum V1 ; aucune décision supplémentaire requise pour l'accueil |
+| O4 durée/niveau annoncés | Durée à mesurer ; pas de promesse4 min arbitraire ; découverte débutant acquise |
+| O5 exemples/saisie | Validé : trois exemples locaux, aucune saisie libre/API inférence en V1 ; textes exacts à relire |
+| O6 navigation | Détail frontend/design Claude, dans les contraintes clavier/pause/ordre ; ne pas rouvrir le placement |
+| O7 textes scientifiques | Relecture lead/Claude obligatoire : token≠mot/embedding, masque causal, position selon architecture, cache non magique ; pas de raisonnement interne prétendu |
+| O8 routes/table/scope | Contrat §2–7 : table existante, registre versionné, trois lectures/un PUT ; confirmation réserves puis validation contrat |
+| O9 gouvernance | ADMIN dans son scope, SUPER_ADMIN global, associations dans la leçon ; aucun éditeur global V1 |
+| O10 correction ancien texte seed | Point éditorial signalé ; toute correction du lab existant reste une tâche lead distincte à borner avant GO, aucun reseed |
+| O11 retour inscription | Validé : cours choisi revalidé, dashboard si indisponible ; retrait concurrent couvert |
+| O12 sansJS | Aucun engagement SSR/sansJS V1 ; repli React et mouvement réduit seulement |
+
+Corriger les restes contradictoires du README : §2 "seul teaser", §6 qui exclut notion→leçon de V1, nouvelle table/éditeur global, promesse "jamais404", formulations "chaque mot"/attention à des tokens futurs ou position toujours ajoutée. Les principes ne sont pas remis au vote.
+
+## 10. Vérification future avant acceptation
+
+Cette livraison ne prétend exécuter aucune de ces vérifications ; elles seront requises après GO et implémentation.
+
+- Backend : triple filtre PUBLISHED ; notion publiée sans liens ; dépublication/retrait/plusieurs leçons d'un cours ; dédoublonnage/ordre ; métadonnées seules ; découverte inconnue et panne non masquée.
+- API admin : 401/403/404, école/parcours/sans scope, cours partagé409, SUPER_ADMIN, référence inconnue422 sans mutation, [] explicite, corps incomplet422, ancien PUT conservant les liens, retry identique, deux éditeurs divergents409, droits/parent modifiés pendant attente de verrou, suspension/démotion de l'acteur avant acquisition et ordre de verrous sans interblocage.
+- Données : migration ciblée réexécutée sans altération ; statuts existants conservés ; aucune liaison remise ; aucun reseed ; données/volumes de recette préservés.
+- Frontend : sélecteur avec plus d'une page du référentiel, chargement/erreur/409 sans perte de sélection, états cours vide/retiré/erreur, inscription réussie puis vérification en panne, destination invalide/externe/encodée refusée, course entre vérification et navigation.
+- Navigateur : 320/390/1440px **et panneau étroit**, clavier réel/focus/équivalent textuel, mouvement réduit, erreur de chargement et d'exécution du module, mesure du poids/chargement. **Zoom natif navigateur 200%** à tester et distinguer du viewport réduit/DPR ; axe-core et mesures seules ne remplacent pas la recette. Aucun trafic/persistance contenant les entrées de simulation.
+
+## 11. Sources et prochaine étape
+
+Sources lues : backend/app/models/knowledge.py ; models/content.py ; api/deps.py ; api/content.py ; api/admin_content.py ; schemas/admin.py ; services/content_scope_service.py ; repositories/content_repository.py et admin_content_repository.py ; frontend/src/pages/RegisterPage.tsx, CourseDetailPage.tsx, admin/AdminLessonEditPage.tsx ; utils/roles.ts ; stores/authStore.tsx. Le catalogue de recette sans contenu public constaté précédemment n'autorise aucune sélection de cours du seed.
+
+Claude aligne uniquement son document au présent contrat, confirme les réserves concrètes et fournit la proposition révisée. Le propriétaire valide ensuite scénario/document et contrat final avant GO code distinct. Lead : backend/contrats/qualité ; Claude : frontend/design. **Aucun merge, déploiement ou changement applicatif autorisé par cette publication.**

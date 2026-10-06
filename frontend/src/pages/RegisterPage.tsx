@@ -1,13 +1,21 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "../components/AppLink";
 import { useAuth } from "../stores/authStore";
 import { ApiError } from "../services/apiClient";
 import { RevealSection } from "../components/RevealSection";
+import { AccountCreatedError, RegistrationUnconfirmedError } from "../utils/registration";
+import { readReturnCourseId, resolveReturnDestination } from "../utils/returnCourse";
 
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Seul l'identifiant du cours choisi est porté ; la destination est reconstruite et revalidée après l'inscription.
+  const returnCourseId = readReturnCourseId(location.state);
+  const loginState = returnCourseId ? { return_course_id: returnCourseId } : undefined;
+  const [accountCreated, setAccountCreated] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState(false);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -19,6 +27,7 @@ export function RegisterPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setUnconfirmed(false);
 
     if (password.length < 8) {
       setError("Le mot de passe doit contenir au moins 8 caractères.");
@@ -27,10 +36,23 @@ export function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      await register({ first_name: firstName, last_name: lastName, email, password });
-      navigate("/app/dashboard", { replace: true });
+      const me = await register({ first_name: firstName, last_name: lastName, email, password });
+      if (returnCourseId) {
+        const outcome = await resolveReturnDestination(me.role, returnCourseId);
+        navigate(outcome.path, { replace: true, state: outcome.notice ? { returnNotice: outcome.notice } : undefined });
+      } else {
+        navigate("/app/dashboard", { replace: true });
+      }
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
+      if (err instanceof AccountCreatedError) {
+        // Création confirmée : ne jamais la rejouer. Le mot de passe saisi n'est pas conservé pour une nouvelle tentative automatique.
+        setAccountCreated(true);
+        setPassword("");
+        setError(null);
+      } else if (err instanceof RegistrationUnconfirmedError) {
+        setUnconfirmed(true);
+        setError(err.message);
+      } else if (err instanceof ApiError && err.status === 409) {
         setError("Cet email est déjà utilisé.");
       } else {
         setError(err instanceof ApiError ? err.detail : "Une erreur est survenue.");
@@ -48,6 +70,13 @@ export function RegisterPage() {
           Découvrez, apprenez, expérimentez, certifiez — à votre rythme.
         </p>
 
+        {accountCreated ? (
+          <div className="card" role="status" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 16 }}>
+            <p><strong>Compte créé : connectez-vous.</strong></p>
+            <p>Votre compte existe, mais la connexion automatique n’a pas abouti. Aucun second compte ne sera créé.{returnCourseId ? " Votre cours choisi sera vérifié après la connexion." : ""}</p>
+            <Link to="/login" state={loginState} className="btn btn-primary">Se connecter</Link>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="card" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", gap: 12 }}>
             <div className="field" style={{ flex: 1 }}>
@@ -83,16 +112,18 @@ export function RegisterPage() {
             <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>8 caractères minimum</span>
           </div>
 
-          {error && <p className="error-text">{error}</p>}
+          {error && <p className="error-text" role="alert">{error}</p>}
+          {unconfirmed && <Link to="/login" state={loginState}>Aller à la connexion</Link>}
 
           <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
             {isSubmitting ? "Création…" : "Créer mon compte"}
           </button>
         </form>
+        )}
 
         <p style={{ marginTop: 20, fontSize: "0.9rem" }}>
           Déjà inscrit ?{" "}
-          <Link to="/login" style={{ color: "var(--color-accent-blue)", textDecoration: "underline", textUnderlineOffset: 2 }}>
+          <Link to="/login" state={loginState} style={{ color: "var(--color-accent-blue)", textDecoration: "underline", textUnderlineOffset: 2 }}>
             Se connecter
           </Link>
         </p>

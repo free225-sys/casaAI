@@ -785,3 +785,19 @@ export interface AppNotification {
   read: boolean;
   created_at: string;
 }
+
+// Découverte pédagogique de l'accueil (contrat DISCOVERY_V1) : liens publiés issus des associations notion → leçon.
+export interface DiscoverySceneLinks { scene_key: string; notion_ids: string[]; course_ids: string[] }
+export interface DiscoveryNotionRef { id: string; title: string }
+export interface DiscoveryCourseRef { id: string; title: string; school_id: string; level: string | null; duration_min: number | null }
+export interface DiscoveryLinks {
+  discovery_key: string;
+  registry_version: number;
+  scenes: DiscoverySceneLinks[];
+  notions: DiscoveryNotionRef[];
+  courses: DiscoveryCourseRef[];
+}
+/** Référentiel commun des notions, métadonnées seulement : le statut est celui de la notion, jamais d'un cours. */
+export interface KnowledgeNodeReference { id: string; title: string; status: ContentStatus }
+export interface LessonKnowledgeNodes { lesson_id: string; node_ids: string[]; revision: string }
+export interface LessonKnowledgeNodesInput { node_ids: string[]; expected_revision: string }

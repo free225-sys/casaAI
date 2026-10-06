@@ -5,12 +5,14 @@ import { useAuth } from "../stores/authStore";
 import { ApiError } from "../services/apiClient";
 import { RevealSection } from "../components/RevealSection";
 import { postLoginPath } from "../utils/roles";
+import { readReturnCourseId, resolveReturnDestination } from "../utils/returnCourse";
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from;
+  const returnCourseId = readReturnCourseId(location.state);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +25,12 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       const me = await login(email, password);
-      navigate(postLoginPath(me.role, from), { replace: true });
+      if (from === undefined && returnCourseId) {
+        const outcome = await resolveReturnDestination(me.role, returnCourseId);
+        navigate(outcome.path, { replace: true, state: outcome.notice ? { returnNotice: outcome.notice } : undefined });
+      } else {
+        navigate(postLoginPath(me.role, from), { replace: true });
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : "Une erreur est survenue.");
     } finally {
@@ -75,7 +82,7 @@ export function LoginPage() {
 
         <p style={{ marginTop: 20, fontSize: "0.9rem" }}>
           Pas encore de compte ?{" "}
-          <Link to="/register" style={{ color: "var(--color-accent-blue)", textDecoration: "underline", textUnderlineOffset: 2 }}>
+          <Link to="/register" state={returnCourseId ? { return_course_id: returnCourseId } : undefined} style={{ color: "var(--color-accent-blue)", textDecoration: "underline", textUnderlineOffset: 2 }}>
             Créer un compte
           </Link>
         </p>

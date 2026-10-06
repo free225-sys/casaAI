@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Link } from "../../components/AppLink";
+import { LessonNotionsSection } from "../../components/LessonNotionsSection";
 import { SectionImageField } from "../../components/SectionImageField";
 import { Notice, PageHeader } from "../../components/ui";
 import { AdminLayout } from "../../layouts/AdminLayout";
@@ -23,7 +24,11 @@ export function AdminLessonEditPage() {
 function AdminLessonEditPageContent() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const justCreated = (location.state as { lessonCreated?: boolean } | null)?.lessonCreated === true;
   const isNew = lessonId === "new";
+  const [notionsDirty, setNotionsDirty] = useState(false);
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [level, setLevel] = useState("");
@@ -86,9 +91,18 @@ function AdminLessonEditPageContent() {
     };
     try {
       if (isNew) {
-        await adminService.createLesson(payload);
+        // Rester sur l'éditeur de la leçon créée (route remplacée par l'identifiant renvoyé) : les notions s'enregistrent ensuite séparément,
+        // sans jamais recréer la leçon en cas de panne.
+        const created = await adminService.createLesson(payload);
+        navigate(`/admin/courses/${courseId}/lessons/${encodeURIComponent(created.id)}`, { replace: true, state: { lessonCreated: true } });
+        return;
       } else if (lessonId) {
         await adminService.updateLesson(lessonId, payload);
+        if (notionsDirty) {
+          // Les notions ne sont pas encore enregistrées : on reste sur la page pour ne pas perdre la sélection.
+          setSavedNotice("Leçon enregistrée. Les notions ne sont pas encore enregistrées : utilisez « Enregistrer les notions ».");
+          return;
+        }
       }
       navigate(`/admin/courses/${courseId}`);
     } catch (e) {
@@ -113,6 +127,8 @@ function AdminLessonEditPageContent() {
         actions={!isNew && lessonId ? <Link to={`/admin/preview/lessons/${lessonId}`} className="btn btn-secondary">Aperçu de la leçon</Link> : undefined}
       />
       {error && <Notice>{error}</Notice>}
+      {justCreated && !savedNotice && <Notice kind="success">Leçon créée. Vous pouvez maintenant lui associer des notions.</Notice>}
+      {savedNotice && <Notice kind="success">{savedNotice}</Notice>}
 
       <div className="editor">
         <section className="panel editor-panel" aria-labelledby="lesson-general">
@@ -250,6 +266,8 @@ function AdminLessonEditPageContent() {
             </span>
           </section>
         )}
+
+        <LessonNotionsSection lessonId={isNew ? undefined : lessonId} onDirtyChange={setNotionsDirty} />
 
         <div className="editor-actions">
           <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || !title}>

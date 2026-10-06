@@ -2,6 +2,7 @@ import { Link } from "../components/AppLink";
 import { RevealSection } from "../components/RevealSection";
 import { HeroVisual } from "../components/HeroVisual";
 import { ProgressRail } from "../components/ProgressRail";
+import { DiscoveryModule } from "../components/discovery/DiscoveryModule";
 
 export function HomePage() {
   return (
@@ -41,6 +42,9 @@ export function HomePage() {
           <HeroVisual />
         </RevealSection>
       </section>
+
+      {/* Découverte : première interaction pédagogique réelle, six scènes dans l'accueil (deux visibles, quatre dépliables). */}
+      <DiscoveryModule />
 
       {/* Signature : la séquence pédagogique du cahier des charges, rendue
           comme un rail — c'est une vraie séquence fixe, pas un ornement.

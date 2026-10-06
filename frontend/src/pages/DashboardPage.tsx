@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Link } from "../components/AppLink";
 import { useAuth } from "../stores/authStore";
 import { ListSkeleton } from "../components/Skeleton";
@@ -8,6 +9,7 @@ import { contentService } from "../services/contentService";
 import type { CourseDetail } from "../types/api";
 import { EmptyState, Notice, PageHeader, Status } from "../components/ui";
 import { useAsyncSection } from "../hooks/useAsyncSection";
+import { RETURN_NOTICE_TEXT, type ReturnNotice } from "../utils/returnCourse";
 
 function SectionError({ title, retry }: { title: string; retry: () => void }) {
   return <div className="section-error" role="alert">
@@ -18,6 +20,7 @@ function SectionError({ title, retry }: { title: string; retry: () => void }) {
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const returnNotice = (useLocation().state as { returnNotice?: ReturnNotice } | null)?.returnNotice;
   const progress = useAsyncSection(progressService.getMyProgress);
   const skills = useAsyncSection(progressService.getMySkills);
   const badges = useAsyncSection(progressService.getMyBadges);
@@ -59,6 +62,7 @@ export function DashboardPage() {
   const metric = (value: number | undefined, label: string) => <div className="card dashboard-metric"><strong>{value ?? "—"}</strong><span>{label}</span></div>;
   return <div className="dashboard">
     <PageHeader title={`Bonjour ${user?.first_name ?? ""}`} description="Reprenez là où vous vous êtes arrêté." />
+    {returnNotice && returnNotice in RETURN_NOTICE_TEXT && <Notice kind="info"><p>{RETURN_NOTICE_TEXT[returnNotice]}</p><Link to="/catalog" className="btn btn-secondary">Voir le catalogue</Link></Notice>}
     {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && <Notice kind="info"><p>Compte administrateur — l'espace apprenant reste ouvert pour prévisualiser.</p><Link to="/admin/courses" className="btn btn-secondary">Ouvrir l'administration</Link></Notice>}
     {badges.data?.some(row => row.new) && <Notice kind="success"><p><strong>Nouveaux badges :</strong> {badges.data.filter(row => row.new).map(row => row.title).join(", ")}</p><button type="button" className="btn btn-secondary" disabled={acknowledging} onClick={acknowledge}>{acknowledging ? "Enregistrement…" : "Marquer les nouveaux badges comme lus"}</button></Notice>}
     {ackError && <Notice>Impossible de marquer les badges comme lus. Réessayez avec le bouton ci-dessus.</Notice>}

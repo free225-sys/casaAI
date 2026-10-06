@@ -15,6 +15,7 @@ vi.mock("../src/layouts/AdminLayout", () => ({ AdminLayout: ({ children }: { chi
 vi.mock("../src/services/adminService", () => ({ adminService: {
   listCourses: vi.fn(), deleteCourse: vi.fn(), updateCourse: vi.fn(), getQuiz: vi.fn(), deleteQuiz: vi.fn(), updateQuiz: vi.fn(),
   getLesson: vi.fn(), listQuizzes: vi.fn(), updateLesson: vi.fn(),
+  listKnowledgeNodes: vi.fn(), getLessonKnowledgeNodes: vi.fn(), replaceLessonKnowledgeNodes: vi.fn(),
 } }));
 vi.mock("../src/services/contentService", () => ({ contentService: { listSchools: vi.fn() } }));
 
@@ -71,6 +72,8 @@ describe("Refus serveur (409, 404, 403) : affichés tels quels, sans contourneme
   it("une modification de leçon refusée en 409 est expliquée et ne perd pas la saisie", async () => {
     vi.mocked(adminService.getLesson).mockResolvedValue({ id: "l1", course_id: "c1", title: "Leçon un", level: null, duration_min: null, summary: null, example: null, position: 1, status: "DRAFT", objectives: [], sections: [], depth_levels: [] } as never);
     vi.mocked(adminService.listQuizzes).mockResolvedValue({ items: [], total: 0 } as never);
+    vi.mocked(adminService.listKnowledgeNodes).mockResolvedValue({ items: [], total: 0, limit: 100, offset: 0 } as never);
+    vi.mocked(adminService.getLessonKnowledgeNodes).mockResolvedValue({ lesson_id: "l1", node_ids: [], revision: "a".repeat(64) });
     vi.mocked(adminService.updateLesson).mockRejectedValue(new ApiError(409, "quiz dépendants"));
     await mount(<AdminLessonEditPage />, "/admin/courses/c1/lessons/l1", "/admin/courses/:courseId/lessons/:lessonId");
     await click(button("Enregistrer la leçon"));

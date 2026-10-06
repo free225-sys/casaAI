@@ -1,0 +1,53 @@
+/* Découverte pédagogique de l'accueil. D10 : contours neutres uniquement, aucun liseré coloré ; l'état se lit par le texte, pas par la couleur seule. */
+.discovery { padding: 28px; margin-bottom: 48px; }
+.discovery h2 { margin: 0 0 8px; }
+.discovery-label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 600; }
+.discovery-hint { font-size: var(--text-xs); color: var(--color-text-muted); margin: 8px 0 0; }
+.discovery-placeholder { min-height: 320px; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); }
+.discovery-scenes, .discovery-text-list { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 28px; }
+.discovery-scene h3, .discovery-text-list h3 { font-size: 1.05rem; margin: 0 0 8px; }
+.discovery-scene h3:focus { outline: 2px solid var(--color-text); outline-offset: 3px; }
+.discovery-num { display: inline-block; min-width: 1.6em; text-align: center; background: var(--color-accent-blue-soft); border-radius: 999px; padding: 0 6px; font-weight: 700; }
+.discovery-more { margin-top: 20px; }
+.discovery-box { background: var(--color-surface-raised); border-radius: var(--radius-md); padding: 14px 16px; margin: 12px 0 0; }
+.discovery-box p, .discovery-box ul { margin: 0; }
+.discovery-box p + p, .discovery-box ul { margin-top: 6px; }
+.discovery-box ul { padding-left: 18px; }
+.discovery-box-title { font-weight: 700; }
+.discovery-choice { border: 0; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.discovery-choice legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+.discovery-radio { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.discovery-tokens { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.discovery-tokens li { display: inline-flex; flex-direction: column; align-items: center; background: var(--color-surface-raised); border-radius: var(--radius-sm); padding: 6px 10px; }
+.discovery-token-text { white-space: pre; font-family: var(--font-mono); font-size: var(--text-sm); }
+.discovery-token-id { font-size: var(--text-xs); color: var(--color-text-muted); font-family: var(--font-mono); }
+.discovery-end { font-style: italic; }
+.discovery-map { margin: 14px 0 0; }
+.discovery-map svg { width: 100%; max-width: 360px; height: auto; display: block; }
+.discovery-map-bg { fill: var(--color-surface-raised); stroke: var(--color-border-strong); stroke-width: 0.6; }
+.discovery-map-dot { fill: var(--color-text); }
+.discovery-map-label { font-size: 5px; fill: var(--color-text); }
+.discovery-map figcaption { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 6px; }
+.discovery-positions { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.discovery-positions button { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; font: inherit; }
+.discovery-positions li[data-used="true"] button { background: var(--color-accent-blue-soft); }
+.discovery-positions button[aria-pressed="true"] { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.discovery-position-state { font-size: var(--text-xs); color: var(--color-text-muted); }
+.discovery-range-ends { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--color-text-muted); }
+.discovery-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.discovery-candidates { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
+.discovery-candidates li { display: grid; grid-template-columns: minmax(0, 1fr) 90px 48px; gap: 10px; align-items: center; }
+.discovery-bar { display: block; height: 8px; background: var(--color-border); border-radius: 999px; overflow: hidden; }
+.discovery-bar > span { display: block; height: 100%; background: var(--color-text); }
+.discovery-pct { text-align: right; font-variant-numeric: tabular-nums; }
+.discovery-links-line { font-size: var(--text-sm); margin: 10px 0 0; }
+.discovery-courses { margin-top: 24px; }
+.discovery-courses h3 { font-size: 1.05rem; margin: 0 0 8px; }
+.discovery-courses ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.discovery-courses li { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.discovery-follow { font-size: var(--text-sm); }
+.discovery .section-error { margin-top: 16px; }
+@media (max-width: 480px) {
+  .discovery { padding: 20px 16px; }
+  .discovery-candidates li { grid-template-columns: minmax(0, 1fr) 60px 44px; }
+}

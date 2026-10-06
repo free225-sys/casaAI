@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { configureApiClient } from "../services/apiClient";
+import { ApiError, configureApiClient } from "../services/apiClient";
 import { authService } from "../services/authService";
 import type { UserPublic } from "../types/api";
+import { AccountCreatedError, RegistrationUnconfirmedError } from "../utils/registration";
 
 const ACCESS_TOKEN_KEY = "casa_access_token";
 const REFRESH_TOKEN_KEY = "casa_refresh_token";
@@ -11,7 +12,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<UserPublic>;
-  register: (data: { first_name: string; last_name: string; email: string; password: string }) => Promise<void>;
+  register: (data: { first_name: string; last_name: string; email: string; password: string }) => Promise<UserPublic>;
   logout: () => void;
   updateUser: (user: UserPublic) => void;
 }
@@ -68,9 +69,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return me;
   };
 
+  /** Crée le compte puis ouvre la session et renvoie l'identité fraîche, comme `login`. Les deux étapes sont distinguées : un refus du serveur
+   * (4xx) est relayé tel quel ; une réponse perdue ou un 5xx donne `RegistrationUnconfirmedError` (création non confirmée, jamais rejouée
+   * seule) ; une création confirmée dont la connexion échoue donne `AccountCreatedError`, après nettoyage de la session partielle. */
   const register = async (data: { first_name: string; last_name: string; email: string; password: string }) => {
-    await authService.register(data);
-    await login(data.email, data.password);
+    try {
+      await authService.register(data);
+    } catch (error) {
+      if (error instanceof ApiError && error.status < 500) throw error;
+      throw new RegistrationUnconfirmedError();
+    }
+    try {
+      return await login(data.email, data.password);
+    } catch {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      setUser(null);
+      throw new AccountCreatedError();
+    }
   };
 
   const logout = () => {

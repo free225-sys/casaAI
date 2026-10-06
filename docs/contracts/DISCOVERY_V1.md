@@ -1,6 +1,6 @@
 # Accueil pédagogique CASA — contrat documentaire V1
 
-Statut : contrat technique proposé par le lead, prêt à aligner avec Claude et à valider avant développement. **Aucune route, migration ou implémentation ci-dessous n'est livrée par ce document.** Base backend 72261b84e2c0a457ef20aa290a89fcdf1c5bc2d6, frontend 9eb451495a4bebb38d644eb3a868301d3f8a4754. Proposition Claude revue : 2768fb512f4478a0854935c572abd1bd0903bfb8, README de docs/claude-review/proposals/2026-10-06-accueil-pedagogique/. Tâche TASK-20261006-001.
+Statut : contrat documentaire finalisé par le lead après revue complète de la proposition Claude révision 3 (62876ccb9ca0a0943447e450a3aafbb718856d8f). **Prêt à demander validation finale et GO distinct au propriétaire ; aucun GO accordé ici.** Les décisions finales du §12 prévalent sur les réserves du README R3. **Aucune route, migration ou implémentation ci-dessous n'est livrée par ce document.** Base backend 72261b84e2c0a457ef20aa290a89fcdf1c5bc2d6, frontend 9eb451495a4bebb38d644eb3a868301d3f8a4754. Proposition Claude revue : 62876ccb9ca0a0943447e450a3aafbb718856d8f, README de docs/claude-review/proposals/2026-10-06-accueil-pedagogique/. Tâche TASK-20261006-001.
 
 ## 1. Validation propriétaire et limite d'autorisation
 
@@ -23,7 +23,7 @@ Un registre de référence versionné, commun au contrat backend/frontend, défi
 | generation | Génération et mémoire de calcul | generation, kv-cache |
 | response | Réponse lisible et limites | llm, generation |
 
-Ce registre fait partie du contrat documentaire à confirmer avec Claude avant GO. Une scène n'est pas un token de progression pédagogique. Les scènes restent visibles même si aucune association n'est publiée. Les cours sont obtenus exclusivement via les associations éditées sur les leçons ; leur regroupement ne dépend pas d'une recherche de titres, d'un ancien seed ni de leur appartenance à un parcours particulier.
+Ce registre est confirmé pour V1 ; compatibilité définie au §12/R1. Une scène n'est pas un token de progression pédagogique. Les scènes restent visibles même si aucune association n'est publiée. Les cours sont obtenus exclusivement via les associations éditées sur les leçons ; leur regroupement ne dépend pas d'une recherche de titres, d'un ancien seed ni de leur appartenance à un parcours particulier.
 
 ## 3. Lecture publique groupée
 
@@ -62,7 +62,7 @@ Règles normatives :
 3. Dédupliquer notions/cours globalement dans les métadonnées et course_ids par scène ; un même ID de cours peut être référencé dans plusieurs scènes. Aucun contenu, ID de leçon, statut non public, compteur de brouillons, compte ou acquis n'est exposé.
 4. Lecture cohérente sur un même snapshot SQL, de préférence une requête groupée, pas six requêtes par scène ni une requête par cours. Coût proportionnel au nombre de liens de cette découverte ; pas de téléchargement de tout le catalogue.
 5. Découverte connue sans données : 200, six scènes, listes vides appropriées. Clé inconnue : 404 {"detail":"Découverte introuvable."}. Panne : statut 5xx normal, jamais [] fabriqué pour masquer une panne.
-6. Cache-Control: no-store pour ce nouveau endpoint ; aucun cache persistant frontend. Un GET à l'affichage du module, retry explicite sur erreur, nouvelle lecture au retour de l'édition et contrôle de fiche au clic/retour d'inscription. Ce choix réduit l'obsolescence, il ne garantit pas qu'un lien restera disponible après la réponse.
+6. Cache-Control: no-store pour ce nouveau endpoint ; aucun cache persistant frontend **ni cache serveur applicatif ou partagé/CDN des réponses** en V1. Un GET quand le module arrive à l'écran, retry explicite sur erreur, nouvelle lecture au retour de l'édition et contrôle de fiche au clic/retour d'inscription. Ce choix réduit l'obsolescence, il ne garantit pas qu'un lien restera disponible après la réponse.
 
 ## 4. Référentiel et associations dans l'administration
 
@@ -125,7 +125,7 @@ Retirer une liaison sur une leçon ne retire aucune liaison des autres leçons. 
 
 Une future migration de données **ciblée et ponctuelle**, non exécutée ici, provisionne les seuls nœuds manquants du registre : tokenization ("Tokenisation"), generation ("Génération de texte"), kv-cache ("Cache clé-valeur"). Les autres IDs doivent être constatés, pas restaurés aveuglément depuis le seed.
 
-Proposition technique : insérer les trois nouveaux référentiels en PUBLISHED seulement s'ils n'existent pas, sans liaison ; ils n'exposent aucun cours à eux seuls. ON CONFLICT(id) DO NOTHING préserve tous les champs/statuts d'un nœud existant, y compris DRAFT/ARCHIVED. Le statut initial des nouvelles références fait partie du contrat à confirmer avant code ; il ne republie aucun choix existant.
+Proposition technique : insérer les trois nouveaux référentiels en PUBLISHED seulement s'ils n'existent pas, sans liaison ; ils n'exposent aucun cours à eux seuls. ON CONFLICT(id) DO NOTHING préserve tous les champs/statuts d'un nœud existant, y compris DRAFT/ARCHIVED. Le lead confirme ce statut initial PUBLISHED sans liaison pour ces trois nouveaux nœuds ; il ne republie aucun choix existant. Les titres initiaux ci-dessus sont confirmés ; aucun changement de titre par une nouvelle route V1. Une évolution de titre ultérieure serait une tâche distincte, explicitement revue et appliquée par migration ciblée, sans changer implicitement statut ni associations. L'ajout initial conserve intégralement les nœuds déjà présents.
 
 **Ne jamais** rejouer seed_knowledge_graph/seed global, ajouter des liens depuis usedIn historique, republier un cours/leçon/nœud existant, restaurer une liaison retirée, renommer/fusionner des IDs ou faire une réconciliation au démarrage. Les futures associations sont éditées explicitement par un administrateur dans la leçon. La migration forward n'est exécutée qu'une fois ; un downgrade éventuel ne doit pas supprimer un nœud désormais référencé par du contenu éditorial. Aucun index/table/migration exécutable fourni par cette livraison documentaire.
 
@@ -152,7 +152,7 @@ Repli du module : texte disponible dans le bundle React principal, indépendant 
 | O5 exemples/saisie | Validé : trois exemples locaux, aucune saisie libre/API inférence en V1 ; textes exacts à relire |
 | O6 navigation | Détail frontend/design Claude, dans les contraintes clavier/pause/ordre ; ne pas rouvrir le placement |
 | O7 textes scientifiques | Relecture lead/Claude obligatoire : token≠mot/embedding, masque causal, position selon architecture, cache non magique ; pas de raisonnement interne prétendu |
-| O8 routes/table/scope | Contrat §2–7 : table existante, registre versionné, trois lectures/un PUT ; confirmation réserves puis validation contrat |
+| O8 routes/table/scope | Contrat §2–7 : table existante, registre versionné, trois lectures/un PUT ; réserves tranchées au §12 puis validation propriétaire |
 | O9 gouvernance | ADMIN dans son scope, SUPER_ADMIN global, associations dans la leçon ; aucun éditeur global V1 |
 | O10 correction ancien texte seed | Point éditorial signalé ; toute correction du lab existant reste une tâche lead distincte à borner avant GO, aucun reseed |
 | O11 retour inscription | Validé : cours choisi revalidé, dashboard si indisponible ; retrait concurrent couvert |
@@ -174,4 +174,36 @@ Cette livraison ne prétend exécuter aucune de ces vérifications ; elles seron
 
 Sources lues : backend/app/models/knowledge.py ; models/content.py ; api/deps.py ; api/content.py ; api/admin_content.py ; schemas/admin.py ; services/content_scope_service.py ; repositories/content_repository.py et admin_content_repository.py ; frontend/src/pages/RegisterPage.tsx, CourseDetailPage.tsx, admin/AdminLessonEditPage.tsx ; utils/roles.ts ; stores/authStore.tsx. Le catalogue de recette sans contenu public constaté précédemment n'autorise aucune sélection de cours du seed.
 
-Claude aligne uniquement son document au présent contrat, confirme les réserves concrètes et fournit la proposition révisée. Le propriétaire valide ensuite scénario/document et contrat final avant GO code distinct. Lead : backend/contrats/qualité ; Claude : frontend/design. **Aucun merge, déploiement ou changement applicatif autorisé par cette publication.**
+La proposition Claude R3 est revue intégralement ; ses réserves sont tranchées au §12, sans nouveau questionnaire. Ce contrat et la proposition R3 corrigée par les textes du §13 constituent le dossier documentaire final. Le propriétaire peut maintenant valider ce dossier puis accorder un GO code distinct. Lead : backend/contrats/qualité ; Claude : frontend/design. **Aucun merge, déploiement ou changement applicatif autorisé par cette publication.**
+
+## 12. Réponses finales aux réserves R1–R10 de Claude R3
+
+| Réserve | Décision lead pour V1 |
+| --- | --- |
+| R1 compatibilité | Frontend compatible **registry_version=1 seulement** : vérifier version, clé découverte, six clés uniques et ordre du registre, structure des métadonnées/références. Version différente ou réponse incompatible : ne consommer aucun lien, afficher « Liens momentanément incompatibles. Réessayez après actualisation. », garder les six scènes locales utilisables. Ce n'est ni un état vide ni une donnée à ignorer silencieusement. Renommer/réordonner une scène ou changer le mapping de notions implique une nouvelle version et un frontend compatible avant consommation. Une variation de publication/liens ne change pas la version du registre. |
+| R2 nouveaux nœuds | Confirmés PUBLISHED sans liens, titres fixés au §7, ajout ciblé seulement si absents. Préserver titres/statuts existants ; aucune publication de cours ni restauration de liens. Pas d'éditeur global ni de changement de titre dans V1. |
+| R3 lecture/cache | Lecture à l'arrivée du module à l'écran confirmée ; no-store inclut V1 sans cache de réponse serveur/CDN. Pas de nouveau mécanisme de limitation de débit dans ce lot : réemploi des protections d'infrastructure existantes, requête groupée et chargement borné. Toute optimisation future devra préserver les retraits/publications, après mesure ; aucun TTL admis implicitement. |
+| R4 retry/conflit | Révision périmée + ensemble demandé égal à l'état courant →200 **uniquement après validation du payload, identité/rôle, scope et règle des cours partagés**. Sinon, révision divergente →409 sans mutation ; un ancien droit n'est jamais rétabli par le retry. Après 409, GET explicite sans perte de sélection locale ; ne jamais réémettre automatiquement avec la nouvelle révision. Toute nouvelle sauvegarde exige une action consciente après présentation de l'écart. |
+| R5 référentiel | Métadonnées communes seulement id/title/status, pagination/total du référentiel. Aucun compte, auteur, leçon, cours, scope, lien ou compteur d'utilisation ; aucun statut de cours ni information permettant de déduire leurs associations. Le statut exposé est celui de la notion uniquement. |
+| R6 inscription | Le futur contrat **frontend** de register renvoie Promise<UserPublic>, en retournant l'identité fraîche obtenue par login/me, comme login ; aucune modification API backend. Distinguer la création confirmée de l'auto-connexion : si la première réussit puis login/me échoue, signaler « Compte créé : connectez-vous », ne pas rejouer la création, ne pas naviguer comme authentifié. Nettoyer une session partielle produite par cette tentative et offrir une connexion normale, avec seulement return_course_id conservé en état du routeur puis revalidé après connexion. Aucun mot de passe conservé pour un retry automatique. Si la réponse de création elle-même est perdue, ne pas affirmer que le compte est créé ni répéter automatiquement le POST : état « Création non confirmée : essayez de vous connecter ». |
+| R7 nouvelle leçon | Rester sur l'éditeur après création, remplacer la route new par l'ID renvoyé (navigation replace interne), charger la révision puis permettre l'enregistrement indépendant des notions. Aucun deuxième POST de création. Droits inchangés ; panne de lecture/sauvegarde des notions ne remet pas en cause la création réussie. |
+| R8 textes | Les six formulations finales du §13 corrigent les généralisations du README R3 et prévalent pour la découverte. Illustrations étiquetées, aucun raisonnement interne ni mesure de confiance prétendue. |
+| R9 lab KV | Hors chantier V1 : aucun changement au lab, seed ou formule historique. Sujet séparé, pas un prérequis pour demander GO de cette découverte qui ne la reprend pas. |
+| R10 durée | Pas de durée annoncée avant mesure après GO ; aucun prototype autorisé par cette revue. |
+
+Critères à ajouter aux contrôles futurs du §10 : version inconnue/incompatible visible sans liens ; absence de cache serveur ; retry identique après révocation refusé ; auto-connexion échouée après création confirmée sans nouveau POST ; résultat de création incertain sans retry automatique ; création de leçon suivie de l'édition des notions sur l'ID réel. Aucune de ces vérifications n'est déclarée exécutée ici.
+
+## 13. Textes pédagogiques finaux des six scènes
+
+Ces textes précisent le contenu, sans imposer le design de Claude. Les trois exemples guidés du README R3 sont confirmés ; toute sortie est préécrite et étiquetée « Simulation illustrative, sans appel à un modèle ».
+
+1. **Votre message.** « Le modèle reçoit votre message, et peut aussi recevoir des consignes de l'application et des éléments de la conversation. Ici, nous montrons un contexte simplifié. » Ne pas laisser croire à un véritable envoi dans cette simulation locale.
+2. **Découpage en fragments (tokens).** « Le texte est découpé en unités appelées tokens : un token peut représenter un mot, une partie de mot ou un signe. Un mot peut produire plusieurs tokens. Le découpage dépend du tokenizer utilisé. Chaque token possède un identifiant ; les numéros montrés ici sont inventés. » Remplace « des fragments, pas des mots » et « un mot rare donne plusieurs fragments », trop absolus.
+3. **Des fragments aux nombres.** « À chaque identifiant correspond une représentation numérique apprise : un vecteur. Le numéro d'identifiant n'est pas ce vecteur. L'ordre des tokens est pris en compte selon l'architecture. Les valeurs et la carte à deux axes sont illustratives, pas une carte réelle de ce que comprend un modèle. »
+4. **Le calcul du modèle.** « Dans ce modèle illustratif qui prédit la suite d'un texte, chaque position peut utiliser les tokens précédents et le token à cette position, sans regarder les tokens futurs. L'attention pondère des informations et se répète dans plusieurs couches de calcul. Ce schéma simplifié ne montre aucun raisonnement interne. » Masque causal conservé ; aucune flèche future.
+5. **Écrire la réponse, token par token.** « Le modèle calcule des scores pour le prochain token. Selon le réglage, il retient le plus probable ou fait un choix parmi plusieurs candidats, puis recommence. Le cache clé-valeur réutilise des calculs d'attention déjà faits ; il ne supprime pas le travail sur le contexte. Dans l'exemple d'un cache qui conserve tous les tokens, mémoire et coût d'attention par étape augmentent avec sa longueur. » Curseur « moins varié ↔ plus varié », **pas « prudent »** : variabilité ne mesure ni exactitude ni confiance. Probabilités illustratives, jamais issues d'une inférence réelle.
+6. **La réponse s'affiche.** « Les tokens sont reconvertis en texte, parfois affiché au fur et à mesure. La génération peut s'arrêter sur un token de fin ou une limite fixée par l'application. Ici, la réponse a été écrite à l'avance. Une réponse plausible peut être inexacte : vérifiez les informations importantes. » L'arrêt ne signifie pas que le modèle sait sa réponse complète ou correcte.
+
+Références primaires de vérification : [tokenisation, documentation Hugging Face](https://huggingface.co/docs/transformers/tokenizer_summary), [attention causale et cache, documentation Hugging Face](https://huggingface.co/docs/transformers/cache_explanation). Le cache dynamique complet est l'exemple simplifié ; ne pas généraliser sa croissance aux caches bornés/fenêtres glissantes.
+
+**Verdict documentaire : prêt à demander validation finale et GO au propriétaire, aucun bloquant documentaire restant. Aucun GO code, prototype, migration, instance, merge ou déploiement accordé par ce verdict.**

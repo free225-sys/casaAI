@@ -1,0 +1,186 @@
+{
+ "module_accueil": [
+  {
+   "w": 1440,
+   "dpr": 1,
+   "reduced": false,
+   "folded": {
+    "sw": 1440,
+    "cw": 1440,
+    "h3": 3
+   },
+   "axeFolded": [],
+   "reached": true,
+   "focusH": "3 Des fragments aux nombres",
+   "open": {
+    "sw": 1440,
+    "cw": 1440,
+    "h3": 7
+   },
+   "axeOpen": [],
+   "cls": 0.003,
+   "leaks": 0,
+   "apiGets": [
+    "GET /api/discoveries/llm-answer/links"
+   ]
+  },
+  {
+   "w": 390,
+   "dpr": 1,
+   "reduced": false,
+   "folded": {
+    "sw": 390,
+    "cw": 390,
+    "h3": 3
+   },
+   "axeFolded": [],
+   "reached": true,
+   "focusH": "3 Des fragments aux nombres",
+   "open": {
+    "sw": 390,
+    "cw": 390,
+    "h3": 7
+   },
+   "axeOpen": [],
+   "cls": 0,
+   "leaks": 0,
+   "apiGets": [
+    "GET /api/discoveries/llm-answer/links"
+   ]
+  },
+  {
+   "w": 320,
+   "dpr": 1,
+   "reduced": false,
+   "folded": {
+    "sw": 320,
+    "cw": 320,
+    "h3": 3
+   },
+   "axeFolded": [],
+   "reached": true,
+   "focusH": "3 Des fragments aux nombres",
+   "open": {
+    "sw": 320,
+    "cw": 320,
+    "h3": 7
+   },
+   "axeOpen": [],
+   "cls": 0,
+   "leaks": 0,
+   "apiGets": [
+    "GET /api/discoveries/llm-answer/links"
+   ]
+  },
+  {
+   "w": 720,
+   "dpr": 2,
+   "reduced": false,
+   "folded": {
+    "sw": 720,
+    "cw": 720,
+    "h3": 3
+   },
+   "axeFolded": [],
+   "reached": true,
+   "focusH": "3 Des fragments aux nombres",
+   "open": {
+    "sw": 720,
+    "cw": 720,
+    "h3": 7
+   },
+   "axeOpen": [],
+   "cls": 0,
+   "leaks": 0,
+   "apiGets": [
+    "GET /api/discoveries/llm-answer/links"
+   ]
+  },
+  {
+   "w": 390,
+   "dpr": 1,
+   "reduced": true,
+   "folded": {
+    "sw": 390,
+    "cw": 390,
+    "h3": 3
+   },
+   "axeFolded": [],
+   "reached": true,
+   "focusH": "3 Des fragments aux nombres",
+   "open": {
+    "sw": 390,
+    "cw": 390,
+    "h3": 7
+   },
+   "axeOpen": [],
+   "cls": 0,
+   "leaks": 0,
+   "apiGets": [
+    "GET /api/discoveries/llm-answer/links"
+   ]
+  }
+ ],
+ "scenarios": {
+  "liens-erreur-puis-ok": {
+   "first": "Impossible de charger les cours associés pour le moment. La simulation reste utilisable.Réessayer : cours asso",
+   "second": "Pour aller plus loinCours TESTN1 · 30 minCréer un compte pour suivre ce cours",
+   "scenes": 2,
+   "calls": 2,
+   "sw": 390,
+   "axe": []
+  },
+  "liens-incompatible": {
+   "first": "Liens momentanément incompatibles. Réessayez après actualisation.Réessayer : cours associés",
+   "second": null,
+   "scenes": 2,
+   "calls": 1,
+   "sw": 390,
+   "axe": []
+  },
+  "liens-vide": {
+   "first": "Aucun cours n’est associé à cette découverte pour le moment. Explorer le catalogue.",
+   "second": null,
+   "scenes": 2,
+   "calls": 1,
+   "sw": 390,
+   "axe": []
+  },
+  "inscription-cours-ok": {
+   "url": "/courses/cours-test",
+   "registerCalls": 1,
+   "notice": ""
+  },
+  "inscription-cours-retire": {
+   "url": "/app/dashboard",
+   "registerCalls": 1,
+   "notice": "Le cours que vous aviez choisi n’est plus disponible. Voici votre espace ; vous pouvez en trouver d’autres dans le catal"
+  },
+  "inscription-cours-panne": {
+   "url": "/app/dashboard",
+   "registerCalls": 1,
+   "notice": "Nous n’avons pas pu vérifier ce cours (réseau ou service momentanément indisponible). Voici votre espace ; vous pourrez "
+  },
+  "editeur-1440": {
+   "before": {
+    "sw": 1440,
+    "cw": 1440
+   },
+   "conflict": true,
+   "putCalls": 1,
+   "axe": [],
+   "errs": 0
+  },
+  "editeur-390": {
+   "before": {
+    "sw": 390,
+    "cw": 390
+   },
+   "conflict": true,
+   "putCalls": 1,
+   "axe": [],
+   "errs": 0
+  }
+ },
+ "remarque": "API simulée par interception ; aucune vérification contre le vrai serveur"
+}

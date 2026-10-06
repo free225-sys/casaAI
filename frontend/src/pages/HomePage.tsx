@@ -58,7 +58,7 @@ export function HomePage() {
         </RevealSection>
       </section>
 
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+      <section className="home-cards">
         {[
           { title: "Parcours structurés", body: "Des trajectoires pensées par profil : Direction, Manager, Consultant, Data Engineer…" },
           { title: "Laboratoires pratiques", body: "Chaque compétence se démontre par un livrable réel, pas seulement un quiz." },

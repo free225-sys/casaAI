@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import "../styles/discovery.css";
 import { Notice } from "./ui";
 import { adminService } from "../services/adminService";
 import { ApiError } from "../services/apiClient";
@@ -145,7 +146,7 @@ export function LessonNotionsSection({ lessonId, onDirtyChange }: { lessonId?: s
               </label>
             ))}
           </fieldset>
-          <div className="form-foot">
+          <div className="form-foot notions-foot">
             <span className="admin-count">{dirty ? "Modifications non enregistrées" : "À jour"}</span>
             <button type="button" className="btn btn-primary" onClick={save} disabled={saving || !dirty || conflict !== null}>{saving ? "Enregistrement…" : "Enregistrer les notions"}</button>
           </div>

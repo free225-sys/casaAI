@@ -74,5 +74,5 @@ export function illustrativeVector(id: number): number[] {
 
 export const MAP_POINTS: ReadonlyArray<{ word: string; x: number; y: number }> = [
   { word: "chat", x: 22, y: 30 }, { word: "chaton", x: 30, y: 22 }, { word: "chien", x: 16, y: 44 },
-  { word: "voiture", x: 74, y: 66 }, { word: "camion", x: 84, y: 58 }, { word: "vélo", x: 68, y: 78 },
+  { word: "voiture", x: 56, y: 68 }, { word: "camion", x: 62, y: 56 }, { word: "vélo", x: 50, y: 80 },
 ];

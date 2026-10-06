@@ -2,8 +2,9 @@
 .discovery { padding: 28px; margin-bottom: 48px; }
 .discovery h2 { margin: 0 0 8px; }
 .discovery-label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 600; }
+.discovery-scene .field, .discovery-scene .discovery-actions { margin-top: 14px; }
 .discovery-hint { font-size: var(--text-xs); color: var(--color-text-muted); margin: 8px 0 0; }
-.discovery-placeholder { min-height: 320px; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); }
+.discovery-placeholder { min-height: 600px; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); }
 .discovery-scenes, .discovery-text-list { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 28px; }
 .discovery-scene h3, .discovery-text-list h3 { font-size: 1.05rem; margin: 0 0 8px; }
 .discovery-scene h3:focus { outline: 2px solid var(--color-text); outline-offset: 3px; }
@@ -23,7 +24,7 @@
 .discovery-token-id { font-size: var(--text-xs); color: var(--color-text-muted); font-family: var(--font-mono); }
 .discovery-end { font-style: italic; }
 .discovery-map { margin: 14px 0 0; }
-.discovery-map svg { width: 100%; max-width: 360px; height: auto; display: block; }
+.discovery-map svg { width: 100%; max-width: 340px; height: auto; display: block; }
 .discovery-map-bg { fill: var(--color-surface-raised); stroke: var(--color-border-strong); stroke-width: 0.6; }
 .discovery-map-dot { fill: var(--color-text); }
 .discovery-map-label { font-size: 5px; fill: var(--color-text); }
@@ -41,13 +42,21 @@
 .discovery-bar > span { display: block; height: 100%; background: var(--color-text); }
 .discovery-pct { text-align: right; font-variant-numeric: tabular-nums; }
 .discovery-links-line { font-size: var(--text-sm); margin: 10px 0 0; }
-.discovery-courses { margin-top: 24px; }
+.discovery-links-slot { margin-top: 20px; min-height: 52px; }
+.discovery-courses { margin-top: 0; }
 .discovery-courses h3 { font-size: 1.05rem; margin: 0 0 8px; }
 .discovery-courses ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .discovery-courses li { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
 .discovery-follow { font-size: var(--text-sm); }
 .discovery .section-error { margin-top: 16px; }
+@media (max-width: 900px) { .discovery-placeholder { min-height: 700px; } }
 @media (max-width: 480px) {
+  .discovery-placeholder { min-height: 1050px; }
   .discovery { padding: 20px 16px; }
+  .discovery-links-slot { min-height: 84px; }
   .discovery-candidates li { grid-template-columns: minmax(0, 1fr) 60px 44px; }
 }
+@media (max-width: 360px) { .discovery-placeholder { min-height: 1250px; } }
+
+/* Pied du sélecteur de notions : texte d'état et bouton ne se touchent pas, même en colonne étroite. */
+.notions-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }

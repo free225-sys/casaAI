@@ -46,7 +46,8 @@ export function DiscoveryModule() {
           <div className="discovery-placeholder" aria-hidden="true" />
         )}
       </DiscoveryBoundary>
-      <DiscoveryLinksBlock state={state} retry={retry} />
+      {/* Hauteur minimale réservée : le passage de « chargement » à « aucun cours » ou à la liste ne fait pas sauter la page. */}
+      <div className="discovery-links-slot"><DiscoveryLinksBlock state={state} retry={retry} /></div>
     </section>
   );
 }

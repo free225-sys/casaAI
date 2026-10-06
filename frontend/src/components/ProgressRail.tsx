@@ -68,6 +68,18 @@ export function ProgressRail() {
   const [currentStage, setCurrentStage] = useState<number | null>(null);
   const [can3D, setCan3D] = useState(false);
   const [mode, setMode] = useState<"2d" | "3d">("2d");
+  // Sur écran étroit, huit stations de 84 px sur un chemin absolu se chevauchent et débordent de la page : on bascule sur la liste en rangées.
+  const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(max-width: 760px)").matches);
+  const layout: "2d" | "3d" | "list" = narrow ? "list" : mode;
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(max-width: 760px)");
+    const update = () => setNarrow(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -111,7 +123,7 @@ export function ProgressRail() {
         aria-current={isCurrent ? "step" : undefined}
         aria-label={accessibleLabel}
         style={
-          mode === "2d"
+          layout === "2d"
             ? {
                 position: "absolute",
                 left: `${stationXPercent(i)}%`,
@@ -179,7 +191,11 @@ export function ProgressRail() {
 
   return (
     <div>
-      {mode === "3d" ? (
+      {layout === "list" ? (
+        <ol style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 16, margin: 0, padding: 0, listStyle: "none" }}>
+          {stations}
+        </ol>
+      ) : layout === "3d" ? (
         <>
           <div style={{ height: 220, marginBottom: 16 }}>
             <Suspense
@@ -211,7 +227,7 @@ export function ProgressRail() {
         Étape {highlighted + 1}/{N} — {STAGES[highlighted]}
       </p>
 
-      {can3D && (
+      {can3D && !narrow && (
         <div style={{ textAlign: "center", marginTop: 12 }}>
           <button className="btn btn-secondary" onClick={() => setMode((m) => (m === "2d" ? "3d" : "2d"))}>
             {mode === "2d" ? "Vue 3D" : "Vue 2D"}

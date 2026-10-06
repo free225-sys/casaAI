@@ -12,7 +12,7 @@ Document de conception **sans aucun code**. Base auditée : frontend `9eb451495a
 | --- | --- | --- |
 | `HomePage` | Structure simple, sections indépendantes | **Réemployer** ; ajouter un seul teaser vers la découverte, ne pas la remplacer |
 | `HeroVisual` / `HeroVisualStatic` | 3D chargée à la demande, repli SVG statique si WebGL absent ou `prefers-reduced-motion` | **Réemployer tel quel** ; ne pas ajouter de 3D à la découverte |
-| `RevealSection` | Apparition au scroll, déjà prévue pour le mouvement réduit | **Réemployer** pour l'entrée des scènes |
+| `RevealSection` | Apparition au scroll ; le mouvement réduit est traité par la CSS globale (`prefers-reduced-motion` dans `index.css`), pas par le composant | **Réemployer** pour l'entrée des scènes |
 | `ProgressRail` | `<ol>` sémantique, étapes `aria-hidden` avec `aria-label` sur chaque `<li>`, `aria-current` | **Réemployer le motif** (liste ordonnée, état courant annoncé) pour la navigation entre scènes ; pas le composant lui-même (il décrit la méthode de CASA, pas le pipeline) |
 | `MiniDiagram` (flux, hiérarchie, matrice) | Sans couleur d'accent (D10), étapes numérotées, texte équivalent | **Réemployer le flux numéroté** pour la vue d'ensemble « 6 étapes » |
 | `InteractiveStepPipeline` (616 lignes) | Données du lab `llm-request-pipeline` (7 étapes), SVG défilant, boutons Précédent/Suivant, bascule 3D chargée à la demande | **Ne pas réemployer pour le public** (voir l'écart d'accessibilité ci-dessous) ; **reprendre le texte** des étapes comme matière première |

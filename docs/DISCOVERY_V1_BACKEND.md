@@ -31,3 +31,11 @@ Nouvelle base vide casa_discovery_v1_tests autorisée explicitement à11:56, ide
 - Vérifications du runner : base de tests explicitement sélectionnée, zéro compte résiduel ; version et compteurs users/courses/lessons de la QA connue inchangés avant/après. Aucun contrôle large des autres bases ni empreinte de leurs contenus effectués.
 
 Aucun test navigateur, parcours UI réel, CI distante, assemblage frontend/backend ou déploiement effectué. Le downgrade est testé comme opération non destructive, pas comme suppression des données de référence. Revue indépendante et validation de recette encore requises.
+
+## Correctif après revue indépendante : no-store sur les erreurs publiques
+
+La revue statique de df12bac a identifié un écart P3 : une exception inattendue perdait le header porté par le Response normal. Le test de panne500 renforcé l'a reproduit (header absent).
+
+Le correctif est limité à la classe de route du GET public de découverte. Chaque réponse porte no-store ; sur panne inattendue avant réponse, un corps500 générique est envoyé puis l'exception originale est relancée, conservant la remontée serveur sans exposer son détail au client. Les HTTPException gardent leur statut/headers, notamment405 et Allow. Aucune gestion globale des autres routes n'est modifiée. OpenAPI documente le header500 et est réexporté depuis l'application.
+
+Les contrôles couvrent header500, corps sans détail privé, exception originale toujours observable,405 préservé et erreur de catalogue inchangée ; les67 tests ciblés ont réussi. Aucune migration ni changement de données requis. Les résultats de la suite complète et le SHA final sont consignés dans CLAUDE_SYNC.md.

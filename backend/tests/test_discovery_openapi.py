@@ -17,6 +17,7 @@ def test_committed_openapi_matches_application_and_protects_admin_metadata():
     public = actual["paths"]["/api/discoveries/{discovery_key}/links"]["get"]
     assert not public.get("security")
     assert public["responses"]["200"]["headers"]["Cache-Control"]["schema"]["const"] == "no-store"
+    assert public["responses"]["500"]["headers"]["Cache-Control"]["schema"]["const"] == "no-store"
     admin = actual["paths"]["/api/admin/lessons/{lesson_id}/knowledge-nodes"]
     assert all(admin[method]["security"] for method in ("get", "put"))
     schemas = actual["components"]["schemas"]

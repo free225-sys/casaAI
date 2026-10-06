@@ -129,7 +129,33 @@ def test_backend_failure_is_not_an_empty_success(client, monkeypatch):
         raise RuntimeError("Synthetic unavailable database")
     monkeypatch.setattr(discovery_service, "public_links", failed)
     with TestClient(client.app, raise_server_exceptions=False) as failing_client:
-        assert failing_client.get("/api/discoveries/llm-answer/links").status_code == 500
+        response = failing_client.get("/api/discoveries/llm-answer/links")
+        assert response.status_code == 500
+        assert response.headers.get("Cache-Control") == "no-store"
+        assert response.text == "Internal Server Error"
+        assert "Synthetic" not in response.text
+    with TestClient(client.app) as raising_client:
+        with pytest.raises(RuntimeError, match="Synthetic unavailable database"):
+            raising_client.get("/api/discoveries/llm-answer/links")
+
+
+def test_no_store_failure_handling_does_not_change_other_routes(client, monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.repositories.content_repository import ContentRepository
+    def failed(*args, **kwargs):
+        raise RuntimeError("Synthetic unrelated catalogue failure")
+    monkeypatch.setattr(ContentRepository, "list_courses", failed)
+    with TestClient(client.app, raise_server_exceptions=False) as failing_client:
+        response = failing_client.get("/api/courses")
+        assert response.status_code == 500
+        assert "Cache-Control" not in response.headers
+
+
+def test_discovery_wrong_method_keeps_405_and_no_store(client):
+    response = client.post("/api/discoveries/llm-answer/links")
+    assert response.status_code == 405
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert "GET" in response.headers["Allow"]
 
 
 def test_reference_auth_pagination_exact_metadata_and_nonpublic_nodes(client, db_session, discovery):

@@ -33,6 +33,7 @@ export function AdminUsersPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setUsers(null); setError(null);
     adminService
       .listUsers({
         search: search || undefined,
@@ -42,6 +43,8 @@ export function AdminUsersPage() {
       })
       .then((res) => {
         if (cancelled) return;
+        const lastPage = Math.max(0, Math.ceil(res.total / ADMIN_PAGE_SIZE) - 1);
+        if (page > lastPage) { setPage(lastPage); return; }
         setUsers(res.items);
         setTotal(res.total);
       })
@@ -89,6 +92,7 @@ export function AdminUsersPage() {
     <AdminLayout>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <input
+          aria-label="Rechercher par nom ou email"
           placeholder="Rechercher par nom ou email…"
           value={search}
           onChange={(e) => {
@@ -105,6 +109,7 @@ export function AdminUsersPage() {
           }}
         />
         <select
+          aria-label="Filtrer par rôle"
           value={role}
           onChange={(e) => {
             setRole(e.target.value as "" | UserRole);
@@ -127,15 +132,15 @@ export function AdminUsersPage() {
         </span>
       </div>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+      {error && <div role="alert" className="section-error"><p>{error}</p><button type="button" className="btn btn-secondary" onClick={refresh}>Réessayer les utilisateurs</button></div>}
 
-      {users === null ? (
+      {users === null && !error ? (
         <ListSkeleton count={5} />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {users.map((u, i) => (
+          {(users ?? []).map((u, i) => (
             <RevealSection key={u.id} as="div" delayMs={Math.min(i, 8) * 40}>
-              <div className="card" style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
+              <div className="card admin-row" style={{ padding: "14px 18px" }}>
                 <div style={{ flex: 1 }}>
                   <p style={{ color: "var(--color-text)", fontWeight: 500 }}>
                     {u.first_name} {u.last_name}{" "}
@@ -188,7 +193,7 @@ export function AdminUsersPage() {
           ))}
         </div>
       )}
-    <AdminPagination total={total} page={page} onPageChange={setPage} />
+    {users !== null && <AdminPagination total={total} page={page} onPageChange={setPage} />}
     </AdminLayout>
   );
 }

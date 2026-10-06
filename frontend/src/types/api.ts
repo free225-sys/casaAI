@@ -189,6 +189,7 @@ export interface LessonDetail {
 }
 
 export interface UserLessonProgress {
+  is_available?: boolean;
   lesson_id: string;
   lesson_title: string;
   course_id: string;

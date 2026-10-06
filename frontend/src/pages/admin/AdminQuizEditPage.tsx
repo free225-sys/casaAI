@@ -17,6 +17,11 @@ function emptyQuestion(): AdminQuestionInput {
 }
 
 export function AdminQuizEditPage() {
+  const params = useParams();
+  return <AdminQuizEditPageContent key={JSON.stringify(params)} />;
+}
+
+function AdminQuizEditPageContent() {
   const { quizId } = useParams<{ quizId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -33,13 +38,18 @@ export function AdminQuizEditPage() {
 
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const backTo = searchParams.get("back") || "/admin/courses";
 
   useEffect(() => {
     if (isNew || !quizId) return;
+    let active = true;
+    setLoading(true); setLoadError(false);
     adminService.getQuiz(quizId).then((q) => {
+      if (!active) return;
       setTitle(q.title);
       setKind(q.kind);
       setLessonId(q.lesson_id ?? "");
@@ -56,8 +66,9 @@ export function AdminQuizEditPage() {
         })),
       );
       setLoading(false);
-    });
-  }, [isNew, quizId]);
+    }).catch(() => { if (active) { setLoading(false); setLoadError(true); } });
+    return () => { active = false; };
+  }, [isNew, quizId, reload]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -109,6 +120,7 @@ export function AdminQuizEditPage() {
       ),
     );
 
+  if (loadError) return <AdminLayout><div role="alert" className="section-error"><p>Impossible de charger cet éditeur. Aucun changement n’a été enregistré.</p><button type="button" className="btn btn-secondary" onClick={() => setReload(value => value + 1)}>Réessayer le chargement</button></div></AdminLayout>;
   if (loading) return <AdminLayout><ListSkeleton count={5} height={44} /></AdminLayout>;
 
   return (
@@ -127,7 +139,7 @@ export function AdminQuizEditPage() {
           <input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
 
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
           <div className="field" style={{ flex: 1 }}>
             <label htmlFor="kind">Type</label>
             <select
@@ -263,7 +275,7 @@ export function AdminQuizEditPage() {
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         <button className="btn btn-primary" onClick={handleSave} disabled={saving || !title}>
           {saving ? "Enregistrement…" : "Enregistrer le quiz"}
         </button>

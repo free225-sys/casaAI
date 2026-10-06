@@ -76,7 +76,10 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata, compare_type=True
+            connection=connection, target_metadata=target_metadata, compare_type=True,
+            # PostgreSQL must commit an added ENUM value (0002) before a
+            # subsequent revision uses it (0003). Keep each revision atomic.
+            transaction_per_migration=True,
         )
 
         with context.begin_transaction():

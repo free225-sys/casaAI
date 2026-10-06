@@ -14,14 +14,18 @@ export function AdminCourseLessonsPage() {
   const [finalQuizId, setFinalQuizId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = () => {
+  const [reload, setReload] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const refresh = () => setReload(value => value + 1);
+  useEffect(() => {
     if (!courseId) return;
-    adminService.getCourse(courseId).then(setCourse);
-    adminService.listLessons(courseId).then((p) => setLessons(p.items));
-    adminService.listQuizzes({ courseId }).then((res) => setFinalQuizId(res.items[0]?.id ?? null));
-  };
-
-  useEffect(refresh, [courseId]);
+    let active = true;
+    setLoadError(false); setLessons(null); setCourse(null); setFinalQuizId(null);
+    Promise.all([adminService.getCourse(courseId), adminService.listLessons(courseId), adminService.listQuizzes({ courseId })])
+      .then(([course, lessons, quizzes]) => { if (active) { setCourse(course); setLessons(lessons.items); setFinalQuizId(quizzes.items[0]?.id ?? null); } })
+      .catch(() => { if (active) setLoadError(true); });
+    return () => { active = false; };
+  }, [courseId, reload]);
 
   const handleDelete = async (lessonId: string, title: string) => {
     if (!confirm(`Supprimer la leçon "${title}" ?`)) return;
@@ -34,6 +38,8 @@ export function AdminCourseLessonsPage() {
     }
   };
 
+  if (loadError) return <AdminLayout><div role="alert" className="section-error"><p>Impossible de charger le cours et ses leçons.</p><button type="button" className="btn btn-secondary" onClick={refresh}>Réessayer le cours</button><Link to="/admin/courses">Retour aux cours</Link></div></AdminLayout>;
+
   return (
     <AdminLayout>
       <Link to="/admin/courses" style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
@@ -42,7 +48,7 @@ export function AdminCourseLessonsPage() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 24px" }}>
         <h2 style={{ fontSize: "1.1rem" }}>{course ? course.title : "Chargement…"}</h2>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {courseId && (
             <Link
               to={
@@ -78,7 +84,7 @@ export function AdminCourseLessonsPage() {
             .sort((a, b) => a.position - b.position)
             .map((l, i) => (
               <RevealSection key={l.id} as="div" delayMs={Math.min(i, 8) * 40}>
-                <div className="card" style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
+                <div className="card admin-row" style={{ padding: "14px 18px" }}>
                   <span className="mono" style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
                     {l.position}
                   </span>

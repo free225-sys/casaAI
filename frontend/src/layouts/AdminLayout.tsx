@@ -18,7 +18,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const visibleTabs = TABS.filter((tab) => user && (tab.roles as readonly string[]).includes(user.role));
 
   return (
-    <div>
+    <div className="admin-workspace">
       <h1 style={{ fontSize: "1.6rem", marginBottom: 4 }}>Administration</h1>
       <p style={{ marginBottom: 28 }}>
         {user?.role === "SUPER_ADMIN"
@@ -26,7 +26,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           : "Gestion du contenu pédagogique."}
       </p>
 
-      <nav style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--color-border)", marginBottom: 32 }}>
+      <nav aria-label="Administration" style={{ display: "flex", flexWrap: "wrap", gap: 4, borderBottom: "1px solid var(--color-border)", marginBottom: 32 }}>
         {visibleTabs.map((tab) => (
           <NavLink
             key={tab.to}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Link } from "../components/AppLink";
 import { RevealSection } from "../components/RevealSection";
@@ -6,6 +6,7 @@ import { MiniDiagram } from "../components/MiniDiagram";
 import { Callout } from "../components/Callout";
 import { LessonSkeleton } from "../components/Skeleton";
 import { LessonDocumentView } from "../components/LessonDocumentView";
+import { ApiError } from "../services/apiClient";
 import { API_BASE_URL } from "../services/apiClient";
 import { contentService } from "../services/contentService";
 import { progressService } from "../services/progressService";
@@ -23,6 +24,11 @@ const DEPTH_ACCENTS = ["var(--color-accent-blue)", "var(--color-accent-gold)", "
 
 export function LessonPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
+  // Keep reading and completion state specific to each route, including A → B → A.
+  return <LessonContent key={lessonId} lessonId={lessonId} />;
+}
+
+function LessonContent({ lessonId }: { lessonId: string | undefined }) {
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [documentTree, setDocumentTree] = useState<LessonDocument | null>(null);
@@ -33,71 +39,106 @@ export function LessonPage() {
   const [notFound, setNotFound] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [focus, setFocus] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<number | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [completeError, setCompleteError] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reload, setReload] = useState(0);
+  const [syncReload, setSyncReload] = useState(0);
+  const mounted = useRef(false);
+  const latestSyncRequest = useRef(0);
+  const completedRef = useRef(false);
+  const persistedProgress = useRef(0);
+  const pendingProgress = useRef(0);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   useEffect(() => {
     if (!lessonId) return;
-    progressService.startLesson(lessonId).catch(() => {});
+    let active = true;
     let timer: number | undefined;
+    const startRequest = ++latestSyncRequest.current;
+    setSyncError(null);
+    const restore = (result: { status: string; progress_pct: number }) => {
+      if (!active || completedRef.current) return;
+      completedRef.current = result.status === "COMPLETED";
+      setCompleted(completedRef.current);
+      persistedProgress.current = Math.max(persistedProgress.current, result.progress_pct);
+      setSavedProgress(persistedProgress.current);
+      if (completedRef.current) setCompleteError(false);
+    };
+    const save = (pct: number) => {
+      const saveRequest = ++latestSyncRequest.current;
+      progressService.saveProgress(lessonId, pct).then(result => {
+        restore(result);
+        if (active && saveRequest === latestSyncRequest.current) setSyncError(null);
+      }).catch(() => { if (active && saveRequest === latestSyncRequest.current && !completedRef.current) setSyncError("La progression n'a pas pu être enregistrée."); });
+    };
+    progressService.startLesson(lessonId).then(result => {
+      restore(result);
+      if (active && !completedRef.current && pendingProgress.current > persistedProgress.current) save(pendingProgress.current);
+    }).catch(() => { if (active && startRequest === latestSyncRequest.current && !completedRef.current) setSyncError("Impossible de retrouver votre progression enregistrée."); });
     const onScroll = () => {
       const doc = document.documentElement;
       const max = doc.scrollHeight - window.innerHeight;
-      const pct = max > 0 ? Math.round((window.scrollY / max) * 100) : 0;
+      const pct = max > 0 ? Math.max(0, Math.min(100, Math.round(window.scrollY / max * 100))) : 0;
       setReadingProgress(pct);
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
-        if (pct > 0 && pct < 100) progressService.saveProgress(lessonId, pct).catch(() => {});
+        if (!active || completedRef.current || pct <= 0 || pct >= 100) return;
+        pendingProgress.current = Math.max(pendingProgress.current, persistedProgress.current, pct);
+        save(pendingProgress.current);
       }, 1500);
     };
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.clearTimeout(timer);
-    };
-  }, [lessonId]);
+    return () => { active = false; window.removeEventListener("scroll", onScroll); window.clearTimeout(timer); };
+  }, [lessonId, syncReload]);
 
   useEffect(() => {
     if (!lessonId) return;
+    let active = true;
+    setLoadError(false);
+    setNotFound(false);
     progressService
       .getLesson(lessonId)
       .then((data) => {
+        if (!active) return;
         setLesson(data);
         if (data.depth_levels.length > 0) setActiveDepth(data.depth_levels[0].depth_key);
         // Fil d'Ariane : retrouver le cours parent pour répondre à
         // « où suis-je ? ». Best-effort — l'absence de titre de cours
         // n'empêche pas la lecture de la leçon.
-        contentService.getCourse(data.course_id).then(setCourse).catch(() => {});
+        contentService.getCourse(data.course_id).then((value) => {
+          if (active) setCourse(value);
+        }).catch(() => {});
         // Structure documentaire, pour les seules leçons issues d'un import.
         // Best-effort là aussi : son absence ramène à l'affichage plat, qui
         // porte le même contenu.
         if (data.has_document) {
-          progressService.getLessonDocument(lessonId).then(setDocumentTree).catch(() => {});
+          progressService.getLessonDocument(lessonId).then((value) => {
+            if (active) setDocumentTree(value);
+          }).catch(() => {});
         }
       })
-      .catch(() => setNotFound(true));
-  }, [lessonId]);
-
-  // Barre de progression de lecture : proportion de la page déjà scrollée.
-  useEffect(() => {
-    const handleScroll = () => {
-      const doc = document.documentElement;
-      const scrollable = doc.scrollHeight - doc.clientHeight;
-      setReadingProgress(scrollable > 0 ? Math.min(100, (doc.scrollTop / scrollable) * 100) : 0);
-    };
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+      .catch(error => { if (active) { setNotFound(error instanceof ApiError && error.status === 404); setLoadError(true); } });
+    return () => { active = false; };
+  }, [lessonId, reload]);
 
   const handleComplete = async () => {
-    if (!lessonId) return;
+    if (!lessonId || completing || completedRef.current) return;
     setCompleting(true);
+    setCompleteError(false);
     try {
       const result = await progressService.completeLesson(lessonId);
+      if (!mounted.current) return;
       setNextLessonId(result.next_lesson_id ?? null);
-      setCompleted(true);
-    } finally {
-      setCompleting(false);
-    }
+      completedRef.current = result.status === "COMPLETED";
+      setCompleted(completedRef.current);
+      persistedProgress.current = result.progress_pct;
+      setSavedProgress(result.progress_pct);
+      setSyncError(null);
+    } catch { if (mounted.current && !completedRef.current) setCompleteError(true); }
+    finally { if (mounted.current) setCompleting(false); }
   };
 
   const nextFromOutline = useMemo(() => {
@@ -118,13 +159,14 @@ export function LessonPage() {
   }, [lesson]);
 
   if (notFound) return <p className="error-text">Cette leçon est introuvable.</p>;
+  if (loadError) return <div role="alert" className="section-error"><p>Impossible de charger cette leçon. Réessayez.</p><button type="button" className="btn btn-secondary" onClick={() => setReload(value => value + 1)}>Réessayer le chargement</button></div>;
   if (!lesson) return <LessonSkeleton />;
 
   const activeLevel: LessonDepthLevel | undefined = lesson.depth_levels.find((d) => d.depth_key === activeDepth);
 
   return (
     <div className={`course-content${focus ? " is-focus" : ""}`}>
-      <div className="reading-progress-track">
+      <div className="reading-progress-track" role="progressbar" aria-label="Lecture de la page" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(readingProgress)}>
         <div className="reading-progress-fill" style={{ transform: `scaleX(${readingProgress / 100})` }} />
       </div>
 
@@ -148,9 +190,9 @@ export function LessonPage() {
       <aside className="lesson-toc" aria-label="Sommaire">
         <p className="text-caption">Sommaire</p>
         <ol>
-          {lesson.sections.map((section, i) => (
+          {lesson.sections.map((section) => (
             <li key={section.position}>
-              <a href={`#section-${section.position}`}>{i + 1}. {section.title}</a>
+              <a href={`#section-${section.position}`}>{section.title}</a>
             </li>
           ))}
         </ol>
@@ -266,11 +308,15 @@ export function LessonPage() {
         </RevealSection>
       )}
 
+      <p className="text-caption" role="status">{savedProgress === null ? "Progression en cours de synchronisation" : `Progression enregistrée : ${savedProgress} %`}</p>
+      {syncError && !completed && <div role="alert" className="section-error"><p>{syncError}</p><button type="button" className="btn btn-secondary" onClick={() => setSyncReload(value => value + 1)}>Réessayer la synchronisation</button></div>}
+      {completeError && <p role="alert" className="error-text">La leçon n'a pas pu être marquée comme terminée. Réessayez.</p>}
+      <div className="lesson-actions">
       <button className="btn btn-primary" onClick={handleComplete} disabled={completing || completed}>
         {completed ? "Leçon terminée ✓" : completing ? "Enregistrement…" : "Marquer comme terminée"}
       </button>
       { (nextLessonId ?? nextFromOutline) && (
-        <Link to={`/app/lessons/${nextLessonId ?? nextFromOutline}`} className="btn btn-primary" style={{ marginLeft: 12 }}>
+        <Link to={`/app/lessons/${nextLessonId ?? nextFromOutline}`} className="btn btn-secondary">
           Leçon suivante
         </Link>
       )}
@@ -279,11 +325,11 @@ export function LessonPage() {
         <Link
           to={`/app/quizzes/${lesson.validation_quiz_id}`}
           className="btn btn-secondary"
-          style={{ marginLeft: 12 }}
         >
           Passer le quiz de validation
         </Link>
       )}
+      </div>
     </div>
       </div>
       </div>

@@ -9,6 +9,7 @@ export function Nav() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
@@ -21,12 +22,22 @@ export function Nav() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [accountOpen]);
 
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const measure = () => document.documentElement.style.setProperty("--header-height", `${header.getBoundingClientRect().height}px`);
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
   const close = () => setOpen(false);
   const itemClass = ({ isActive }: { isActive: boolean }) =>
     `nav-link${isActive ? " is-active" : ""}`;
 
   return (
-    <header className="site-header">
+    <header ref={headerRef} className="site-header">
       <div className="container nav-bar">
         <Link to="/" className="nav-brand" onClick={close}>
           CASA <span style={{ color: "var(--color-accent-gold)" }}>AI</span> Institute

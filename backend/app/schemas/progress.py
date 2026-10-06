@@ -92,6 +92,7 @@ class LessonCompleteResponse(BaseModel):
 
 
 class UserLessonProgressOut(BaseModel):
+    is_available: bool = True
     lesson_id: str
     lesson_title: str
     course_id: str

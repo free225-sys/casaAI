@@ -93,10 +93,12 @@ class BadgeService:
         return bool(getattr(profile, "notify_badges", True))
 
     def _persist_and_notify(self, user_id, badges):
+        from app.db.locks import transaction_lock
         from app.models.badge import UserBadge
         from app.models.enums import NotificationType
         from app.models.notification import Notification
 
+        transaction_lock(self.db, f"casa:badges:{user_id}")
         existing = {
             row.badge_id: row
             for row in self.db.execute(select(UserBadge).where(UserBadge.user_id == user_id)).scalars()
@@ -108,6 +110,8 @@ class BadgeService:
             row = existing.get(badge.id)
             if row is None:
                 row = UserBadge(
+                    # Migration 0010 requires an ID but has no server default.
+                    id=uuid.uuid4(),
                     user_id=user_id,
                     badge_id=badge.id,
                     earned_at=badge.earned_at or datetime.now(timezone.utc),

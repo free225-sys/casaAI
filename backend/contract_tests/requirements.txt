@@ -1,0 +1,3 @@
+# Test environment only; no change to runtime requirements.
+-r ../requirements-dev.txt
+email-validator==2.3.0

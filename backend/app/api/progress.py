@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
+from app.models.enums import ContentStatus
 from app.models.user import User
 from app.repositories.progress_repository import ProgressRepository
 from app.repositories.document_structure_repository import DocumentStructureRepository
@@ -166,6 +167,7 @@ def get_my_progress(
     return [
         UserLessonProgressOut(
             lesson_id=lesson.id, lesson_title=lesson.title, course_id=lesson.course_id,
+            is_available=lesson.status == ContentStatus.PUBLISHED,
             status=progress.status, progress_pct=progress.progress_pct,
             started_at=progress.started_at, completed_at=progress.completed_at,
         )
